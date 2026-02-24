@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # --- 1. SQL Server (Identity & Metadata) ---
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: layla-sql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SQL_PASSWORD}
+      - MSSQL_MEM_LIMIT=1GB
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${SQL_PASSWORD} -Q 'SELECT 1'
+      interval: 10s
+      retries: 5
+      timeout: 3s
+    restart: unless-stopped
+
+  # --- 2. MongoDB (Manuscripts & Wiki) ---
+  mongodb:
+    image: mongo:7
+    container_name: layla-mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # --- 3. Neo4j (Worldbuilding) ---
+  neo4j:
+    image: neo4j:5
+    container_name: layla-neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # --- 4. RabbitMQ (Message Queue) ---
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: layla-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}
+    volumes:
+      - rabbit_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  sql_data:
+  mongo_data:
+  neo4j_data:
+  rabbit_data:

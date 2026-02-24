@@ -1,0 +1,6 @@
+@Layla.Api_HostAddress = http://localhost:5287
+
+GET {{Layla.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

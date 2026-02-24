@@ -1,0 +1,67 @@
+## .env
+.env
+.env.local
+.env.*.local
+
+## Visual Studio / .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+*.log
+*.pch
+*.pdb
+*.ipdb
+*.iobj
+*.aps
+*.ilk
+*.exp
+*.lib
+*.idb
+*.dll
+*.exe
+*.msi
+*.bsc
+*.sbr
+*.xml
+*.cache
+*.nupkg
+*.snupkg
+.nuget/
+
+## Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+## Android / Kotlin
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+## Docker
+.docker/
+
+## OS
+.DS_Store
+Thumbs.db
