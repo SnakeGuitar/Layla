@@ -1,7 +1,7 @@
-﻿using Layla.Api.Data;
-using Layla.Core.DTOs.Auth;
+﻿using Layla.Core.DTOs.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
+using Layla.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

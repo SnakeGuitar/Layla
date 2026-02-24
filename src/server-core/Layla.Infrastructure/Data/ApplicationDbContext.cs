@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Layla.Api.Data
+namespace Layla.Infrastructure.Data
 {
     public class ApplicationDbContext : IdentityDbContext<AppUser>
     {

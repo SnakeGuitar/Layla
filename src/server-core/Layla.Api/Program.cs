@@ -1,7 +1,7 @@
-using Layla.Api.Data;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
 using Layla.Core.Services;
+using Layla.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -82,7 +82,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
 
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var roles = new[] { "Writer", "Editor", "Reader", "Admin" };
