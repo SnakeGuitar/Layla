@@ -1,7 +1,6 @@
 ﻿using Layla.Core.DTOs.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
-using Layla.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,31 +8,23 @@ namespace Layla.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class UsersController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly ApplicationDbContext _context;
         private readonly ITokenService _tokenService;
 
-        public AuthController(
-            UserManager<AppUser> userManager,
-            SignInManager<AppUser> signInManager,
-            ApplicationDbContext context,
-            ITokenService tokenService)
+        public UsersController(UserManager<AppUser> userManager, ITokenService tokenService)
         {
             _userManager = userManager;
-            _signInManager = signInManager;
-            _context = context;
             _tokenService = tokenService;
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto request)
+        [HttpPost]
+        public async Task<ActionResult<AuthResponseDto>> CreateUser(RegisterRequestDto request)
         {
             if (await _userManager.FindByEmailAsync(request.Email) != null)
             {
-                return BadRequest(new { message = "Email is already registered" });
+                return Conflict(new { message = "Email is already registered." });
             }
 
             var user = new AppUser
@@ -60,13 +51,14 @@ namespace Layla.Api.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var token = _tokenService.GenerateToken(user, roles);
 
-            return Ok(new AuthResponseDto
+            var response = new AuthResponseDto
             {
                 Token = token,
                 Email = user.Email ?? "",
                 DisplayName = user.DisplayName ?? "",
                 ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
-            });
+            };
+            return Created(string.Empty, response);
         }
     }
 }
