@@ -6,6 +6,7 @@
       xmlns:local="clr-namespace:Layla.Desktop.Views"
       mc:Ignorable="d" 
       d:DesignHeight="720" d:DesignWidth="1080"
+      ShowsNavigationUI="False"
       Title="Main Workspace"
       Background="{DynamicResource WindowBackground}"
       Foreground="{DynamicResource PrimaryText}">
