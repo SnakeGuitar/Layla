@@ -1,4 +1,4 @@
-﻿<Page x:Class="Layla.Desktop.Views.EditorView"
+﻿<Page x:Class="Layla.Desktop.Views.MainView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,7 @@
       xmlns:local="clr-namespace:Layla.Desktop.Views"
       mc:Ignorable="d" 
       d:DesignHeight="720" d:DesignWidth="1080"
-      Title="EditorView"
+      Title="Main Workspace"
       Background="{DynamicResource WindowBackground}"
       Foreground="{DynamicResource PrimaryText}">
 
@@ -81,7 +81,7 @@
                 </TabItem>
 
                 <TabItem Header="Character Map">
-                    <Frame Source="GraphView.xaml" NavigationUIVisibility="Hidden"/>
+                    <Frame Source="/Views/GraphView.xaml" NavigationUIVisibility="Hidden"/>
                 </TabItem>
             </TabControl>
         </Grid>

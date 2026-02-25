@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="Themes\" />
+	  <Folder Include="Themes\" />
+	  <Folder Include="Data\" />
   </ItemGroup>
 
 </Project>

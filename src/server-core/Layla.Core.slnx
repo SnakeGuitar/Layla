@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../client-desktop/Layla.Desktop/Layla.Desktop.csproj" />
   <Project Path="Layla.Api/Layla.Api.csproj" />
   <Project Path="Layla.Core/Layla.Core.csproj" />
   <Project Path="Layla.Infrastructure/Layla.Infrastructure.csproj" />
