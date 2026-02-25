@@ -1,0 +1,93 @@
+using Layla.Core.Common;
+using Layla.Core.DTOs.Project;
+using Layla.Core.Entities;
+using Layla.Core.Events;
+using Layla.Core.Interfaces.Data;
+using Layla.Core.Interfaces.Messaging;
+using Layla.Core.Interfaces.Services;
+using Microsoft.Extensions.Logging;
+
+namespace Layla.Core.Services;
+
+public class ProjectService : IProjectService
+{
+    private readonly IProjectRepository _projectRepository;
+    private readonly IDocumentRepository _documentRepository;
+    private readonly IEventPublisher _eventPublisher;
+    private readonly ILogger<ProjectService> _logger;
+
+    public ProjectService(
+        IProjectRepository projectRepository,
+        IDocumentRepository documentRepository,
+        IEventPublisher eventPublisher,
+        ILogger<ProjectService> logger)
+    {
+        _projectRepository = projectRepository;
+        _documentRepository = documentRepository;
+        _eventPublisher = eventPublisher;
+        _logger = logger;
+    }
+
+    public async Task<Result<Project>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
+    {
+        await _projectRepository.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var project = new Project
+            {
+                Id = Guid.NewGuid(),
+                Title = request.Title,
+                Synopsis = request.Synopsis,
+                LiteraryGenre = request.LiteraryGenre,
+                CoverImageUrl = request.CoverImageUrl,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            var projectRole = new ProjectRole
+            {
+                ProjectId = project.Id,
+                AppUserId = userId,
+                Role = "OWNER",
+                AssignedAt = DateTime.UtcNow
+            };
+
+            await _projectRepository.AddProjectAsync(project, cancellationToken);
+            await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
+            
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            var initialDocument = new
+            {
+                ProjectId = project.Id,
+                Title = "Untitled Manuscript",
+                CreatedAt = DateTime.UtcNow,
+                Content = string.Empty
+            };
+
+            await _documentRepository.CreateDocumentAsync("Manuscripts", initialDocument, cancellationToken);
+
+            var projectCreatedEvent = new ProjectCreatedEvent
+            {
+                ProjectId = project.Id,
+                OwnerUserId = userId,
+                Title = project.Title,
+                CreatedAt = project.CreatedAt
+            };
+
+            await _eventPublisher.PublishAsync(projectCreatedEvent, cancellationToken);
+
+            await _projectRepository.CommitTransactionAsync(cancellationToken);
+
+            _logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
+
+            return Result<Project>.Success(project);
+        }
+        catch (Exception ex)
+        {
+            await _projectRepository.RollbackTransactionAsync(cancellationToken);
+            _logger.LogError(ex, "Failed to create project for user {UserId}", userId);
+            return Result<Project>.Failure("An error occurred while creating the project.");
+        }
+    }
+}

@@ -59,6 +59,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<Layla.Core.Interfaces.Services.IProjectService, Layla.Core.Services.ProjectService>();
+builder.Services.AddScoped<Layla.Core.Interfaces.Data.IProjectRepository, Layla.Infrastructure.Data.Repositories.ProjectRepository>();
+builder.Services.AddScoped<Layla.Core.Interfaces.Messaging.IEventPublisher, Layla.Infrastructure.Messaging.DummyEventPublisher>();
+builder.Services.AddScoped<Layla.Core.Interfaces.Data.IDocumentRepository, Layla.Infrastructure.Data.Repositories.DummyDocumentRepository>();
 
 var app = builder.Build();
 

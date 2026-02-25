@@ -10,9 +10,25 @@ namespace Layla.Infrastructure.Data
         {
         }
 
+        public DbSet<Project> Projects { get; set; } = null!;
+        public DbSet<ProjectRole> ProjectRoles { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<ProjectRole>()
+                .HasKey(pr => new { pr.ProjectId, pr.AppUserId });
+
+            builder.Entity<ProjectRole>()
+                .HasOne(pr => pr.Project)
+                .WithMany(p => p.Roles)
+                .HasForeignKey(pr => pr.ProjectId);
+
+            builder.Entity<ProjectRole>()
+                .HasOne(pr => pr.AppUser)
+                .WithMany()
+                .HasForeignKey(pr => pr.AppUserId);
         }
     }
 }
