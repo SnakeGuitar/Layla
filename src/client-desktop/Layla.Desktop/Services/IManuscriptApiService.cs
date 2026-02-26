@@ -7,6 +7,6 @@ namespace Layla.Desktop.Services
 {
     public interface IManuscriptApiService
     {
-        Task<IEnumerable<ManuscriptDto>> GetManuscriptsByProjectIdAsync(Guid projectId);
+        Task<IEnumerable<Manuscript>> GetManuscriptsByProjectIdAsync(Guid projectId);
     }
 }

@@ -7,9 +7,9 @@ namespace Layla.Desktop.Views
 {
     public partial class WorkspaceView : Page
     {
-        private readonly ProjectDto _currentProject;
+        private readonly Project _currentProject;
 
-        public WorkspaceView(ProjectDto currentProject)
+        public WorkspaceView(Project currentProject)
         {
             InitializeComponent();
             _currentProject = currentProject;

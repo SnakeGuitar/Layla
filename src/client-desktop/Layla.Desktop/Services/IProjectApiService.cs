@@ -6,7 +6,7 @@ namespace Layla.Desktop.Services
 {
     public interface IProjectApiService
     {
-        Task<IEnumerable<ProjectDto>> GetMyProjectsAsync();
-        Task<ProjectDto?> CreateProjectAsync(CreateProjectRequest request);
+        Task<IEnumerable<Project>> GetMyProjectsAsync();
+        Task<Project?> CreateProjectAsync(CreateProjectRequest request);
     }
 }

@@ -33,7 +33,7 @@ namespace Layla.Desktop.Services
             }
         }
 
-        public async Task<IEnumerable<ManuscriptDto>> GetManuscriptsByProjectIdAsync(Guid projectId)
+        public async Task<IEnumerable<Manuscript>> GetManuscriptsByProjectIdAsync(Guid projectId)
         {
             AddAuthorizationHeader();
             
@@ -42,7 +42,7 @@ namespace Layla.Desktop.Services
                 var response = await _httpClient.GetAsync($"/api/manuscripts/project/{projectId}");
                 if (response.IsSuccessStatusCode)
                 {
-                    var manuscripts = await response.Content.ReadFromJsonAsync<IEnumerable<ManuscriptDto>>();
+                    var manuscripts = await response.Content.ReadFromJsonAsync<IEnumerable<Manuscript>>();
                     if (manuscripts != null)
                     {
                         return manuscripts;
@@ -56,7 +56,7 @@ namespace Layla.Desktop.Services
                 System.Diagnostics.Debug.WriteLine($"Error retrieving manuscripts: {ex.Message}");
             }
 
-            return new List<ManuscriptDto>();
+            return new List<Manuscript>();
         }
     }
 }

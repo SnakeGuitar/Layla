@@ -33,7 +33,7 @@ namespace Layla.Desktop.Services
             }
         }
 
-        public async Task<IEnumerable<ProjectDto>> GetMyProjectsAsync()
+        public async Task<IEnumerable<Project>> GetMyProjectsAsync()
         {
             AddAuthorizationHeader();
             
@@ -42,7 +42,7 @@ namespace Layla.Desktop.Services
                 var response = await _httpClient.GetAsync("/api/projects");
                 if (response.IsSuccessStatusCode)
                 {
-                    var projects = await response.Content.ReadFromJsonAsync<IEnumerable<ProjectDto>>();
+                    var projects = await response.Content.ReadFromJsonAsync<IEnumerable<Project>>();
                     if (projects != null)
                     {
                         return projects;
@@ -56,10 +56,10 @@ namespace Layla.Desktop.Services
                 System.Diagnostics.Debug.WriteLine($"Error retrieving projects: {ex.Message}");
             }
 
-            return new List<ProjectDto>();
+            return new List<Project>();
         }
 
-        public async Task<ProjectDto?> CreateProjectAsync(CreateProjectRequest request)
+        public async Task<Project?> CreateProjectAsync(CreateProjectRequest request)
         {
             AddAuthorizationHeader();
             
@@ -68,7 +68,7 @@ namespace Layla.Desktop.Services
                 var response = await _httpClient.PostAsJsonAsync("/api/projects", request);
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<ProjectDto>();
+                    return await response.Content.ReadFromJsonAsync<Project>();
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"Failed to create project: {response.StatusCode}");

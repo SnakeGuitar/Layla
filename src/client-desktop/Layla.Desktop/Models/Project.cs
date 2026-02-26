@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace Layla.Desktop.Models
 {
-    class Project
+    public class Project
     {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Synopsis { get; set; } = string.Empty;
+        public string LiteraryGenre { get; set; } = string.Empty;
+        public string? CoverImageUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

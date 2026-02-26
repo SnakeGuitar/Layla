@@ -10,7 +10,7 @@ namespace Layla.Desktop.Views
 {
     public partial class EditorView : Page
     {
-        private readonly ProjectDto? _projectDto;
+        private readonly Project? _projectDto;
         private readonly IManuscriptApiService _manuscriptApiService;
 
         public EditorView()
@@ -19,7 +19,7 @@ namespace Layla.Desktop.Views
             _manuscriptApiService = new ManuscriptApiService();
         }
 
-        public EditorView(ProjectDto projectDto)
+        public EditorView(Project projectDto)
         {
             InitializeComponent();
             _projectDto = projectDto;
@@ -48,7 +48,7 @@ namespace Layla.Desktop.Views
 
         private void ManuscriptsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ManuscriptsListView.SelectedItem is ManuscriptDto selectedManuscript)
+            if (ManuscriptsListView.SelectedItem is Manuscript selectedManuscript)
             {
                 EditorRichTextBox.Document.Blocks.Clear();
                 EditorRichTextBox.Document.Blocks.Add(new Paragraph(new Run(selectedManuscript.Content)));

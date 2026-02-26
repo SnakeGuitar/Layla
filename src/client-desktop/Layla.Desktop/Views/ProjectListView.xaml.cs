@@ -32,7 +32,7 @@ namespace Layla.Desktop.Views
 
         private void ProjectsListView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (ProjectsListView.SelectedItem is Models.ProjectDto selectedProject)
+            if (ProjectsListView.SelectedItem is Models.Project selectedProject)
             {
                 NavigationService.Navigate(new WorkspaceView(selectedProject));
             }
