@@ -10,7 +10,7 @@ namespace Layla.Desktop.Views
 {
     public partial class EditorView : Page
     {
-        private readonly ProjectDto _projectDto;
+        private readonly ProjectDto? _projectDto;
         private readonly IManuscriptApiService _manuscriptApiService;
 
         public EditorView()
