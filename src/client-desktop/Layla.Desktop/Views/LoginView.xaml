@@ -6,7 +6,7 @@
       Background="{DynamicResource WindowBackground}"
       Foreground="{DynamicResource PrimaryText}">
 
-    <Grid>
+    <Grid Background="{DynamicResource WindowBackground}">
         <StackPanel Width="300" HorizontalAlignment="Center" VerticalAlignment="Center">
 
             <TextBlock Text="Layla" FontSize="32" FontWeight="Bold" 

@@ -17,10 +17,25 @@ namespace Layla.Desktop.Views
 
         private void MainView_Loaded(object sender, RoutedEventArgs e)
         {
-            while (NavigationService != null && NavigationService.CanGoBack)
+            try 
             {
-                NavigationService.RemoveBackEntry();
-            }
+                while (NavigationService != null && NavigationService.CanGoBack)
+                {
+                    NavigationService.RemoveBackEntry();
+                }
+            } 
+            catch { }
+        }
+
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new SettingsView());
+        }
+
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            Services.SessionManager.ClearSession();
+            NavigationService.Navigate(new LoginView());
         }
     }
 }

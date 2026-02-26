@@ -1,5 +1,6 @@
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Layla.Infrastructure.Data.Repositories;
@@ -71,6 +72,16 @@ public class ProjectRepository : IProjectRepository
     public async Task AddProjectRoleAsync(ProjectRole projectRole, CancellationToken cancellationToken = default)
     {
         await _dbContext.ProjectRoles.AddAsync(projectRole, cancellationToken);
+    }
+
+    public async Task<IEnumerable<Project>> GetProjectsByUserIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        var projects = await (from pr in _dbContext.ProjectRoles
+                              where pr.AppUserId == userId && pr.Role == "OWNER"
+                              join p in _dbContext.Projects on pr.ProjectId equals p.Id
+                              select p).ToListAsync(cancellationToken);
+
+        return projects;
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

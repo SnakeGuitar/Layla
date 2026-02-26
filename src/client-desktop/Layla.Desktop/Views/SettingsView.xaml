@@ -1,0 +1,38 @@
+<Page x:Class="Layla.Desktop.Views.SettingsView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:Layla.Desktop.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="720" d:DesignWidth="1080"
+      ShowsNavigationUI="False"
+      Title="Settings"
+      Background="{DynamicResource WindowBackground}"
+      Foreground="{DynamicResource PrimaryText}">
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Button Content="← Back" Background="Transparent" BorderThickness="0" 
+                    Foreground="{DynamicResource AccentColor}" FontSize="16" Cursor="Hand"
+                    Click="BackButton_Click"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="Settings" FontSize="28" FontWeight="Bold" Margin="0,0,0,30"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="App Theme:" FontSize="16" VerticalAlignment="Center" Margin="0,0,15,0"/>
+            <ComboBox x:Name="ThemeComboBox" Width="200" FontSize="14" Padding="5" SelectionChanged="ThemeComboBox_SelectionChanged">
+                <ComboBoxItem Content="Light Theme" Tag="LightTheme"/>
+                <ComboBoxItem Content="Dark Theme" Tag="DarkTheme"/>
+            </ComboBox>
+        </StackPanel>
+    </Grid>
+</Page>

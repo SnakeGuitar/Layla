@@ -37,7 +37,7 @@ namespace Layla.Desktop.Views
                 SessionManager.CurrentToken = response.Response.Token;
                 SessionManager.CurrentEmail = response.Response.Email;
                 SessionManager.CurrentDisplayName = response.Response.DisplayName;
-                NavigationService.Navigate(new MainView());
+                NavigationService.Navigate(new ProjectListView());
             }
             else
             {

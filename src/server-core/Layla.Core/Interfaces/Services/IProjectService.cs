@@ -7,4 +7,5 @@ namespace Layla.Core.Interfaces.Services;
 public interface IProjectService
 {
     Task<Result<Project>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<Project>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default);
 }

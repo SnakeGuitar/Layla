@@ -90,4 +90,18 @@ public class ProjectService : IProjectService
             return Result<Project>.Failure("An error occurred while creating the project.");
         }
     }
+
+    public async Task<Result<IEnumerable<Project>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
+            return Result<IEnumerable<Project>>.Success(projects);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve projects for user {UserId}", userId);
+            return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
+        }
+    }
 }

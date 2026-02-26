@@ -10,5 +10,6 @@ public interface IProjectRepository
 
     Task AddProjectAsync(Project project, CancellationToken cancellationToken = default);
     Task AddProjectRoleAsync(ProjectRole projectRole, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Project>> GetProjectsByUserIdAsync(string userId, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

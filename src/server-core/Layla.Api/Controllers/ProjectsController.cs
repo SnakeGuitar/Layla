@@ -39,6 +39,26 @@ public class ProjectsController : ControllerBase
         return CreatedAtAction(nameof(GetProjectById), new { id = project.Id }, project);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetProjects(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { Error = "User ID not found in token." });
+        }
+
+        var result = await _projectService.GetUserProjectsAsync(userId, cancellationToken);
+        
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return Ok(result.Data);
+    }
+
     [HttpGet("{id}")]
     public IActionResult GetProjectById(Guid id)
     {
