@@ -47,7 +47,7 @@ namespace Layla.Desktop.Services
                     return AuthResult.Fail("Invalid email or password.");
                 }
 
-                return AuthResult.Fail($"Server error: {response.StatusCode}");
+                return AuthResult.Fail("The service is temporarily unavailable. Please try again later.");
             }
             catch (Exception ex)
             {
@@ -99,7 +99,7 @@ namespace Layla.Desktop.Services
                     }
                 }
 
-                return AuthResult.Fail($"Server error: {response.StatusCode}");
+                return AuthResult.Fail("The service is temporarily unavailable. Please try again later.");
             }
             catch (Exception ex)
             {

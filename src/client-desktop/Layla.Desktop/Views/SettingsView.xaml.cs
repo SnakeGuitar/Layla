@@ -13,6 +13,15 @@ namespace Layla.Desktop.Views
         {
             InitializeComponent();
             InitializeThemeSelection();
+            InitializeFullscreenSelection();
+        }
+
+        private void InitializeFullscreenSelection()
+        {
+            if (Application.Current is App app)
+            {
+                FullscreenCheckBox.IsChecked = app.IsFullscreen;
+            }
         }
 
         private void InitializeThemeSelection()
@@ -50,6 +59,16 @@ namespace Layla.Desktop.Views
             {
                 NavigationService.GoBack();
             }
+        }
+
+        private void FullscreenCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            (Application.Current as App)?.SetFullscreen(true);
+        }
+
+        private void FullscreenCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            (Application.Current as App)?.SetFullscreen(false);
         }
     }
 }

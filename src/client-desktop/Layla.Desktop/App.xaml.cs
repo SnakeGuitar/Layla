@@ -23,6 +23,56 @@ namespace Layla.Desktop
             } 
             catch {}
             ChangeTheme(theme);
+
+            this.Dispatcher.InvokeAsync(() =>
+            {
+                if (this.MainWindow != null)
+                {
+                    this.MainWindow.KeyDown += MainWindow_KeyDown;
+                }
+            });
+        }
+
+        private bool _isFullscreen = false;
+        private WindowStyle _previousWindowStyle = WindowStyle.SingleBorderWindow;
+        private WindowState _previousWindowState = WindowState.Normal;
+
+        public bool IsFullscreen => _isFullscreen;
+
+        public void SetFullscreen(bool isFullscreen)
+        {
+            if (this.MainWindow == null) return;
+            if (_isFullscreen == isFullscreen) return;
+
+            if (isFullscreen)
+            {
+                _previousWindowStyle = this.MainWindow.WindowStyle;
+                _previousWindowState = this.MainWindow.WindowState;
+
+                this.MainWindow.WindowStyle = WindowStyle.None;
+                this.MainWindow.WindowState = WindowState.Maximized;
+                _isFullscreen = true;
+            }
+            else
+            {
+                this.MainWindow.WindowStyle = _previousWindowStyle;
+                this.MainWindow.WindowState = _previousWindowState;
+                _isFullscreen = false;
+            }
+        }
+
+        private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (this.MainWindow == null) return;
+
+            if (e.Key == System.Windows.Input.Key.F11)
+            {
+                SetFullscreen(!_isFullscreen);
+            }
+            else if (e.Key == System.Windows.Input.Key.Escape && _isFullscreen)
+            {
+                SetFullscreen(false);
+            }
         }
 
         public void ChangeTheme(string theme)
