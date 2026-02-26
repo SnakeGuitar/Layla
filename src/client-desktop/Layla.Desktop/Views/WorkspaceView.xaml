@@ -1,4 +1,4 @@
-﻿<Page x:Class="Layla.Desktop.Views.MainView"
+<Page x:Class="Layla.Desktop.Views.WorkspaceView"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,7 +7,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="720" d:DesignWidth="1080"
       ShowsNavigationUI="False"
-      Title="Main Workspace"
+      Title="Workspace"
       Background="{DynamicResource WindowBackground}"
       Foreground="{DynamicResource PrimaryText}">
 
@@ -27,15 +27,16 @@
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="My Workspace" FontWeight="Bold" FontSize="14" 
-                           VerticalAlignment="Center" Margin="15,0" 
+                <TextBlock x:Name="ProjectTitleText" Grid.Row="0" Text="Project Title" FontWeight="Bold" FontSize="16" 
+                           VerticalAlignment="Center" Margin="15,0" TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource AccentColor}"/>
 
-                <TreeView Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="5">
-                    <TreeViewItem Header="Prologue" Foreground="{DynamicResource PrimaryText}"/>
-                    <TreeViewItem Header="Chapter 1" Foreground="{DynamicResource PrimaryText}"/>
-                    <TreeViewItem Header="World Wiki" Foreground="{DynamicResource SecondaryText}"/>
-                </TreeView>
+                <StackPanel Grid.Row="1" Margin="5">
+                    <Button Content="← Back to Projects" Background="Transparent" BorderThickness="0" 
+                            HorizontalAlignment="Left" Padding="10,5"
+                            Foreground="{DynamicResource SecondaryText}" Cursor="Hand"
+                            Click="BackToProjects_Click"/>
+                </StackPanel>
 
                 <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" Margin="15,0">
                     <Button Content="⚙ Settings" Background="Transparent" BorderThickness="0" 
@@ -73,22 +74,17 @@
                     </Style>
                 </TabControl.Resources>
 
-                <TabItem Header="Chapter 1">
-                    <Grid>
-                        <RichTextBox Background="Transparent" BorderThickness="0" 
-                                     Foreground="{DynamicResource PrimaryText}"
-                                     Padding="40,20" FontSize="16" FontFamily="Segoe UI"
-                                     AcceptsReturn="True" SpellCheck.IsEnabled="True">
-                            <FlowDocument>
-                                <Paragraph>
-                                    <Run Text="Start writing your manuscript here..."/>
-                                </Paragraph>
-                            </FlowDocument>
-                        </RichTextBox>
-                    </Grid>
+                <TabItem Header="Manuscript Editor">
+                    <Frame x:Name="EditorFrame" NavigationUIVisibility="Hidden"/>
                 </TabItem>
 
-                <TabItem Header="Character Map">
+                <TabItem Header="Wiki">
+                    <Grid>
+                        <TextBlock Text="Wiki Content Here..." Foreground="{DynamicResource PrimaryText}" Margin="20"/>
+                    </Grid>
+                </TabItem>
+                
+                <TabItem Header="Graph">
                     <Frame Source="GraphView.xaml" NavigationUIVisibility="Hidden"/>
                 </TabItem>
             </TabControl>

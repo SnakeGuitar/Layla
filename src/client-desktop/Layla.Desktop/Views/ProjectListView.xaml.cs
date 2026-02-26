@@ -34,7 +34,7 @@ namespace Layla.Desktop.Views
         {
             if (ProjectsListView.SelectedItem is Models.ProjectDto selectedProject)
             {
-                NavigationService.Navigate(new MainView());
+                NavigationService.Navigate(new WorkspaceView(selectedProject));
             }
         }
 

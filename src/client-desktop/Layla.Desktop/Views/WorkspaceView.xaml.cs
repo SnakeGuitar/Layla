@@ -1,22 +1,27 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using Layla.Desktop.Models;
 
 namespace Layla.Desktop.Views
 {
-    /// <summary>
-    /// Interaction logic for MainPage.xaml
-    /// </summary>
-    public partial class MainView : Page
+    public partial class WorkspaceView : Page
     {
-        public MainView()
+        private readonly ProjectDto _currentProject;
+
+        public WorkspaceView(ProjectDto currentProject)
         {
             InitializeComponent();
-            this.Loaded += MainView_Loaded;
+            _currentProject = currentProject;
+            this.Loaded += WorkspaceView_Loaded;
         }
 
-        private void MainView_Loaded(object sender, RoutedEventArgs e)
+        private void WorkspaceView_Loaded(object sender, RoutedEventArgs e)
         {
+            ProjectTitleText.Text = _currentProject.Title;
+            
+            EditorFrame.Navigate(new EditorView(_currentProject));
+
             try 
             {
                 while (NavigationService != null && NavigationService.CanGoBack)
@@ -25,6 +30,11 @@ namespace Layla.Desktop.Views
                 }
             } 
             catch { }
+        }
+        
+        private void BackToProjects_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new ProjectListView());
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)

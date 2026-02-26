@@ -67,6 +67,7 @@ builder.Services.AddScoped<Layla.Core.Interfaces.Services.IProjectService, Layla
 builder.Services.AddScoped<Layla.Core.Interfaces.Data.IProjectRepository, Layla.Infrastructure.Data.Repositories.ProjectRepository>();
 builder.Services.AddScoped<Layla.Core.Interfaces.Messaging.IEventPublisher, Layla.Infrastructure.Messaging.DummyEventPublisher>();
 builder.Services.AddScoped<Layla.Core.Interfaces.Data.IDocumentRepository, Layla.Infrastructure.Data.Repositories.DummyDocumentRepository>();
+builder.Services.AddScoped<Layla.Core.Services.IManuscriptService, Layla.Core.Services.ManuscriptService>();
 
 var app = builder.Build();
 
