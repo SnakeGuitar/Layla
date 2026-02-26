@@ -27,7 +27,8 @@ namespace Layla.Core.Services
             {
                 new Claim(ClaimTypes.Email, user.Email ?? ""),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.DisplayName ?? "")
+                new Claim(ClaimTypes.Name, user.DisplayName ?? ""),
+                new Claim("TokenVersion", user.TokenVersion.ToString())
             };
 
             foreach (var role in roles)

@@ -42,6 +42,10 @@ namespace Layla.Api.Controllers
             }
 
             var roles = await _userManager.GetRolesAsync(user);
+
+            user.TokenVersion++;
+            await _userManager.UpdateAsync(user);
+
             var token = _tokenService.GenerateToken(user, roles);
 
             return Ok(new AuthResponseDto

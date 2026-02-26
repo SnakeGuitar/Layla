@@ -5,6 +5,7 @@ using Layla.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,28 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
                 System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]!))
+        };
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                var userId = context.Principal?.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+                var tokenVersionClaim = context.Principal?.FindFirst("TokenVersion")?.Value;
+
+                if (userId != null && int.TryParse(tokenVersionClaim, out int tokenVersion))
+                {
+                    var user = await userManager.FindByIdAsync(userId);
+                    if (user == null || user.TokenVersion != tokenVersion)
+                    {
+                        context.Fail("Session expired. User logged in from another device.");
+                    }
+                }
+                else
+                {
+                    context.Fail("Invalid token structure (missing TokenVersion).");
+                }
+            }
         };
     });
 
