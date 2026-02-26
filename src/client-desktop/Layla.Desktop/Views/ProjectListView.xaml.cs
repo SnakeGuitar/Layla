@@ -112,6 +112,95 @@ namespace Layla.Desktop.Views
             }
         }
 
+        private Guid _editingProjectId;
+
+        private void EditProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.DataContext is Models.Project project)
+            {
+                _editingProjectId = project.Id;
+                EditProjectTitle.Text = project.Title;
+                EditProjectGenre.Text = project.LiteraryGenre;
+                EditProjectSynopsis.Text = project.Synopsis;
+                EditProjectError.Visibility = Visibility.Collapsed;
+                EditProjectModal.Visibility = Visibility.Visible;
+            }
+        }
+
+        private async void DeleteProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.DataContext is Models.Project project)
+            {
+                var result = MessageBox.Show($"Are you sure you want to delete the project '{project.Title}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    bool deleted = await _projectApiService.DeleteProjectAsync(project.Id);
+                    if (deleted)
+                    {
+                        await ReloadProjectsAsync();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Failed to delete project.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        private void CancelEditProject_Click(object sender, RoutedEventArgs e)
+        {
+            EditProjectModal.Visibility = Visibility.Collapsed;
+        }
+
+        private async void UpdateProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(EditProjectTitle.Text) ||
+                string.IsNullOrWhiteSpace(EditProjectGenre.Text) ||
+                string.IsNullOrWhiteSpace(EditProjectSynopsis.Text))
+            {
+                EditProjectError.Text = "Please fill in all fields.";
+                EditProjectError.Visibility = Visibility.Visible;
+                return;
+            }
+
+            EditProjectError.Visibility = Visibility.Collapsed;
+            UpdateProjectButton.IsEnabled = false;
+            UpdateProjectButton.Content = "Saving...";
+
+            try
+            {
+                var request = new Models.UpdateProjectRequest
+                {
+                    Title = EditProjectTitle.Text,
+                    LiteraryGenre = EditProjectGenre.Text,
+                    Synopsis = EditProjectSynopsis.Text
+                };
+
+                var updatedProject = await _projectApiService.UpdateProjectAsync(_editingProjectId, request);
+
+                if (updatedProject != null)
+                {
+                    EditProjectModal.Visibility = Visibility.Collapsed;
+                    await ReloadProjectsAsync();
+                }
+                else
+                {
+                    EditProjectError.Text = "Failed to update project.";
+                    EditProjectError.Visibility = Visibility.Visible;
+                }
+            }
+            catch (Exception ex)
+            {
+                EditProjectError.Text = $"Error: {ex.Message}";
+                EditProjectError.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                UpdateProjectButton.IsEnabled = true;
+                UpdateProjectButton.Content = "Save";
+            }
+        }
+
         private async Task ReloadProjectsAsync()
         {
             try

@@ -8,5 +8,7 @@ namespace Layla.Desktop.Services
     {
         Task<IEnumerable<Project>> GetMyProjectsAsync();
         Task<Project?> CreateProjectAsync(CreateProjectRequest request);
+        Task<Project?> UpdateProjectAsync(Guid id, UpdateProjectRequest request);
+        Task<bool> DeleteProjectAsync(Guid id);
     }
 }

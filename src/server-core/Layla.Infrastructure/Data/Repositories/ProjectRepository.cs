@@ -84,6 +84,29 @@ public class ProjectRepository : IProjectRepository
         return projects;
     }
 
+    public async Task<Project?> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Projects.FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+    }
+
+    public Task UpdateProjectAsync(Project project, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Projects.Update(project);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteProjectAsync(Project project, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Projects.Remove(project);
+        return Task.CompletedTask;
+    }
+
+    public async Task<bool> UserHasRoleInProjectAsync(Guid projectId, string userId, string role, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ProjectRoles
+            .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId && pr.Role == role, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);

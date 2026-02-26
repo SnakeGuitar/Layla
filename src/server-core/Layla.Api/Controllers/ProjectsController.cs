@@ -64,4 +64,58 @@ public class ProjectsController : ControllerBase
     {
         return Ok();
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectRequestDto request, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { Error = "User ID not found in token." });
+        }
+
+        var result = await _projectService.UpdateProjectAsync(id, request, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Unauthorized.")
+            {
+                return Forbid();
+            }
+            if (result.Error == "Project not found.")
+            {
+                return NotFound(new { Error = result.Error });
+            }
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return Ok(result.Data);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteProject(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { Error = "User ID not found in token." });
+        }
+
+        var result = await _projectService.DeleteProjectAsync(id, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Unauthorized.")
+            {
+                return Forbid();
+            }
+            if (result.Error == "Project not found.")
+            {
+                return NotFound(new { Error = result.Error });
+            }
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return NoContent();
+    }
 }

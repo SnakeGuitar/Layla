@@ -80,5 +80,49 @@ namespace Layla.Desktop.Services
 
             return null;
         }
+
+        public async Task<Project?> UpdateProjectAsync(Guid id, UpdateProjectRequest request)
+        {
+            AddAuthorizationHeader();
+            
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync($"/api/projects/{id}", request);
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<Project>();
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Failed to update project: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating project: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        public async Task<bool> DeleteProjectAsync(Guid id)
+        {
+            AddAuthorizationHeader();
+            
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/projects/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Failed to delete project: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error deleting project: {ex.Message}");
+            }
+
+            return false;
+        }
     }
 }

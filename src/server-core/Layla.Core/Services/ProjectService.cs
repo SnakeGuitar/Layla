@@ -104,4 +104,70 @@ public class ProjectService : IProjectService
             return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
         }
     }
+
+    public async Task<Result<Project>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, "OWNER", cancellationToken);
+            if (!hasRole)
+            {
+                return Result<Project>.Failure("Unauthorized.");
+            }
+
+            var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
+            if (project == null)
+            {
+                return Result<Project>.Failure("Project not found.");
+            }
+
+            project.Title = request.Title;
+            project.Synopsis = request.Synopsis;
+            project.LiteraryGenre = request.LiteraryGenre;
+            project.CoverImageUrl = request.CoverImageUrl;
+            project.UpdatedAt = DateTime.UtcNow;
+
+            await _projectRepository.UpdateProjectAsync(project, cancellationToken);
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Project {ProjectId} updated successfully by user {UserId}", projectId, userId);
+
+            return Result<Project>.Success(project);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
+            return Result<Project>.Failure("An error occurred while updating the project.");
+        }
+    }
+
+    public async Task<Result<bool>> DeleteProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, "OWNER", cancellationToken);
+            if (!hasRole)
+            {
+                return Result<bool>.Failure("Unauthorized.");
+            }
+
+            var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
+            if (project == null)
+            {
+                return Result<bool>.Failure("Project not found.");
+            }
+
+            await _projectRepository.DeleteProjectAsync(project, cancellationToken);
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Project {ProjectId} deleted successfully by user {UserId}", projectId, userId);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete project {ProjectId} for user {UserId}", projectId, userId);
+            return Result<bool>.Failure("An error occurred while deleting the project.");
+        }
+    }
 }
