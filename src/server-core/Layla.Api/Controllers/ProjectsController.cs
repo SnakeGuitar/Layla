@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Layla.Api.Extensions;
 using Layla.Core.DTOs.Project;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +21,7 @@ public class ProjectsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateProject([FromBody] CreateProjectRequestDto request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetUserId();
         
         if (string.IsNullOrEmpty(userId))
         {
@@ -42,7 +42,7 @@ public class ProjectsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetProjects(CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetUserId();
         
         if (string.IsNullOrEmpty(userId))
         {
@@ -68,7 +68,7 @@ public class ProjectsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProject(Guid id, [FromBody] UpdateProjectRequestDto request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized(new { Error = "User ID not found in token." });
@@ -95,7 +95,7 @@ public class ProjectsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProject(Guid id, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized(new { Error = "User ID not found in token." });

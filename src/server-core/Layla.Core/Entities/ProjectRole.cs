@@ -8,6 +8,6 @@ public class ProjectRole
     public string AppUserId { get; set; } = string.Empty;
     public AppUser AppUser { get; set; } = null!;
 
-    public string Role { get; set; } = string.Empty; // e.g. "OWNER", "EDITOR", "VIEWER"
+    public string Role { get; set; } = string.Empty;
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 }

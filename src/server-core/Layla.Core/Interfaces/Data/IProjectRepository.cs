@@ -16,6 +16,7 @@ public interface IProjectRepository
     Task UpdateProjectAsync(Project project, CancellationToken cancellationToken = default);
     Task DeleteProjectAsync(Project project, CancellationToken cancellationToken = default);
     Task<bool> UserHasRoleInProjectAsync(Guid projectId, string userId, string role, CancellationToken cancellationToken = default);
+    Task<bool> UserHasAnyRoleInProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
 
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

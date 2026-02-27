@@ -1,12 +1,12 @@
+using Layla.Api.Extensions;
+using Layla.Api.Middleware;
 using Layla.Core.Entities;
-using Layla.Core.Interfaces.Services;
-using Layla.Core.Services;
+using Layla.Core.Extensions;
 using Layla.Infrastructure.Data;
+using Layla.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
-using MongoDB.Driver;
-using Layla.Infrastructure.Configuration;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,28 +30,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
-
-builder.Services.AddSingleton<IMongoClient>(sp =>
-{
-    var settings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-    return new MongoClient(settings!.ConnectionString);
-});
-
-builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 8;
-})
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -96,15 +75,11 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<Layla.Core.Interfaces.Services.IProjectService, Layla.Core.Services.ProjectService>();
-builder.Services.AddScoped<Layla.Core.Interfaces.Data.IProjectRepository, Layla.Infrastructure.Data.Repositories.ProjectRepository>();
-builder.Services.AddScoped<Layla.Core.Interfaces.Messaging.IEventPublisher, Layla.Infrastructure.Messaging.DummyEventPublisher>();
-builder.Services.AddScoped<Layla.Core.Interfaces.Data.IDocumentRepository, Layla.Infrastructure.Data.Repositories.MongoDocumentRepository>();
-builder.Services.AddScoped<Layla.Core.Services.IManuscriptService, Layla.Core.Services.ManuscriptService>();
-builder.Services.AddScoped<Layla.Core.Services.IWikiService, Layla.Core.Services.WikiService>();
+builder.Services.AddCoreServices();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

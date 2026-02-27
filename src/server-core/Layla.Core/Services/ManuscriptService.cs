@@ -1,3 +1,4 @@
+using Layla.Core.Common;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Data;
 using Microsoft.Extensions.Logging;
@@ -20,37 +21,35 @@ public class ManuscriptService : IManuscriptService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<Manuscript>> GetManuscriptsByProjectIdAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<Manuscript>>> GetManuscriptsByProjectIdAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Getting manuscripts for project {ProjectId} by user {UserId}", projectId, userId);
 
-        var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
-        var project = projects.FirstOrDefault(p => p.Id == projectId);
-
-        if (project == null)
+        if (!await UserHasProjectAccessAsync(projectId, userId, cancellationToken))
         {
-            _logger.LogWarning("Project {ProjectId} not found or user {UserId} is not the owner.", projectId, userId);
-            throw new UnauthorizedAccessException("User does not have access to this project.");
+            _logger.LogWarning("Project {ProjectId} not found or user {UserId} is not authorized.", projectId, userId);
+            return Result<IEnumerable<Manuscript>>.Failure("Unauthorized access.");
         }
 
-        return await _documentRepository.GetManuscriptsByProjectIdAsync(projectId, cancellationToken);
+        var manuscripts = await _documentRepository.GetManuscriptsByProjectIdAsync(projectId, cancellationToken);
+        return Result<IEnumerable<Manuscript>>.Success(manuscripts);
     }
 
-    public async Task<Manuscript?> GetManuscriptByIdAsync(string manuscriptId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<Manuscript>> GetManuscriptByIdAsync(string manuscriptId, string userId, CancellationToken cancellationToken = default)
     {
         var manuscript = await _documentRepository.GetDocumentByIdAsync<Manuscript>("Manuscripts", manuscriptId, cancellationToken);
-        if (manuscript == null) return null;
+        if (manuscript == null) return Result<Manuscript>.Failure("Manuscript not found.");
 
         if (!await UserHasProjectAccessAsync(manuscript.ProjectId, userId, cancellationToken))
-            throw new UnauthorizedAccessException("User does not have access to this manuscript.");
+            return Result<Manuscript>.Failure("Unauthorized access.");
 
-        return manuscript;
+        return Result<Manuscript>.Success(manuscript);
     }
 
-    public async Task<Manuscript> CreateManuscriptAsync(Guid projectId, string title, string content, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<Manuscript>> CreateManuscriptAsync(Guid projectId, string title, string content, string userId, CancellationToken cancellationToken = default)
     {
         if (!await UserHasProjectAccessAsync(projectId, userId, cancellationToken))
-            throw new UnauthorizedAccessException("User does not have access to this project.");
+            return Result<Manuscript>.Failure("Unauthorized access.");
 
         var manuscript = new Manuscript
         {
@@ -62,34 +61,34 @@ public class ManuscriptService : IManuscriptService
 
         var id = await _documentRepository.CreateDocumentAsync("Manuscripts", manuscript, cancellationToken);
         manuscript.Id = id;
-        return manuscript;
+        return Result<Manuscript>.Success(manuscript);
     }
 
-    public async Task<Manuscript> UpdateManuscriptAsync(string manuscriptId, string title, string content, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<Manuscript>> UpdateManuscriptAsync(string manuscriptId, string title, string content, string userId, CancellationToken cancellationToken = default)
     {
-        var manuscript = await GetManuscriptByIdAsync(manuscriptId, userId, cancellationToken);
-        if (manuscript == null) throw new KeyNotFoundException("Manuscript not found.");
+        var result = await GetManuscriptByIdAsync(manuscriptId, userId, cancellationToken);
+        if (!result.IsSuccess) return result;
 
+        var manuscript = result.Data!;
         manuscript.Title = title;
         manuscript.Content = content;
         manuscript.LastModifiedDate = DateTime.UtcNow;
 
         await _documentRepository.ReplaceDocumentAsync("Manuscripts", manuscriptId, manuscript, cancellationToken);
-        return manuscript;
+        return Result<Manuscript>.Success(manuscript);
     }
 
-    public async Task<bool> DeleteManuscriptAsync(string manuscriptId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> DeleteManuscriptAsync(string manuscriptId, string userId, CancellationToken cancellationToken = default)
     {
-        var manuscript = await GetManuscriptByIdAsync(manuscriptId, userId, cancellationToken);
-        if (manuscript == null) return false;
+        var result = await GetManuscriptByIdAsync(manuscriptId, userId, cancellationToken);
+        if (!result.IsSuccess) return Result<bool>.Failure(result.Error!);
 
         await _documentRepository.DeleteDocumentAsync<Manuscript>("Manuscripts", manuscriptId, cancellationToken);
-        return true;
+        return Result<bool>.Success(true);
     }
 
     private async Task<bool> UserHasProjectAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken)
     {
-        var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
-        return projects.Any(p => p.Id == projectId);
+        return await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
     }
 }

@@ -107,6 +107,12 @@ public class ProjectRepository : IProjectRepository
             .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId && pr.Role == role, cancellationToken);
     }
 
+    public async Task<bool> UserHasAnyRoleInProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ProjectRoles
+            .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);

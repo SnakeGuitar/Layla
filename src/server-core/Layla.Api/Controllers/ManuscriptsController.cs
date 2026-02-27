@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Layla.Core.Services;
-using System.Security.Claims;
+using Layla.Api.Extensions;
 using Layla.Core.Entities;
+using Layla.Core.DTOs.Manuscript;
 
 namespace Layla.Api.Controllers;
 
@@ -21,107 +22,87 @@ public class ManuscriptsController : ControllerBase
     [HttpGet("project/{projectId}")]
     public async Task<ActionResult<IEnumerable<Manuscript>>> GetManuscriptsByProjectId(Guid projectId, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
         }
 
-        try
-        {
-            var manuscripts = await _manuscriptService.GetManuscriptsByProjectIdAsync(projectId, userId, cancellationToken);
-            return Ok(manuscripts);
-        }
-        catch (UnauthorizedAccessException)
+        var result = await _manuscriptService.GetManuscriptsByProjectIdAsync(projectId, userId, cancellationToken);
+        
+        if (!result.IsSuccess)
         {
             return Forbid();
         }
+
+        return Ok(result.Data);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Manuscript>> GetManuscriptById(string id, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _manuscriptService.GetManuscriptByIdAsync(id, userId, cancellationToken);
+        
+        if (!result.IsSuccess)
         {
-            var manuscript = await _manuscriptService.GetManuscriptByIdAsync(id, userId, cancellationToken);
-            if (manuscript == null) return NotFound();
-            return Ok(manuscript);
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
+
+        return Ok(result.Data);
     }
 
     [HttpPost]
     public async Task<ActionResult<Manuscript>> CreateManuscript([FromBody] CreateManuscriptRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
-        {
-            var manuscript = await _manuscriptService.CreateManuscriptAsync(request.ProjectId, request.Title, request.Content, userId, cancellationToken);
-            return CreatedAtAction(nameof(GetManuscriptById), new { id = manuscript.Id }, manuscript);
-        }
-        catch (UnauthorizedAccessException)
+        var result = await _manuscriptService.CreateManuscriptAsync(request.ProjectId, request.Title, request.Content, userId, cancellationToken);
+        
+        if (!result.IsSuccess)
         {
             return Forbid();
         }
+
+        var manuscript = result.Data!;
+        return CreatedAtAction(nameof(GetManuscriptById), new { id = manuscript.Id }, manuscript);
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<Manuscript>> UpdateManuscript(string id, [FromBody] UpdateManuscriptRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _manuscriptService.UpdateManuscriptAsync(id, request.Title, request.Content, userId, cancellationToken);
+        
+        if (!result.IsSuccess)
         {
-            var manuscript = await _manuscriptService.UpdateManuscriptAsync(id, request.Title, request.Content, userId, cancellationToken);
-            return Ok(manuscript);
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+
+        return Ok(result.Data);
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteManuscript(string id, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _manuscriptService.DeleteManuscriptAsync(id, userId, cancellationToken);
+        
+        if (!result.IsSuccess)
         {
-            var deleted = await _manuscriptService.DeleteManuscriptAsync(id, userId, cancellationToken);
-            if (!deleted) return NotFound();
-            return NoContent();
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
+
+        return NoContent();
     }
-}
-
-public class CreateManuscriptRequest
-{
-    public Guid ProjectId { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-}
-
-public class UpdateManuscriptRequest
-{
-    public string Title { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
 }

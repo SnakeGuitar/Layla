@@ -1,7 +1,5 @@
 ﻿using Layla.Core.DTOs.Auth;
-using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Layla.Api.Controllers
@@ -10,51 +8,28 @@ namespace Layla.Api.Controllers
     [Route("api/[controller]")]
     public class TokensController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
-        private readonly SignInManager<AppUser> _signInManager;
-        private readonly ITokenService _tokenService;
+        private readonly IAuthService _authService;
 
-        public TokensController(
-            UserManager<AppUser> userManager,
-            SignInManager<AppUser> signInManager,
-            ITokenService tokenService)
+        public TokensController(IAuthService authService)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _tokenService = tokenService;
+            _authService = authService;
         }
 
         [HttpPost]
         public async Task<ActionResult<AuthResponseDto>> CreateToken(LoginRequestDto request)
         {
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var result = await _authService.LoginAsync(request);
 
-            if (user == null)
+            if (!result.IsSuccess)
             {
-                return Unauthorized(new { message = "Invalid email or password." });
+                if (result.Error == "Account is locked out due to multiple failed attempts.")
+                {
+                    return StatusCode(StatusCodes.Status423Locked, new { message = result.Error });
+                }
+                return Unauthorized(new { message = result.Error });
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
-
-            if (!result.Succeeded)
-            {
-                return Unauthorized(new { message = "Invalid email or password." });
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            user.TokenVersion++;
-            await _userManager.UpdateAsync(user);
-
-            var token = _tokenService.GenerateToken(user, roles);
-
-            return Ok(new AuthResponseDto
-            {
-                Token = token,
-                Email = user.Email ?? "",
-                DisplayName = user.DisplayName ?? "",
-                ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
-            });
+            return Ok(result.Data);
         }
     }
 }

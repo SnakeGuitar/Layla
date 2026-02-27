@@ -2,7 +2,8 @@ using Layla.Core.Entities;
 using Layla.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Layla.Core.DTOs.Wiki;
+using Layla.Api.Extensions;
 
 namespace Layla.Api.Controllers;
 
@@ -21,104 +22,74 @@ public class WikisController : ControllerBase
     [HttpGet("project/{projectId}")]
     public async Task<ActionResult<IEnumerable<Wiki>>> GetWikisByProjectId(Guid projectId, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
-        {
-            var wikis = await _wikiService.GetWikisByProjectIdAsync(projectId, userId, cancellationToken);
-            return Ok(wikis);
-        }
-        catch (UnauthorizedAccessException)
+        var result = await _wikiService.GetWikisByProjectIdAsync(projectId, userId, cancellationToken);
+        if (!result.IsSuccess)
         {
             return Forbid();
         }
+        return Ok(result.Data);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Wiki>> GetWikiById(string id, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _wikiService.GetWikiByIdAsync(id, userId, cancellationToken);
+        if (!result.IsSuccess)
         {
-            var wiki = await _wikiService.GetWikiByIdAsync(id, userId, cancellationToken);
-            if (wiki == null) return NotFound();
-            return Ok(wiki);
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
+        return Ok(result.Data);
     }
 
     [HttpPost]
     public async Task<ActionResult<Wiki>> CreateWiki([FromBody] CreateWikiRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
-        {
-            var wiki = await _wikiService.CreateWikiAsync(request.ProjectId, request.Name, request.Description, userId, cancellationToken);
-            return CreatedAtAction(nameof(GetWikiById), new { id = wiki.Id }, wiki);
-        }
-        catch (UnauthorizedAccessException)
+        var result = await _wikiService.CreateWikiAsync(request.ProjectId, request.Name, request.Description, userId, cancellationToken);
+        if (!result.IsSuccess)
         {
             return Forbid();
         }
+        var wiki = result.Data!;
+        return CreatedAtAction(nameof(GetWikiById), new { id = wiki.Id }, wiki);
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult<Wiki>> UpdateWiki(string id, [FromBody] UpdateWikiRequest request, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _wikiService.UpdateWikiAsync(id, request.Name, request.Description, userId, cancellationToken);
+        if (!result.IsSuccess)
         {
-            var wiki = await _wikiService.UpdateWikiAsync(id, request.Name, request.Description, userId, cancellationToken);
-            return Ok(wiki);
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
+        return Ok(result.Data);
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteWiki(string id, CancellationToken cancellationToken)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userId = User.GetUserId();
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        try
+        var result = await _wikiService.DeleteWikiAsync(id, userId, cancellationToken);
+        if (!result.IsSuccess)
         {
-            var deleted = await _wikiService.DeleteWikiAsync(id, userId, cancellationToken);
-            if (!deleted) return NotFound();
-            return NoContent();
+            if (result.Error == "Unauthorized access.") return Forbid();
+            return NotFound(new { message = result.Error });
         }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid();
-        }
+        return NoContent();
     }
-}
-
-public class CreateWikiRequest
-{
-    public Guid ProjectId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-}
-
-public class UpdateWikiRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
 }

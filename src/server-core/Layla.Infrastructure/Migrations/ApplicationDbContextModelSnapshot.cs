@@ -128,7 +128,7 @@ namespace Layla.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("Layla.Core.Entities.ProjectRole", b =>
@@ -150,7 +150,7 @@ namespace Layla.Infrastructure.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.ToTable("ProjectRoles");
+                    b.ToTable("ProjectRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
