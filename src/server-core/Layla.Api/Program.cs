@@ -102,6 +102,7 @@ builder.Services.AddScoped<Layla.Core.Interfaces.Data.IProjectRepository, Layla.
 builder.Services.AddScoped<Layla.Core.Interfaces.Messaging.IEventPublisher, Layla.Infrastructure.Messaging.DummyEventPublisher>();
 builder.Services.AddScoped<Layla.Core.Interfaces.Data.IDocumentRepository, Layla.Infrastructure.Data.Repositories.MongoDocumentRepository>();
 builder.Services.AddScoped<Layla.Core.Services.IManuscriptService, Layla.Core.Services.ManuscriptService>();
+builder.Services.AddScoped<Layla.Core.Services.IWikiService, Layla.Core.Services.WikiService>();
 
 var app = builder.Build();
 
