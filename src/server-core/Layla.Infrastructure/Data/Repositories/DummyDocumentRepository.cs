@@ -27,19 +27,19 @@ public class DummyDocumentRepository : IDocumentRepository
         {
             new Layla.Core.Entities.Manuscript
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 ProjectId = projectId,
                 Title = "Prologue",
                 Content = "The night was dark and full of terrors...",
-                CreatedAt = DateTime.UtcNow.AddDays(-2)
+                CreationDate = DateTime.UtcNow.AddDays(-2)
             },
             new Layla.Core.Entities.Manuscript
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.NewGuid().ToString(),
                 ProjectId = projectId,
                 Title = "Chapter 1: The Beginning",
                 Content = "It started with a whisper in the wind.",
-                CreatedAt = DateTime.UtcNow.AddDays(-1)
+                CreationDate = DateTime.UtcNow.AddDays(-1)
             }
         };
 
