@@ -19,6 +19,21 @@ public class DummyDocumentRepository : IDocumentRepository
         return Task.FromResult(dummyId);
     }
 
+    public Task<TDocument?> GetDocumentByIdAsync<TDocument>(string collectionName, string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task ReplaceDocumentAsync<TDocument>(string collectionName, string id, TDocument document, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteDocumentAsync<TDocument>(string collectionName, string id, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<IEnumerable<Layla.Core.Entities.Manuscript>> GetManuscriptsByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Dummy GetManuscriptsByProjectIdAsync: Returning dummy manuscripts for project {ProjectId}.", projectId);
@@ -44,5 +59,15 @@ public class DummyDocumentRepository : IDocumentRepository
         };
 
         return Task.FromResult<IEnumerable<Layla.Core.Entities.Manuscript>>(dummyManuscripts);
+    }
+
+    public Task<IEnumerable<Layla.Core.Entities.Wiki>> GetWikisByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Layla.Core.Entities.WikiPage>> GetWikiPagesByWikiIdAsync(string wikiId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
     }
 }
