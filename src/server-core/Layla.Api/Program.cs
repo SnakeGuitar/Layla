@@ -75,7 +75,7 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddCoreServices();
+builder.Services.AddCoreServices(builder.Configuration);
 
 var app = builder.Build();
 

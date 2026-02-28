@@ -7,36 +7,36 @@ using Microsoft.Extensions.Logging;
 
 namespace Layla.Infrastructure.Services;
 
-public class AuthService : IAuthService
+/// <summary>
+/// Provides authentication and registration services for users.
+/// </summary>
+/// <param name="userManager">The ASP.NET Core Identity user manager.</param>
+/// <param name="signInManager">The ASP.NET Core Identity sign-in manager.</param>
+/// <param name="tokenService">Service responsible for generating JWT tokens.</param>
+/// <param name="logger">Logger for authentication events.</param>
+public class AuthService(
+    UserManager<AppUser> userManager,
+    SignInManager<AppUser> signInManager,
+    ITokenService tokenService,
+    ILogger<AuthService> logger) : IAuthService
 {
-    private readonly UserManager<AppUser> _userManager;
-    private readonly SignInManager<AppUser> _signInManager;
-    private readonly ITokenService _tokenService;
-    private readonly ILogger<AuthService> _logger;
-
-    public AuthService(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
-        ITokenService tokenService,
-        ILogger<AuthService> logger)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _tokenService = tokenService;
-        _logger = logger;
-    }
-
+    /// <summary>
+    /// Authenticates a user and returns a JWT token if successful.
+    /// Overwrites any existing session by incrementing the <see cref="AppUser.TokenVersion"/>.
+    /// </summary>
+    /// <param name="request">The login credentials.</param>
+    /// <returns>A result containing the authentication response with the JWT token.</returns>
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(request.Email);
+            var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                 return Result<AuthResponseDto>.Failure("Invalid email or password.");
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
             {
@@ -48,33 +48,26 @@ public class AuthService : IAuthService
                 return Result<AuthResponseDto>.Failure("Invalid email or password.");
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-
-            user.TokenVersion++;
-            await _userManager.UpdateAsync(user);
-
-            var token = _tokenService.GenerateToken(user, roles);
-
-            return Result<AuthResponseDto>.Success(new AuthResponseDto
-            {
-                Token = token,
-                Email = user.Email ?? "",
-                DisplayName = user.DisplayName ?? "",
-                ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
-            });
+            return await GenerateUserResultAsync(user);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to login user {Email}", request.Email);
+            logger.LogError(ex, "Failed to login user {Email}", request.Email);
             return Result<AuthResponseDto>.Failure("An error occurred during login.");
         }
     }
 
+    /// <summary>
+    /// Registers a new user and returns a JWT token upon successful creation.
+    /// Assigns the default "Writer" role to the newly created user.
+    /// </summary>
+    /// <param name="request">The registration details.</param>
+    /// <returns>A result containing the authentication response with the JWT token.</returns>
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
     {
         try
         {
-            if (await _userManager.FindByEmailAsync(request.Email) != null)
+            if (await userManager.FindByEmailAsync(request.Email) != null)
             {
                 return Result<AuthResponseDto>.Failure("Email is already registered.");
             }
@@ -87,7 +80,7 @@ public class AuthService : IAuthService
                 CreatedAt = DateTime.UtcNow
             };
 
-            var result = await _userManager.CreateAsync(user, request.Password);
+            var result = await userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
             {
@@ -95,27 +88,32 @@ public class AuthService : IAuthService
                 return Result<AuthResponseDto>.Failure($"Registration failed: {errors}");
             }
 
-            await _userManager.AddToRoleAsync(user, "Writer");
+            await userManager.AddToRoleAsync(user, "Writer");
 
-            var roles = await _userManager.GetRolesAsync(user);
-
-            user.TokenVersion++;
-            await _userManager.UpdateAsync(user);
-
-            var token = _tokenService.GenerateToken(user, roles);
-
-            return Result<AuthResponseDto>.Success(new AuthResponseDto
-            {
-                Token = token,
-                Email = user.Email ?? "",
-                DisplayName = user.DisplayName ?? "",
-                ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
-            });
+            return await GenerateUserResultAsync(user);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to register user {Email}", request.Email);
+            logger.LogError(ex, "Failed to register user {Email}", request.Email);
             return Result<AuthResponseDto>.Failure("An error occurred during registration.");
         }
+    }
+
+    private async Task<Result<AuthResponseDto>> GenerateUserResultAsync(AppUser user)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+
+        user.TokenVersion++;
+        await userManager.UpdateAsync(user);
+
+        var token = tokenService.GenerateToken(user, roles);
+
+        return Result<AuthResponseDto>.Success(new AuthResponseDto
+        {
+            Token = token,
+            Email = user.Email ?? "",
+            DisplayName = user.DisplayName ?? "",
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
+        });
     }
 }
