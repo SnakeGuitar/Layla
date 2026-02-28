@@ -13,20 +13,17 @@ namespace Layla.Core.Services;
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
-    private readonly IDocumentRepository _documentRepository;
     private readonly IEventPublisher _eventPublisher;
     private readonly IEventBus _eventBus;
     private readonly ILogger<ProjectService> _logger;
 
     public ProjectService(
         IProjectRepository projectRepository,
-        IDocumentRepository documentRepository,
         IEventPublisher eventPublisher,
         IEventBus eventBus,
         ILogger<ProjectService> logger)
     {
         _projectRepository = projectRepository;
-        _documentRepository = documentRepository;
         _eventPublisher = eventPublisher;
         _eventBus = eventBus;
         _logger = logger;
@@ -60,16 +57,6 @@ public class ProjectService : IProjectService
             await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
             
             await _projectRepository.SaveChangesAsync(cancellationToken);
-
-            var initialDocument = new
-            {
-                ProjectId = project.Id,
-                Title = "Untitled Manuscript",
-                CreatedAt = DateTime.UtcNow,
-                Content = string.Empty
-            };
-
-            await _documentRepository.CreateDocumentAsync("Manuscripts", initialDocument, cancellationToken);
 
             var projectCreatedEvent = new ProjectCreatedEvent
             {

@@ -2,7 +2,6 @@ using Layla.Core.Entities;
 using Layla.Core.Interfaces.Data;
 using Layla.Core.Interfaces.Messaging;
 using Layla.Core.Interfaces.Services;
-using Layla.Infrastructure.Configuration;
 using Layla.Infrastructure.Data;
 using Layla.Infrastructure.Data.Repositories;
 using Layla.Infrastructure.Messaging;
@@ -11,10 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 
 namespace Layla.Infrastructure.Extensions;
 
@@ -24,19 +19,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
-#pragma warning disable CS0618
-        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
-#pragma warning restore CS0618
-
-        services.Configure<MongoDbSettings>(
-            configuration.GetSection("MongoDbSettings"));
-
-        services.AddSingleton<IMongoClient>(sp =>
-        {
-            var settings = configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-            return new MongoClient(settings!.ConnectionString);
-        });
 
         services.AddIdentity<AppUser, IdentityRole>(options =>
         {
@@ -50,7 +32,6 @@ public static class ServiceCollectionExtensions
             .AddDefaultTokenProviders();
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
-        services.AddScoped<IDocumentRepository, MongoDocumentRepository>();
         services.AddScoped<IEventPublisher, DummyEventPublisher>();
         services.AddSingleton<IEventBus, EventBus>();
         services.AddScoped<IAuthService, AuthService>();
