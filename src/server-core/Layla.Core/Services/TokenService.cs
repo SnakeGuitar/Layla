@@ -55,6 +55,7 @@ namespace Layla.Core.Services
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
+            tokenHandler.OutboundClaimTypeMap.Clear(); // Critical: Stop .NET from renaming claims
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }

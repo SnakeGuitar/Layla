@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace Layla.Infrastructure.Extensions;
@@ -21,6 +24,10 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+#pragma warning disable CS0618
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+#pragma warning restore CS0618
 
         services.Configure<MongoDbSettings>(
             configuration.GetSection("MongoDbSettings"));

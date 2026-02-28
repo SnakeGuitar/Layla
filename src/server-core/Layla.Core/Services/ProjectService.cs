@@ -6,6 +6,7 @@ using Layla.Core.Interfaces.Data;
 using Layla.Core.Interfaces.Messaging;
 using Layla.Core.Interfaces.Services;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Layla.Core.Services;
 
@@ -98,6 +99,7 @@ public class ProjectService : IProjectService
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             await _projectRepository.RollbackTransactionAsync(cancellationToken);
             _logger.LogError(ex, "Failed to create project for user {UserId}", userId);
             return Result<Project>.Failure("An error occurred while creating the project.");
@@ -113,6 +115,7 @@ public class ProjectService : IProjectService
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             _logger.LogError(ex, "Failed to retrieve projects for user {UserId}", userId);
             return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
         }

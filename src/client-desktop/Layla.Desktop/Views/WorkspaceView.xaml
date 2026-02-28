@@ -85,7 +85,7 @@
                 </TabItem>
                 
                 <TabItem Header="Graph">
-                    <Frame Source="GraphView.xaml" NavigationUIVisibility="Hidden"/>
+                    <Frame Source="NarrativeGraphView.xaml" NavigationUIVisibility="Hidden"/>
                 </TabItem>
             </TabControl>
         </Grid>

@@ -55,23 +55,55 @@ builder.Services.AddAuthentication(options =>
         };
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("====== JWT AUTHENTICATION FAILED ======");
+                Console.WriteLine($"Exception: {context.Exception}");
+                Console.WriteLine("=======================================");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine("====== JWT CHALLENGE ISSUED ======");
+                Console.WriteLine($"Error: {context.Error}");
+                Console.WriteLine($"ErrorDescription: {context.ErrorDescription}");
+                Console.WriteLine("==================================");
+                return Task.CompletedTask;
+            },
             OnTokenValidated = async context =>
             {
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                var userId = context.Principal?.FindFirstValue("sub");
-                var tokenVersionClaim = context.Principal?.FindFirst("token_version")?.Value;
+                var principal = context.Principal;
+                if (principal == null) 
+                {
+                    context.Fail("No principal.");
+                    return;
+                }
 
-                if (userId != null && int.TryParse(tokenVersionClaim, out int tokenVersion))
+                var userId = principal.FindFirst("sub")?.Value 
+                             ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                var tokenVersionClaim = principal.FindFirst("token_version")?.Value;
+
+                if (!string.IsNullOrEmpty(userId) && int.TryParse(tokenVersionClaim, out int tokenVersion))
                 {
                     var user = await userManager.FindByIdAsync(userId);
                     if (user == null || user.TokenVersion != tokenVersion)
                     {
                         context.Fail("Session expired. User logged in from another device.");
                     }
+                    else
+                    {
+                        var identity = principal.Identity as ClaimsIdentity;
+                        if (identity != null && !principal.HasClaim(c => c.Type == ClaimTypes.NameIdentifier))
+                        {
+                            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
+                        }
+                    }
                 }
                 else
                 {
-                    context.Fail("Invalid token structure (missing TokenVersion).");
+                    context.Fail("Invalid token structure (missing user identity or TokenVersion).");
                 }
             }
         };
