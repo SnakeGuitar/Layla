@@ -31,15 +31,16 @@ namespace Layla.Core.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.DisplayName ?? ""),
-                new Claim("TokenVersion", user.TokenVersion.ToString())
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new Claim("name", user.DisplayName ?? ""),
+                new Claim("token_version", user.TokenVersion.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim("role", role));
             }
 
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

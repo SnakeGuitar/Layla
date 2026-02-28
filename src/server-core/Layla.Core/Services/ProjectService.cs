@@ -14,17 +14,20 @@ public class ProjectService : IProjectService
     private readonly IProjectRepository _projectRepository;
     private readonly IDocumentRepository _documentRepository;
     private readonly IEventPublisher _eventPublisher;
+    private readonly IEventBus _eventBus;
     private readonly ILogger<ProjectService> _logger;
 
     public ProjectService(
         IProjectRepository projectRepository,
         IDocumentRepository documentRepository,
         IEventPublisher eventPublisher,
+        IEventBus eventBus,
         ILogger<ProjectService> logger)
     {
         _projectRepository = projectRepository;
         _documentRepository = documentRepository;
         _eventPublisher = eventPublisher;
+        _eventBus = eventBus;
         _logger = logger;
     }
 
@@ -76,6 +79,16 @@ public class ProjectService : IProjectService
             };
 
             await _eventPublisher.PublishAsync(projectCreatedEvent, cancellationToken);
+
+            var integrationEvent = new Layla.Core.IntegrationEvents.ProjectCreatedEvent
+            {
+                ProjectId = project.Id.ToString(),
+                OwnerId = userId,
+                Title = project.Title,
+                CreatedAt = project.CreatedAt
+            };
+
+            _eventBus.Publish(integrationEvent, exchangeName: "worldbuilding.events", routingKey: "project.created");
 
             await _projectRepository.CommitTransactionAsync(cancellationToken);
 

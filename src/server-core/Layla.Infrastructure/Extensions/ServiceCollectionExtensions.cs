@@ -45,6 +45,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IDocumentRepository, MongoDocumentRepository>();
         services.AddScoped<IEventPublisher, DummyEventPublisher>();
+        services.AddSingleton<IEventBus, EventBus>();
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

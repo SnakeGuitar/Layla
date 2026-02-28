@@ -32,6 +32,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
+System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = "Bearer";
@@ -47,6 +48,8 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            NameClaimType = "name",
+            RoleClaimType = "role",
             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
                 System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]!))
         };
@@ -55,8 +58,8 @@ builder.Services.AddAuthentication(options =>
             OnTokenValidated = async context =>
             {
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                var userId = context.Principal?.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
-                var tokenVersionClaim = context.Principal?.FindFirst("TokenVersion")?.Value;
+                var userId = context.Principal?.FindFirstValue("sub");
+                var tokenVersionClaim = context.Principal?.FindFirst("token_version")?.Value;
 
                 if (userId != null && int.TryParse(tokenVersionClaim, out int tokenVersion))
                 {
