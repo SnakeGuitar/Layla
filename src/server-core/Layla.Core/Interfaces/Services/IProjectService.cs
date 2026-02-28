@@ -1,4 +1,4 @@
-using Layla.Core.DTOs.Project;
+using Layla.Core.Contracts.Project;
 using Layla.Core.Entities;
 using Layla.Core.Common;
 

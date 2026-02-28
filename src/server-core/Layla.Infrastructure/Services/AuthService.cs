@@ -1,5 +1,5 @@
 using Layla.Core.Common;
-using Layla.Core.DTOs.Auth;
+using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;

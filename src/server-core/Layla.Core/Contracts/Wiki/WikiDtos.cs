@@ -1,4 +1,4 @@
-namespace Layla.Core.DTOs.Wiki;
+namespace Layla.Core.Contracts.Wiki;
 
 public class CreateWikiRequest
 {

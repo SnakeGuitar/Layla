@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Layla.Core.DTOs.Auth;
+namespace Layla.Core.Contracts.Auth;
 
 public class LoginRequestDto
 {

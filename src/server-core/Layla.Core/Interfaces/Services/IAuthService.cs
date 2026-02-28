@@ -1,5 +1,5 @@
 using Layla.Core.Common;
-using Layla.Core.DTOs.Auth;
+using Layla.Core.Contracts.Auth;
 
 namespace Layla.Core.Interfaces.Services;
 

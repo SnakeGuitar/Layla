@@ -1,5 +1,5 @@
 using Layla.Core.Common;
-using Layla.Core.DTOs.Project;
+using Layla.Core.Contracts.Project;
 using Layla.Core.Entities;
 using Layla.Core.Events;
 using Layla.Core.Interfaces.Data;

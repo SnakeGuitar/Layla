@@ -1,7 +1,7 @@
 using Layla.Core.Common;
 using Layla.Core.Entities;
 
-namespace Layla.Core.Services;
+namespace Layla.Core.Interfaces.Services;
 
 public interface IManuscriptService
 {

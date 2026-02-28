@@ -1,6 +1,8 @@
 using Layla.Core.Common;
+using Layla.Core.Contracts.Manuscript;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Data;
+using Layla.Core.Interfaces.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Layla.Core.Services;

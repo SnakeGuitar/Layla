@@ -1,4 +1,4 @@
-namespace Layla.Core.DTOs.Manuscript;
+namespace Layla.Core.Contracts.Manuscript;
 
 public class CreateManuscriptRequest
 {

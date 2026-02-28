@@ -1,5 +1,5 @@
 using Layla.Api.Extensions;
-using Layla.Core.DTOs.Project;
+using Layla.Core.Contracts.Project;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

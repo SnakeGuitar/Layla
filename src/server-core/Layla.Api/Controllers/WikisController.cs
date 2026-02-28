@@ -2,7 +2,7 @@ using Layla.Core.Entities;
 using Layla.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Layla.Core.DTOs.Wiki;
+using Layla.Core.Contracts.Wiki;
 using Layla.Api.Extensions;
 
 namespace Layla.Api.Controllers;

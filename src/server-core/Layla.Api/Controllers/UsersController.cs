@@ -1,4 +1,4 @@
-﻿using Layla.Core.DTOs.Auth;
+﻿using Layla.Core.Contracts.Auth;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 

@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Layla.Core.Services;
 using Layla.Api.Extensions;
 using Layla.Core.Entities;
-using Layla.Core.DTOs.Manuscript;
+using Layla.Core.Contracts.Manuscript;
+using Layla.Core.Interfaces.Services;
 
 namespace Layla.Api.Controllers;
 

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Layla.Core.DTOs.Project;
+namespace Layla.Core.Contracts.Project;
 
 public class CreateProjectRequestDto
 {
