@@ -60,14 +60,4 @@ public class DummyDocumentRepository : IDocumentRepository
 
         return Task.FromResult<IEnumerable<Layla.Core.Entities.Manuscript>>(dummyManuscripts);
     }
-
-    public Task<IEnumerable<Layla.Core.Entities.Wiki>> GetWikisByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IEnumerable<Layla.Core.Entities.WikiPage>> GetWikiPagesByWikiIdAsync(string wikiId, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
 }

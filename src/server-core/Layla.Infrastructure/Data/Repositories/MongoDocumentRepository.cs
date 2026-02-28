@@ -65,18 +65,4 @@ public class MongoDocumentRepository : IDocumentRepository
         var filter = Builders<Manuscript>.Filter.Eq(m => m.ProjectId, projectId);
         return await collection.Find(filter).ToListAsync(cancellationToken);
     }
-
-    public async Task<IEnumerable<Wiki>> GetWikisByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default)
-    {
-        var collection = _database.GetCollection<Wiki>(_settings.WikisCollectionName);
-        var filter = Builders<Wiki>.Filter.Eq(w => w.ProjectId, projectId);
-        return await collection.Find(filter).ToListAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<WikiPage>> GetWikiPagesByWikiIdAsync(string wikiId, CancellationToken cancellationToken = default)
-    {
-        var collection = _database.GetCollection<WikiPage>(_settings.WikisCollectionName);
-        var filter = Builders<WikiPage>.Filter.Eq(p => p.WikiId, wikiId);
-        return await collection.Find(filter).ToListAsync(cancellationToken);
-    }
 }

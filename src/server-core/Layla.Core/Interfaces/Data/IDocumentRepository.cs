@@ -10,6 +10,4 @@ public interface IDocumentRepository
     Task DeleteDocumentAsync<TDocument>(string collectionName, string id, CancellationToken cancellationToken = default);
 
     Task<IEnumerable<Manuscript>> GetManuscriptsByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Wiki>> GetWikisByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<WikiPage>> GetWikiPagesByWikiIdAsync(string wikiId, CancellationToken cancellationToken = default);
 }
