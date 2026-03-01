@@ -1,0 +1,110 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|c:\\users\\fofor\\desktop\\desarrollo en red\\proyecto final\\layla\\src\\client-web\\client-web\\components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|solutionrelative:components\\pages\\home.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|c:\\users\\fofor\\desktop\\desarrollo en red\\proyecto final\\layla\\src\\client-web\\client-web\\components\\routes.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|solutionrelative:components\\routes.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|c:\\users\\fofor\\desktop\\desarrollo en red\\proyecto final\\layla\\src\\client-web\\client-web\\components\\app.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|solutionrelative:components\\app.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|c:\\users\\fofor\\desktop\\desarrollo en red\\proyecto final\\layla\\src\\client-web\\client-web\\styles\\tailwind.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{8251FBE5-FA73-428C-A73A-E23D9C56375D}|client-web.csproj|solutionrelative:styles\\tailwind.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{b1e99781-ab81-11d0-b683-00aa00a3ee26}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Home.razor",
+              "DocumentMoniker": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\Pages\\Home.razor",
+              "RelativeDocumentMoniker": "Components\\Pages\\Home.razor",
+              "ToolTip": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\Pages\\Home.razor",
+              "RelativeToolTip": "Components\\Pages\\Home.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-01T23:10:08.988Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Routes.razor",
+              "DocumentMoniker": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\Routes.razor",
+              "RelativeDocumentMoniker": "Components\\Routes.razor",
+              "ToolTip": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\Routes.razor",
+              "RelativeToolTip": "Components\\Routes.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-01T23:10:05.205Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "App.razor",
+              "DocumentMoniker": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\App.razor",
+              "RelativeDocumentMoniker": "Components\\App.razor",
+              "ToolTip": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Components\\App.razor",
+              "RelativeToolTip": "Components\\App.razor",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-03-01T23:07:45.087Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Tailwind.css",
+              "DocumentMoniker": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Styles\\Tailwind.css",
+              "RelativeDocumentMoniker": "Styles\\Tailwind.css",
+              "ToolTip": "C:\\Users\\fofor\\Desktop\\Desarrollo en red\\Proyecto final\\Layla\\src\\client-web\\client-web\\Styles\\Tailwind.css",
+              "RelativeToolTip": "Styles\\Tailwind.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-03-01T23:07:34.424Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 1329,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:4:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

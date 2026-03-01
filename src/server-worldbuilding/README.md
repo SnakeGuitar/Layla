@@ -1,7 +1,6 @@
-Para ejecución del backend
-npx ts-node-dev src/index.ts
+Para ejecución: pnpm run dev
 
-#Express - Typescript
+# Express - Typescript
 --------------------------------------------------------------------------------------------------
 | CU-## | Nombre del caso de uso            | Actor principal   | Módulo                | Estado |
 |-------|-----------------------------------|------------------ | --------------------- | ------ |
