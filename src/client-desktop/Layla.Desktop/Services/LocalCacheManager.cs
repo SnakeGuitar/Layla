@@ -27,7 +27,7 @@ namespace Layla.Desktop.Services
         /// </summary>
         public async Task SaveManuscriptAsync(string manuscriptId, string content)
         {
-            string filePath = Path.Combine(_cacheDirectory, $"{manuscriptId}.txt");
+            string filePath = Path.Combine(_cacheDirectory, $"{manuscriptId}.rtf");
 
             await _fileSemaphore.WaitAsync();
             try
@@ -45,7 +45,7 @@ namespace Layla.Desktop.Services
         /// </summary>
         public async Task<string> LoadManuscriptAsync(string manuscriptId)
         {
-            string filePath = Path.Combine(_cacheDirectory, $"{manuscriptId}.txt");
+            string filePath = Path.Combine(_cacheDirectory, $"{manuscriptId}.rtf");
 
             await _fileSemaphore.WaitAsync();
             try

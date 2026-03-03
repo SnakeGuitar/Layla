@@ -32,6 +32,7 @@
             <ComboBox x:Name="ThemeComboBox" Width="200" FontSize="14" Padding="5" SelectionChanged="ThemeComboBox_SelectionChanged">
                 <ComboBoxItem Content="Light Theme" Tag="LightTheme"/>
                 <ComboBoxItem Content="Dark Theme" Tag="DarkTheme"/>
+                <ComboBoxItem Content="Space Theme" Tag="SpaceTheme"/>
             </ComboBox>
         </StackPanel>
 

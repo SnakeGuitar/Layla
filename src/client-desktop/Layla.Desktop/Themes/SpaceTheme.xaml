@@ -1,14 +1,20 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<SolidColorBrush x:Key="WindowBackground" Color="#FFFFFF"/>
-	<SolidColorBrush x:Key="SidebarBackground" Color="#F7F7F7"/>
-	<SolidColorBrush x:Key="PrimaryText" Color="#2E3338"/>
-	<SolidColorBrush x:Key="SecondaryText" Color="#5C5C5C"/>
-	<SolidColorBrush x:Key="AccentColor" Color="#7A3CE8"/>
-	<SolidColorBrush x:Key="BorderColor" Color="#E3E3E3"/>
-    <SolidColorBrush x:Key="ControlBackground" Color="#FFFFFF"/>
-    <Color x:Key="AcrylicTintColor">#FFFFFF</Color>
-    <system:Double x:Key="AcrylicTintOpacity" xmlns:system="clr-namespace:System;assembly=mscorlib">1.0</system:Double>
+    <LinearGradientBrush x:Key="WindowBackground" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#000008" Offset="0"/>
+        <GradientStop Color="#080523" Offset="0.3"/>
+        <GradientStop Color="#261598" Offset="0.7"/>
+        <GradientStop Color="#7548D2" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <SolidColorBrush x:Key="SidebarBackground" Color="#080523"/>
+    <SolidColorBrush x:Key="ControlBackground" Color="#80080523"/>
+    <SolidColorBrush x:Key="PrimaryText" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SecondaryText" Color="#DDBBFF"/>
+    <SolidColorBrush x:Key="AccentColor" Color="#7548D2"/>
+    <SolidColorBrush x:Key="BorderColor" Color="#40935AF0"/>
+    <Color x:Key="AcrylicTintColor">#080523</Color>
+    <system:Double x:Key="AcrylicTintOpacity" xmlns:system="clr-namespace:System;assembly=mscorlib">0.7</system:Double>
     
     <Style TargetType="{x:Type ComboBox}">
         <Setter Property="Background" Value="{DynamicResource ControlBackground}"/>
