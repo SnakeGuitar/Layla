@@ -1,4 +1,5 @@
 ﻿using Layla.Desktop.Services;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -104,6 +105,7 @@ namespace Layla.Desktop.Views
             {
                 CreateProjectError.Text = $"Error: {ex.Message}";
                 CreateProjectError.Visibility = Visibility.Visible;
+                Debug.WriteLine(ex);
             }
             finally
             {

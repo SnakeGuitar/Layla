@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using MaterialDesignThemes.Wpf;
 
 namespace Layla.Desktop
 {
@@ -11,7 +12,7 @@ namespace Layla.Desktop
     {
         private static System.Threading.Mutex? _mutex = null;
         private string ConfigPath => System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Layla", "theme.txt");
-        public string CurrentTheme { get; private set; } = "LightTheme";
+        public string CurrentTheme { get; private set; } = "SpaceTheme";
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -28,7 +29,7 @@ namespace Layla.Desktop
             }
 
             base.OnStartup(e);
-            string theme = "LightTheme";
+            string theme = "SpaceTheme";
             try 
             {
                 if (System.IO.File.Exists(ConfigPath))
@@ -99,11 +100,27 @@ namespace Layla.Desktop
             } 
             catch {}
 
-            Resources.MergedDictionaries.Clear();
+            var existingTheme = Resources.MergedDictionaries.FirstOrDefault(d => d.Source != null && d.Source.OriginalString.StartsWith("Themes/"));
+            if (existingTheme != null)
+            {
+                Resources.MergedDictionaries.Remove(existingTheme);
+            }
             Resources.MergedDictionaries.Add(new ResourceDictionary
             { 
                 Source = new Uri($"Themes/{theme}.xaml", UriKind.Relative) 
             });
+
+            PaletteHelper paletteHelper = new PaletteHelper();
+            var materialTheme = paletteHelper.GetTheme();
+            if (theme == "LightTheme")
+            {
+                materialTheme.SetBaseTheme(BaseTheme.Light);
+            }
+            else
+            {
+                materialTheme.SetBaseTheme(BaseTheme.Dark);
+            }
+            paletteHelper.SetTheme(materialTheme);
         }
 
         protected override void OnExit(ExitEventArgs e)

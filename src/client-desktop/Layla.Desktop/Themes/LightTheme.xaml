@@ -6,7 +6,9 @@
 	<SolidColorBrush x:Key="SecondaryText" Color="#5C5C5C"/>
 	<SolidColorBrush x:Key="AccentColor" Color="#7A3CE8"/>
 	<SolidColorBrush x:Key="BorderColor" Color="#E3E3E3"/>
-	<SolidColorBrush x:Key="ControlBackground" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ControlBackground" Color="#FFFFFF"/>
+    <Color x:Key="AcrylicTintColor">#FFFFFF</Color>
+    <system:Double x:Key="AcrylicTintOpacity" xmlns:system="clr-namespace:System;assembly=mscorlib">1.0</system:Double>
     
     <Style TargetType="{x:Type ComboBox}">
         <Setter Property="Background" Value="{DynamicResource ControlBackground}"/>

@@ -2,11 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <SolidColorBrush x:Key="WindowBackground" Color="#1E1E1E"/>
     <SolidColorBrush x:Key="SidebarBackground" Color="#181818"/>
-    <SolidColorBrush x:Key="PrimaryText" Color="#DCDCDC"/>
-    <SolidColorBrush x:Key="SecondaryText" Color="#999999"/>
+    <SolidColorBrush x:Key="PrimaryText" Color="#EAEAEA"/>
+    <SolidColorBrush x:Key="SecondaryText" Color="#B3B3B3"/>
     <SolidColorBrush x:Key="AccentColor" Color="#A882FF"/>
-    <SolidColorBrush x:Key="BorderColor" Color="#2A2A2A"/>
-    <SolidColorBrush x:Key="ControlBackground" Color="#252526"/>
+    <SolidColorBrush x:Key="BorderColor" Color="#4A4A4A"/>
+    <SolidColorBrush x:Key="ControlBackground" Color="#2A2A2C"/>
+    <Color x:Key="AcrylicTintColor">#2A2A2C</Color>
+    <system:Double x:Key="AcrylicTintOpacity" xmlns:system="clr-namespace:System;assembly=mscorlib">1.0</system:Double>
     
     <Style TargetType="{x:Type ComboBox}">
         <Setter Property="Background" Value="{DynamicResource ControlBackground}"/>
