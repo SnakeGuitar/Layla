@@ -1,11 +1,9 @@
 ﻿@import "tailwindcss";
 
 @theme {
-  --color-base-1: oklch(0.144 0.039 262.65);
-  --color-base-2: oklch(0.261 0.116 318.251);
-  --color-base-3: oklch(0.197 0.067 261.777);
-  --color-base-4: oklch(0.197 0.067 261.777);
-  --color-base-5: oklch(0.197 0.067 261.777);
+  --color-base-purple-1: oklch(0.144 0.039 262.65);
+  --color-base-purple-2: oklch(0.261 0.116 318.251);
+  --color-base-blue-1: oklch(0.197 0.067 261.777);
 }
 
 :root {

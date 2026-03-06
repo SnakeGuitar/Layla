@@ -1,48 +1,123 @@
-﻿<div class="relative flex items-center justify-between px-5 h-14 bg-black/50 backdrop-blur-md border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-    <a href="" class="text-white font-semibold tracking-widest uppercase text-sm hover:text-cyan-400 transition-colors duration-200">
-        Layla
-    </a>
+@* 
+    DESKTOP (lg+):
+      - "Layla" fijo en la esquina superior-izquierda (dentro del sidebar)
+      - Navbar siempre visible debajo
 
-    <label for="navbar-toggler" class="sm:hidden cursor-pointer flex flex-col gap-1.5 p-2 rounded-md border border-white/10 hover:bg-white/10 transition-all duration-200">
-        <span class="block w-5 h-0.5 bg-white/70 rounded-full"></span>
-        <span class="block w-5 h-0.5 bg-white/70 rounded-full"></span>
-        <span class="block w-5 h-0.5 bg-white/70 rounded-full"></span>
-    </label>
+    MÓVIL (<lg):
+      - Barra fija con "Layla" a la izquierda y botón hamburguesa a la derecha
+      - Navbar desplegable al activar el checkbox
+*@
+
+<!-- ─── DESKTOP: bloque completo del sidebar ─── -->
+<div class="
+    hidden lg:flex lg:flex-col
+    h-full w-full
+    bg-linear-to-t from-base-purple-2 to-base-purple-1
+    border-r border-white/10
+">
+    <!-- Marca / logo -->
+    <div class="h-14 flex items-center px-5 border-b border-white/10 shrink-0">
+        <a href="" class="text-white font-semibold tracking-widest uppercase text-sm hover:text-cyan-400 transition-colors duration-200">
+            Layla
+        </a>
+    </div>
+
+    <!-- Navegación -->
+    <nav class="flex-1 flex flex-col py-4 overflow-y-auto">
+        <div class="px-4 pb-2">
+            <span class="text-xl uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
+        </div>
+
+        <div class="px-2 space-y-0.5">
+            <div class="nav-item px-1">
+                <NavLink href="/home" Match="NavLinkMatch.All" class="nav-link">
+                    <span class="bi bi-house-door-fill-nav-menu text-lg" aria-hidden="true"></span>
+                    Inicio
+                </NavLink>
+            </div>
+            <div class="nav-item px-1">
+                <NavLink href="counter" class="nav-link">
+                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span>
+                    Counter
+                </NavLink>
+            </div>
+            <div class="nav-item px-1">
+                <NavLink href="weather" class="nav-link">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+                    Weather
+                </NavLink>
+            </div>
+        </div>
+
+        <!-- Versión al fondo -->
+        <div class="mt-auto px-5 py-4 border-t border-white/10">
+            <span class="text-xs text-white/30">v1.0.0</span>
+        </div>
+    </nav>
 </div>
 
-<input type="checkbox" id="navbar-toggler" class="peer hidden" />
 
-<nav class="hidden peer-checked:flex sm:flex flex-col py-3 bg-black/40 backdrop-blur-md border-r border-white/10 min-h-[calc(100vh-3.5rem)]">
-    <div class="px-4 pt-2 pb-1">
-        <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
+<!-- ─── MÓVIL: barra superior + menú colapsable ─── -->
+<div class="lg:hidden bg-linear-to-r from-base-1 to-base-2">
+
+    <!-- Barra fija: "Layla" izq. | hamburguesa der. -->
+    <div class="
+        sticky top-0 z-50
+        flex items-center justify-between
+        px-5 h-14
+        bg-linear-to-r from-base-purple-1 to-base-purple-2 border-white/10
+        shadow-[0_4px_24px_rgba(0,0,0,0.4)]
+    ">
+        <a href="" class="text-white font-semibold tracking-widest uppercase text-sm hover:text-cyan-400 transition-colors duration-200">
+            Layla
+        </a>
+
+        <!-- Botón hamburguesa — label del checkbox oculto -->
+        <label for="navbar-toggler"
+               aria-label="Abrir menú de navegación"
+               class="cursor-pointer flex flex-col justify-center gap-1.5 p-2 rounded-md border border-white/10 hover:bg-white/10 active:scale-95 transition-all duration-200">
+            <span class="block w-5 h-0.5 bg-white/80 rounded-full transition-transform duration-300 peer-checked:rotate-45 peer-checked:translate-y-2"></span>
+            <span class="block w-5 h-0.5 bg-white/80 rounded-full transition-opacity duration-300 peer-checked:opacity-0"></span>
+            <span class="block w-5 h-0.5 bg-white/80 rounded-full transition-transform duration-300 peer-checked:-rotate-45 peer-checked:-translate-y-2"></span>
+        </label>
     </div>
 
-    <div class="px-2 mt-1 space-y-0.5">
-        <div class="nav-item px-1">
-            <NavLink href="" Match="NavLinkMatch.All" class="nav-link">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                Inicio
-            </NavLink>
-        </div>
-        <div class="nav-item px-1">
-            <NavLink href="counter" class="nav-link">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span>
-                Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-1">
-            <NavLink href="weather" class="nav-link">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
-                Weather
-            </NavLink>
-        </div>
-    </div>
+    <!-- Checkbox oculto que controla el menú -->
+    <input type="checkbox" id="navbar-toggler" class="peer hidden" />
 
-    <div class="mt-auto px-4 pb-4 pt-6">
-        <div class="h-px bg-linear-to-r from-transparent via-white/10 to-transparent mb-4"></div>
-        <div class="flex items-center gap-2 px-1">
-            <div class="w-6 h-6 rounded-full bg-linear-to-br from-cyan-500 to-blue-600 shrink-0"></div>
-            <span class="text-xs text-white/40">v1.0.0</span>
+    <!-- Menú desplegable -->
+    <nav class="
+        hidden peer-checked:flex flex-col
+        py-3
+        bg-black/70 backdrop-blur-md
+        border-b border-white/10
+        shadow-[0_8px_32px_rgba(0,0,0,0.5)]
+        animate-[slideDown_0.2s_ease-out]
+    ">
+        <div class="px-4 pt-1 pb-2">
+            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
         </div>
-    </div>
-</nav>
+
+        <div class="px-2 space-y-0.5">
+            <div class="nav-item px-1">
+                <NavLink href="" Match="NavLinkMatch.All" class="nav-link">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                    Inicio
+                </NavLink>
+            </div>
+            <div class="nav-item px-1">
+                <NavLink href="counter" class="nav-link">
+                    <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span>
+                    Counter
+                </NavLink>
+            </div>
+            <div class="nav-item px-1">
+                <NavLink href="weather" class="nav-link">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+                    Weather
+                </NavLink>
+            </div>
+        </div>
+    </nav>
+
+</div>

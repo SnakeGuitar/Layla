@@ -15,7 +15,6 @@ public class AuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest requestData)
     {
-        // TODO-Desarrollo: Hash SHA-256 de la contraseña antes de enviar, igual que en TS
         requestData.Password = EncryptData.Sha256(requestData.Password);
 
         LoginResponse response = await _api.RequestAsync<LoginResponse>(new RequestHttp

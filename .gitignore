@@ -1,7 +1,9 @@
-## .env
+## Secrets files
 .env
 .env.*
 .env.*.*
+appsettings.json
+appsettings.json.*
 
 ## Visual Studio / .NET
 bin/
@@ -42,6 +44,7 @@ bld/
 
 ## Node.js
 node_modules/
+pnpm-lock.yaml
 npm-debug.log
 yarn-error.log
 dist/
