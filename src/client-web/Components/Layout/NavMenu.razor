@@ -1,4 +1,4 @@
-@* 
+﻿@* 
     DESKTOP (lg+):
       - "Layla" fijo en la esquina superior-izquierda (dentro del sidebar)
       - Navbar siempre visible debajo
@@ -12,7 +12,7 @@
 <div class="
     hidden lg:flex lg:flex-col
     h-full w-full
-    bg-linear-to-t from-base-purple-2 to-base-purple-1
+    bg-linear-to-t from-base-purple-1 to-base-blue-3
     border-r border-white/10
 ">
     <!-- Marca / logo -->
@@ -25,13 +25,13 @@
     <!-- Navegación -->
     <nav class="flex-1 flex flex-col py-4 overflow-y-auto">
         <div class="px-4 pb-2">
-            <span class="text-xl uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
         </div>
 
         <div class="px-2 space-y-0.5">
             <div class="nav-item px-1">
-                <NavLink href="/home" Match="NavLinkMatch.All" class="nav-link">
-                    <span class="bi bi-house-door-fill-nav-menu text-lg" aria-hidden="true"></span>
+                <NavLink href="" Match="NavLinkMatch.All" class="nav-link">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
                     Inicio
                 </NavLink>
             </div>
@@ -58,14 +58,15 @@
 
 
 <!-- ─── MÓVIL: barra superior + menú colapsable ─── -->
-<div class="lg:hidden bg-linear-to-r from-base-1 to-base-2">
+<div class="lg:hidden bg-linear-to-r from-base-blue-3 to-base-purple-1">
 
     <!-- Barra fija: "Layla" izq. | hamburguesa der. -->
     <div class="
         sticky top-0 z-50
         flex items-center justify-between
         px-5 h-14
-        bg-linear-to-r from-base-purple-1 to-base-purple-2 border-white/10
+        bg-black/60 backdrop-blur-md
+        border-b border-white/10 sm:border-0
         shadow-[0_4px_24px_rgba(0,0,0,0.4)]
     ">
         <a href="" class="text-white font-semibold tracking-widest uppercase text-sm hover:text-cyan-400 transition-colors duration-200">
