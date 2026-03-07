@@ -1,3 +1,4 @@
+@using client_web.Helpers;
 @namespace client_web.Components.Components
 
 <article class="group relative flex flex-col bg-stone-950 border border-stone-800 rounded-none overflow-hidden
@@ -50,7 +51,7 @@
         @* Footer *@
         <div class="flex items-center justify-between pt-3 border-t border-stone-800">
             <time class="text-stone-600 text-xs tracking-wide font-mono" datetime="@UpdatedAt.ToString("yyyy-MM-dd")">
-                @FormatDate(UpdatedAt)
+                @FormatData.FormatDateToString(UpdatedAt)
             </time>
 
             <span class="flex items-center gap-1.5 text-amber-500/70 group-hover:text-amber-400 text-xs font-medium tracking-wide uppercase transition-colors duration-300">
@@ -77,11 +78,5 @@
     {
         if (OnCardClick.HasDelegate)
             await OnCardClick.InvokeAsync(Id);
-    }
-
-    private static string FormatDate(DateTime date)
-    {
-        var months = new[] { "ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic" };
-        return $"{date.Day} {months[date.Month - 1]}. {date.Year}";
     }
 }
