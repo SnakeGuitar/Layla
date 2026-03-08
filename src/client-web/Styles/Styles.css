@@ -11,6 +11,10 @@
   --color-base-green-1: #43af4b;
   --color-base-green-2: #54d198;
   --color-base-gray-1: #1f1f1f;
+  --color-base-gray-2: #292929;
+  --color-base-gray-3: #111111;
+  --color-base-gray-4: #454545;
+  --color-base-gray-5: #5d5d5d;
 }
 
 :root {
@@ -21,6 +25,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: white;
 }
 
 html,

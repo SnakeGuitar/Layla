@@ -1,0 +1,56 @@
+@page "/admin/dashboard"
+@inject IJSRuntime JS
+
+@* Header *@
+<header class="max-w-5xl mx-auto mb-12">
+    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Administración</h2>
+    <h1 class="text-stone-100 font-serif text-4xl md:text-5xl font-light tracking-tight">
+        Dashboard
+    </h1>
+    <div class="mt-4 w-16 h-px bg-amber-500"></div>
+</header>
+
+@* Datos Generales *@
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4 text-center">
+    <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
+        <h3 class="text-stone-300 text-xl">Usuarios activos</h3>
+        <p class="">@ActiveUsers</p>
+    </div>
+
+    <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
+        <h3 class="text-stone-300 text-xl">Usuarios nuevos este mes</h3>
+        <p class="">@ActiveUsers</p>
+    </div>
+
+    <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
+        <h3 class="text-stone-300 text-xl">Proyectos activos</h3>
+        <p class="">@ActiveProjects</p>
+    </div>
+
+    <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
+        <h3 class="text-stone-300 text-xl">Proyectos modificados hoy</h3>
+        <p class="">@ActiveProjects</p>
+    </div>
+
+    <div class="bg-base-gray-2 shadow rounded-lg p-4 lg:col-span-1 md:col-span-4 sm:col-span-2 flex flex-col justify-center">
+        <h3 class="text-stone-300 text-xl">Other thing...</h3>
+        <p class="">@ActiveProjects</p>
+    </div>
+</div>
+
+<div class="text-white">
+    <canvas id="myChart" width="400" height="200"></canvas>
+</div>
+
+@code {
+    public int ActiveUsers = 124;
+    public int ActiveProjects = 38;
+    public int ChaptersToday = 56;
+    public int PendingReports = 3;
+    public int[] newUsersPerMonth = {
+        10, 20, 15, 30, 25, 40, 35, 50, 45, 60, 55, 70
+    };
+
+    protected override async Task OnAfterRenderAsync (bool firstRender) =>
+        await JS.InvokeVoidAsync("createBarChart", "myChart", newUsersPerMonth);
+}

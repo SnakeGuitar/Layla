@@ -3,40 +3,38 @@
 @using client_web.Components.Components
 <PageTitle>Home</PageTitle>
 
-<div class="bg-base-gray-1 px-6 py-6">
-    @* Header *@
-    <header class="max-w-5xl mx-auto mb-12">
-        <p class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Proyectos</p>
-        <h1 class="text-stone-100 font-serif text-4xl md:text-5xl font-light tracking-tight">
-            Biblioteca pública
-        </h1>
-        <div class="mt-4 w-16 h-px bg-amber-500"></div>
-    </header>
+@* Header *@
+<header class="max-w-5xl mx-auto mb-12">
+    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Proyectos</h2>
+    <h1 class="text-stone-100 font-serif text-4xl md:text-5xl font-light tracking-tight">
+        Biblioteca pública
+    </h1>
+    <div class="mt-4 w-16 h-px bg-amber-500"></div>
+</header>
 
-    @* Feed Grid *@
-    <main class="max-w-5xl mx-auto">
-        @if (projects == null || !projects.Any())
-        {
-            <p class="text-stone-500 text-sm">No hay proyectos disponibles.</p>
-        }
-        else
-        {
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-800">
-                @foreach (var project in projects)
-                {
-                    <div class="bg-stone-950">
-                        <ProjectCard Id="@project.Id" Title="@project.Title"
-                                     Synopsis="@project.Synopsis"
-                                     LiteraryGenre="@project.LiteraryGenre"
-                                     CoverImageUrl="@project.CoverImageUrl"
-                                     UpdatedAt="@project.UpdatedAt"
-                                     OnCardClick="HandleCardClick" />
-                    </div>
-                }
-            </div>
-        }
-    </main>
-</div>
+@* Feed Grid *@
+<main class="max-w-5xl mx-auto">
+    @if (projects == null || !projects.Any())
+    {
+        <p class="text-stone-500 text-sm">No hay proyectos disponibles.</p>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-800">
+            @foreach (var project in projects)
+            {
+                <div class="bg-stone-950">
+                    <ProjectCard Id="@project.Id" Title="@project.Title"
+                                    Synopsis="@project.Synopsis"
+                                    LiteraryGenre="@project.LiteraryGenre"
+                                    CoverImageUrl="@project.CoverImageUrl"
+                                    UpdatedAt="@project.UpdatedAt"
+                                    OnCardClick="HandleCardClick" />
+                </div>
+            }
+        </div>
+    }
+</main>
 
 @code {
     private List<ProjectViewModel>? projects;

@@ -8,6 +8,8 @@ dotnet build        // Compilación
 pnpm install
 // Actualizar archivo estatico de estilos CSS 
 npx @tailwindcss/cli -i ./Styles/Styles.css -o ./wwwroot/styles/styles.css
+// Precompilar Typescript a Javascript
+npx tsc wwwroot/js/chartInterop.ts --target ES6 --outDir wwwroot/js
 ```
 
 # Blazor - C#, Tailwind

@@ -1,0 +1,7 @@
+h2 {
+  font-size: var(--text-lg) /* 1.125rem = 18px */;
+  line-height: var(
+    --tw-leading,
+    var(--text-lg--line-height) /* calc(1.75 / 1.125) ≈ 1.555556 */
+  );
+}
