@@ -9,6 +9,103 @@
     <div class="mt-4 w-16 h-px bg-amber-500"></div>
 </header>
 
+<section>
+    <div>
+        <input type="search"
+    </div>
+</section>
+
+<main>
+    <div>
+        @if ( users == null || !users.Any()) {
+            <div>Use la sección de filtros</div>
+        }else{
+            <table>
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Nombre completo</th>
+                        <th>Género</th>
+                        <th>Fecha última actividad</th>
+                        <th>Con actividad este mes</th>
+                        <th>Fecha de registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (UserViewModel user in users) {
+                        <tr>
+                            <td>@user.UserId</td>
+                            <td>@user.FullName</td>
+                            <td>@user.Genre</td>
+                            <td>@user.LastActivity</td>
+                            <td>@user.WithActivityThisMonth</td>
+                            <td>@user.RegisteredAt</td>>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div
+</main>
+
 
 @code {
+    private List<UserViewModel>? users = new List<UserViewModel>();
+
+    protected override void OnInitialized()
+    {
+        // Replace with your actual data service call, e.g.:
+        // projects = await ProjectService.GetAllAsync();
+
+        users = new List<UserViewModel>
+        {
+            new UserViewModel() {
+                Id = Guid.NewGuid(),
+                UserId = "IDÚnico",
+                FullName = "Nombre completo",
+                Genre = 'M',
+                LastActivity = DateTime.Now,
+                WithActivityThisMonth = true,
+                RegisteredAt = DateTime.Now,
+            },
+            new UserViewModel() {
+                Id = Guid.NewGuid(),
+                UserId = "IDÚnico",
+                FullName = "Nombre completo",
+                Genre = 'M',
+                LastActivity = DateTime.Now,
+                WithActivityThisMonth = true,
+                RegisteredAt = DateTime.Now,
+            },
+            new UserViewModel() {
+                Id = Guid.NewGuid(),
+                UserId = "IDÚnico",
+                FullName = "Nombre completo",
+                Genre = 'M',
+                LastActivity = DateTime.Now,
+                WithActivityThisMonth = true,
+                RegisteredAt = DateTime.Now,
+            },
+            new UserViewModel() {
+                Id = Guid.NewGuid(),
+                UserId = "IDÚnico",
+                FullName = "Nombre completo",
+                Genre = 'M',
+                LastActivity = DateTime.Now,
+                WithActivityThisMonth = true,
+                RegisteredAt = DateTime.Now,
+            }
+        };
+    }
+
+    private class UserViewModel 
+    {
+        public Guid Id { get; set; }
+        public string UserId { get; set; } = string.Empty;  
+        public string FullName { get; set; } = string.Empty;
+        public char Genre { get; set; }
+        public DateTime LastActivity { get; set; }
+        public bool WithActivityThisMonth { get; set; }
+        public DateTime RegisteredAt { get; set; }
+    }
 }
