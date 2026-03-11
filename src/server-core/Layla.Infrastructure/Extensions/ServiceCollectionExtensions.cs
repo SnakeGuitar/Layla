@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
             .AddDefaultTokenProviders();
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IAppUserRepository, AppUserRepository>();
         services.AddScoped<IEventPublisher, DummyEventPublisher>();
         services.AddSingleton<IEventBus, EventBus>();
         services.AddScoped<IAuthService, AuthService>();

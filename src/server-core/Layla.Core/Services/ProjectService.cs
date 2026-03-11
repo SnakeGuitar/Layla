@@ -55,7 +55,6 @@ public class ProjectService : IProjectService
 
             await _projectRepository.AddProjectAsync(project, cancellationToken);
             await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
-            
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
             var projectCreatedEvent = new ProjectCreatedEvent
@@ -174,6 +173,28 @@ public class ProjectService : IProjectService
         }
     }
 
+    public async Task<Result<Project>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
+            if (project == null)
+                return Result<Project>.Failure("Project not found.");
+
+            return Result<Project>.Success(project);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve project {ProjectId}", projectId);
+            return Result<Project>.Failure("An error occurred while retrieving the project.");
+        }
+    }
+
+    public async Task<bool> UserHasAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        return await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
+    }
+
     public async Task<Result<IEnumerable<Project>>> GetAllProjectsAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -181,9 +202,11 @@ public class ProjectService : IProjectService
             var projects = await _projectRepository.GetAllProjectsAsync(cancellationToken);
             return Result<IEnumerable<Project>>.Success(projects);
 
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve all projects");
             return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
         }
+    }
 }

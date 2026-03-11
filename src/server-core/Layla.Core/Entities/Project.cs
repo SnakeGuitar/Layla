@@ -9,6 +9,8 @@ public class Project
     public string? CoverImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsPublic { get; set; } = false;
 
     public ICollection<ProjectRole> Roles { get; set; } = new List<ProjectRole>();
+    public ICollection<AppUser>? Collaborators { get; set; } = new List<AppUser>();
 }

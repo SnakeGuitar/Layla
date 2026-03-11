@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<IAppUserService, AppUserService>();
 
         return services;
     }

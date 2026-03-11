@@ -1,35 +1,157 @@
-﻿using Layla.Core.Contracts.Auth;
+using Layla.Api.Extensions;
+using Layla.Core.Contracts.AppUser;
+using Layla.Core.Contracts.Auth;
+using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Layla.Api.Controllers
+namespace Layla.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class UsersController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    private readonly IAuthService _authService;
+    private readonly IAppUserService _appUserService;
+
+    public UsersController(IAuthService authService, IAppUserService appUserService)
     {
-        private readonly IAuthService _authService;
+        _authService = authService;
+        _appUserService = appUserService;
+    }
 
-        public UsersController(IAuthService authService)
+    /// <summary>
+    /// Register a new user account.
+    /// </summary>
+    [HttpPost]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateUser([FromBody] RegisterRequestDto request)
+    {
+        var result = await _authService.RegisterAsync(request);
+
+        if (!result.IsSuccess)
         {
-            _authService = authService;
+            if (result.Error != null && result.Error.Contains("Email is already registered"))
+                return Conflict(new { message = result.Error });
+
+            return BadRequest(new { message = result.Error });
         }
 
-        [HttpPost]
-        public async Task<ActionResult<AuthResponseDto>> CreateUser(RegisterRequestDto request)
+        return Created(string.Empty, result.Data);
+    }
+
+    /// <summary>
+    /// Get all users (Admin only).
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(IEnumerable<AppUser>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
+    {
+        var result = await _appUserService.GetAllAppUsersAsync(cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { Error = result.Error });
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Get a user by their ID.
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(AppUser), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserById(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _appUserService.GetAppUserByIdAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+            return NotFound(new { Error = result.Error });
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Update the authenticated user's own profile, or an admin can update any user.
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(AppUser), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateAppUserRequestDto request, CancellationToken cancellationToken)
+    {
+        var callerId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin && callerId != id.ToString())
+            return Forbid();
+
+        var result = await _appUserService.UpdateAppUserAsync(id, request, cancellationToken);
+
+        if (!result.IsSuccess)
         {
-            var result = await _authService.RegisterAsync(request);
+            if (result.Error == "User not found.")
+                return NotFound(new { Error = result.Error });
 
-            if (!result.IsSuccess)
-            {
-                if (result.Error != null && result.Error.Contains("Email is already registered"))
-                {
-                    return Conflict(new { message = result.Error });
-                }
-                return BadRequest(new { message = result.Error });
-            }
-
-            return Created(string.Empty, result.Data);
+            return BadRequest(new { Error = result.Error });
         }
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Delete a user account. Admins can delete any user; users can delete only themselves.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
+    {
+        var callerId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin && callerId != id.ToString())
+            return Forbid();
+
+        var result = await _appUserService.DeleteAppUserAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "User not found.")
+                return NotFound(new { Error = result.Error });
+
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Ban a user (Admin only). Invalidates all sessions and locks the account.
+    /// </summary>
+    [HttpPost("{id:guid}/ban")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> BanUser(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _appUserService.BanAppUserAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "User not found.")
+                return NotFound(new { Error = result.Error });
+
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return NoContent();
     }
 }

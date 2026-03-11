@@ -1,5 +1,6 @@
 using Layla.Api.Extensions;
 using Layla.Core.Contracts.Project;
+using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,41 +40,66 @@ public class ProjectsController : ControllerBase
         return CreatedAtAction(nameof(GetProjectById), new { id = project.Id }, project);
     }
 
+    /// <summary>
+    /// Get projects belonging to the authenticated user.
+    /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Project>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetProjects(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
 
         if (string.IsNullOrEmpty(userId))
-        {
             return Unauthorized(new { Error = "User ID not found in token." });
-        }
 
         var result = await _projectService.GetUserProjectsAsync(userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
             return BadRequest(new { Error = result.Error });
-        }
 
         return Ok(result.Data);
     }
 
+    /// <summary>
+    /// Get all projects globally (Admin only).
+    /// </summary>
     [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(IEnumerable<Project>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllProjects(CancellationToken cancellationToken)
     {
         var result = await _projectService.GetAllProjectsAsync(cancellationToken);
         if (!result.IsSuccess)
-        {
             return BadRequest(new { Error = result.Error });
-        }
+
         return Ok(result.Data);
     }
 
-    [HttpGet("{id}")]
-    public IActionResult GetProjectById(Guid id)
+    /// <summary>
+    /// Get a single project by ID. The caller must be a member of the project.
+    /// </summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(Project), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProjectById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok();
+        var userId = User.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Error = "User ID not found in token." });
+
+        var isMember = await _projectService.UserHasAccessAsync(id, userId, cancellationToken);
+        if (!isMember)
+            return Forbid();
+
+        var result = await _projectService.GetProjectByIdAsync(id, cancellationToken);
+
+        if (!result.IsSuccess)
+            return NotFound(new { Error = result.Error });
+
+        return Ok(result.Data);
     }
 
     [HttpPut("{id}")]
