@@ -58,7 +58,7 @@ services:
   # --- 4. Worldbuilding API (Node.js) ---
   layla-worldbuilding:
     build:
-      context: ./src/server-worldbuilding/server
+      context: ./src/server-worldbuilding/Layla.Worldbuilding
       dockerfile: Dockerfile
     container_name: layla-worldbuilding
     ports:

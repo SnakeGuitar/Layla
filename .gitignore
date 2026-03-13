@@ -70,3 +70,5 @@ local.properties
 Thumbs.db
 /src/client-desktop/Layla.Desktop/.vs
 /src/server-core/.vs
+
+.fake
