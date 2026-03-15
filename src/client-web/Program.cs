@@ -17,6 +17,8 @@ builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 );
 builder.Services.AddSingleton<HttpContextAccessor>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<VoiceService>();
 
 var app = builder.Build();
 

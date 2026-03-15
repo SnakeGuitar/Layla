@@ -9,4 +9,8 @@
     <UserSecretsId>81f00556-94af-4e9d-810b-1bb1ce8f72a4</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.3" />
+  </ItemGroup>
+
 </Project>
