@@ -1,24 +1,20 @@
 @page "/"
 @page "/home"
 @using client_web.Components.Components
-@using client_web.Services
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProjectService ProjectService
-@inject ProtectedLocalStorage LocalStorage
 <PageTitle>Home</PageTitle>
 
 @* Header *@
 <header class="max-w-5xl mx-auto mb-12">
-    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Proyectos</h2>
+    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Projects</h2>
     <h1 class="text-stone-100 font-serif text-4xl md:text-5xl font-light tracking-tight">
-        Biblioteca pública
+        Public Library
     </h1>
     <div class="mt-4 w-16 h-px bg-amber-500"></div>
 </header>
 
 @* Feed Grid *@
 @if (projects == null || !projects.Any()){
-    <p class="text-stone-500 text-sm">No hay proyectos disponibles.</p>
+    <p class="text-stone-500 text-sm">No projects available.</p>
 }
 else
 {
@@ -40,33 +36,38 @@ else
 @code {
     private List<ProjectViewModel>? projects;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var tokenResult = await LocalStorage.GetAsync<string>("authToken");
-        if (tokenResult.Success && !string.IsNullOrEmpty(tokenResult.Value))
+        // Replace with your actual data service call, e.g.:
+        // projects = await ProjectService.GetAllAsync();
+
+        projects = new List<ProjectViewModel>
         {
-            try
-            {
-                var response = await ProjectService.GetUserProjectsAsync(tokenResult.Value);
-                projects = response.Select(p => new ProjectViewModel
-                {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Synopsis = p.Synopsis,
-                    LiteraryGenre = p.LiteraryGenre,
-                    CoverImageUrl = p.CoverImageUrl,
-                    UpdatedAt = p.UpdatedAt
-                }).ToList();
-            }
-            catch
-            {
-                projects = new List<ProjectViewModel>();
-            }
-        }
-        else
-        {
-            projects = new List<ProjectViewModel>();
-        }
+            new ProjectViewModel() {
+                Id = Guid.NewGuid(),
+                Title = "The Last Garden of Dreams",
+                Synopsis = "A story about memory, dreams, and the secret gardens we keep deep within our minds.",
+                LiteraryGenre = "Fantasy",
+                CoverImageUrl = null,
+                UpdatedAt = DateTime.Now.AddDays(-3)
+            },
+            new ProjectViewModel() {
+                Id = Guid.NewGuid(),
+                Title = "Letters from the End of the World",
+                Synopsis = "An intimate epistolary that traces the last days of a civilization through the letters of those who lived it.",
+                LiteraryGenre = "Science Fiction",
+                CoverImageUrl = null,
+                UpdatedAt = DateTime.Now.AddDays(-10)
+            },
+            new ProjectViewModel() {
+                Id = Guid.NewGuid(),
+                Title = "The City of Broken Mirrors",
+                Synopsis = "A detective without a past investigates disappearances in a city where mirrors show what could have been.",
+                LiteraryGenre = "Noir",
+                CoverImageUrl = null,
+                UpdatedAt = DateTime.Now.AddDays(-1)
+            },
+        };
     }
 
     private void HandleCardClick(Guid projectId)

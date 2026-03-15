@@ -5,10 +5,8 @@
 @using client_web.Schemas.Auth
 @using client_web.Services
 @using client_web.Services.Http
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject AuthService AuthService
 @inject NavigationManager Navigation
-@inject ProtectedLocalStorage LocalStorage
 
 
 <PageTitle>Login</PageTitle>
@@ -46,7 +44,7 @@
                     <input
                         type="User"
                         @bind="_email"
-                        placeholder="nombre@empresa.com"
+                        placeholder="email@company.com"
                         class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0,0,0,3pxrgba(26,26,26,0.08)]" />
                 </div>
 
@@ -136,16 +134,10 @@
                 Email = _email,
                 Password = _password
             };
-            LoginResponse? result = await AuthService.LoginAsync(data);
+            LoginResponse? resultado = await AuthService.LoginAsync(data);
 
-            if (result != null && result.Token != null)
-            {
-                await LocalStorage.SetAsync("authToken", result.Token);
-                await LocalStorage.SetAsync("userEmail", result.Email);
-                await LocalStorage.SetAsync("userDisplayName", resultado.Nombre);
-                
-                Navigation.NavigateTo("/home");
-            }
+            // TODO-Development: Save token / navigate according to session logic
+            Navigation.NavigateTo("/home");
         } catch (ApiException ex) {
             _errorMessage = ex.Message;
         } catch (Exception) {

@@ -1,30 +1,29 @@
-Para ejecución: pnpm run dev
+For execution: pnpm run dev
 
 # Express - Typescript
 --------------------------------------------------------------------------------------------------
-| CU-## | Nombre del caso de uso            | Actor principal   | Módulo                | Estado |
-|-------|-----------------------------------|------------------ | --------------------- | ------ |
-| CU-06	| Gestionar Colaboradores           | Escritor          | Gestión               |   ❌  |
-| CU-07	| Configurar Privacidad	            | Escritor          | Gestión               |   ❌  |
-| CU-08	| Editar Manuscrito (Texto Rico)    | Editor / Escritor | Escritura (MongoDB)   |   ❌  |
-| CU-09	| Gestionar Wiki (Nodos)            | Editor / Escritor	| Worldbuilding (Neo4j) |   ❌  |
-| CU-10	| Visualizar Relaciones (Grafo)	    | Lector / Editor   | Worldbuilding (Neo4j) |   ❌  |
-| CU-15 | Gestionar Usuarios (Ban/Roles)    | Administrador     | Admin                 |   ❌  |
+| UC-## | Use Case Name                     | Primary Actor      | Module                | Status |
+|-------|-----------------------------------|------------------  | --------------------- | ------ |
+| UC-06	| Manage Collaborators              | Writer             | Management            |   ❌   |
+| UC-07	| Configure Privacy                 | Writer             | Management            |   ❌   |
+| UC-08	| Edit Manuscript (Rich Text)       | Editor / Writer    | Writing (MongoDB)     |   ❌   |
+| UC-09	| Manage Wiki (Nodes)               | Editor / Writer    | Worldbuilding (Neo4j) |   ❌   |
+| UC-10	| Visualize Relations (Graph)       | Reader / Editor    | Worldbuilding (Neo4j) |   ❌   |
+| UC-15 | Manage Users (Ban/Roles)          | Administrator      | Admin                 |   ❌   |
 
-## CU-06 Gestionar Colaboradores
-### Descripción
-El Escritor invita a otros usuarios a participar en la obra, asignándoles roles específicos (Editor) para permitir la co-autoría o corrección.
-### Precondiciones
-El usuario debe ser el Propietario del proyecto (Role Owner).
-### Postcondiciones
-POS-1: El usuario invitado ahora puede ver y editar el proyecto en su propio Dashboard.
-### Flujo normal
-1.	El Sistema muestra la lista actual de colaboradores.
-2.	El Escritor ingresa el correo electrónico del usuario a invitar.
-3.	El Sistema busca al usuario en la base de datos de identidad (SQL Server).
-4.	El Sistema valida que el usuario exista (FA-01).
-5.	El Escritor selecciona el rol a asignar (ej. "Editor").
-6.	El Sistema registra el permiso en la tabla de Roles del proyecto.
-7.	El Sistema envía una notificación al usuario invitado.
-8.	Termina CU.
-
+## UC-06 Manage Collaborators
+### Description
+The Writer invites other users to participate in the work, assigning them specific roles (Editor) to enable co-authorship or proofreading.
+### Preconditions
+The user must be the Project Owner (Role Owner).
+### Postconditions
+POS-1: The guest user can now view and edit the project on their own Dashboard.
+### Normal Flow
+1.	The System displays the current list of collaborators.
+2.	The Writer enters the email address of the user to invite.
+3.	The System searches for the user in the identity database (SQL Server).
+4.	The System validates that the user exists (FA-01).
+5.	The Writer selects the role to assign (e.g., "Editor").
+6.	The System registers the permission in the project's Roles table.
+7.	The System sends a notification to the invited user.
+8.	UC ends.

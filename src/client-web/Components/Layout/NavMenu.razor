@@ -1,4 +1,4 @@
-﻿@* 
+@* 
     DESKTOP (lg+):
       - "Layla" fijo en la esquina superior-izquierda (dentro del sidebar)
       - Navbar siempre visible debajo
@@ -15,47 +15,47 @@
     bg-linear-to-t from-base-purple-1 to-base-blue-3
     border-r border-white/10
 ">
-    <!-- Marca / logo -->
+    <!-- Brand / logo -->
     <div class="h-14 flex items-center px-5 border-b border-white/10 shrink-0">
         <a href="" class="text-white font-semibold tracking-widest uppercase text-sm hover:text-cyan-400 transition-colors duration-200">
             Layla
         </a>
     </div>
 
-    <!-- Navegación -->
+    <!-- Navigation -->
     <nav class="flex-1 flex flex-col py-4 overflow-y-auto">
         <div class="px-4 pb-2">
-            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menu</span>
         </div>
 
         <div class="px-2 space-y-0.5">
             <div class="nav-item px-1">
                 <NavLink href="/home" Match="NavLinkMatch.All" class="nav-link">
                     <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                    Inicio
+                    Home
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/projects/my-projects" class="nav-link">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
-                    Mis proyectos
+                    My Projects
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/admin/dashboard" class="nav-link">
                     <span class="bi bi-admin-nav-menu" aria-hidden="true"></span>
-                    Administración
+                    Administration
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/admin/manage-users" class="nav-link">
                     <span class="bi bi-admin-nav-menu" aria-hidden="true"></span>
-                    Gestión de usuarios
+                    User Management
                 </NavLink>
             </div>
         </div>
 
-        <!-- Versión al fondo -->
+        <!-- Version at bottom -->
         <div class="mt-auto px-5 py-4 border-t border-white/10">
             <span class="text-xs text-white/30">v1.0.0</span>
         </div>
@@ -63,10 +63,10 @@
 </div>
 
 
-<!-- ─── MÓVIL: barra superior + menú colapsable ─── -->
+<!-- ─── MOBILE: top bar + collapsible menu ─── -->
 <div class="lg:hidden bg-linear-to-r from-base-blue-3 to-base-purple-1">
 
-    <!-- Barra fija: "Layla" izq. | hamburguesa der. -->
+    <!-- Fixed bar: "Layla" left | hamburger right -->
     <div class="
         sticky top-0 z-50
         flex items-center justify-between
@@ -79,9 +79,9 @@
             Layla
         </a>
 
-        <!-- Botón hamburguesa — label del checkbox oculto -->
+        <!-- Hamburger button — hidden checkbox label -->
         <label for="navbar-toggler"
-               aria-label="Abrir menú de navegación"
+               aria-label="Open navigation menu"
                class="cursor-pointer flex flex-col justify-center gap-1.5 p-2 rounded-md border border-white/10 hover:bg-white/10 active:scale-95 transition-all duration-200">
             <span class="block w-5 h-0.5 bg-white/80 rounded-full transition-transform duration-300 peer-checked:rotate-45 peer-checked:translate-y-2"></span>
             <span class="block w-5 h-0.5 bg-white/80 rounded-full transition-opacity duration-300 peer-checked:opacity-0"></span>
@@ -89,10 +89,10 @@
         </label>
     </div>
 
-    <!-- Checkbox oculto que controla el menú -->
+    <!-- Hidden checkbox that controls the menu -->
     <input type="checkbox" id="navbar-toggler" class="peer hidden" />
 
-    <!-- Menú desplegable -->
+    <!-- Dropdown menu -->
     <nav class="
         hidden peer-checked:flex flex-col
         py-3
@@ -102,32 +102,32 @@
         animate-[slideDown_0.2s_ease-out]
     ">
         <div class="px-4 pt-1 pb-2">
-            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menú</span>
+            <span class="text-[10px] uppercase tracking-[0.2em] text-white/30 font-semibold">Menu</span>
         </div>
 
         <div class="px-2 space-y-0.5">
             <div class="nav-item px-1">
                 <NavLink href="/home" Match="NavLinkMatch.All" class="nav-link">
                     <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                    Inicio
+                    Home
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/projects/my-projects" class="nav-link">
                     <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
-                    Mis proyectos
+                    My Projects
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/admin/dashboard" class="nav-link">
                     <span class="bi bi-admin-nav-menu" aria-hidden="true"></span>
-                    Administración
+                    Administration
                 </NavLink>
             </div>
             <div class="nav-item px-1">
                 <NavLink href="/admin/manage-users" class="nav-link">
                     <span class="bi bi-admin-nav-menu" aria-hidden="true"></span>
-                    Gestión de usuarios
+                    User Management
                 </NavLink>
             </div>
         </div>

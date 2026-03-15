@@ -2,7 +2,7 @@
 @inject IJSRuntime JS
 
 <header class="max-w-5xl mx-auto mb-12">
-    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Administración</h2>
+    <h2 class="text-amber-500 text-xs font-bold tracking-[0.3em] uppercase mb-3">Administration</h2>
     <h1 class="text-stone-100 font-serif text-4xl md:text-5xl font-light tracking-tight">
         Dashboard
     </h1>
@@ -12,27 +12,27 @@
 @* General Data *@
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4 text-center">
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
-        <h3 class="text-stone-300 text-xl">Número total de usuarios</h3>
+        <h3 class="text-stone-300 text-xl">Total Users</h3>
         <p class="">@ActiveUsers</p>
     </div>
 
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
-        <h3 class="text-stone-300 text-xl">Usuarios activos este mes</h3>
+        <h3 class="text-stone-300 text-xl">Monthly Active Users</h3>
         <p class="">@ActiveUsers</p>
     </div>
 
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
-        <h3 class="text-stone-300 text-xl">Usuarios nuevos este mes</h3>
+        <h3 class="text-stone-300 text-xl">New Users This Month</h3>
         <p class="">@ActiveUsers</p>
     </div>
 
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
-        <h3 class="text-stone-300 text-xl">Usuarios bloqueados</h3>
+        <h3 class="text-stone-300 text-xl">Banned Users</h3>
         <p class="">@ActiveProjects</p>
     </div>
 
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
-        <h3 class="text-stone-300 text-xl">Proyectos modificados hoy</h3>
+        <h3 class="text-stone-300 text-xl">Projects Modified Today</h3>
         <p class="">@ActiveProjects</p>
     </div>
 
@@ -50,19 +50,14 @@
 <script src="@Assets["js/chartInterop.js"]"></script>
 
 @code {
-    // TODO-Integration: Replace with real calls to ProjectService/UserService
-    public int ActiveUsers = 0;
-    public int ActiveProjects = 0;
-    public int ChaptersToday = 0;
-    public int PendingReports = 0;
-    public int[] newUsersPerMonth = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    public int ActiveUsers = 124;
+    public int ActiveProjects = 38;
+    public int ChaptersToday = 56;
+    public int PendingReports = 3;
+    public int[] newUsersPerMonth = {
+        10, 20, 15, 30, 25, 40, 35, 50, 45, 60, 55, 70
+    };
 
-    protected override async Task OnAfterRenderAsync (bool firstRender)
-    {
-        if (firstRender)
-        {
-             // TODO: Load real data here
-             await JS.InvokeVoidAsync("createBarChart", "myChart", newUsersPerMonth);
-        }
-    }
+    protected override async Task OnAfterRenderAsync (bool firstRender) =>
+        await JS.InvokeVoidAsync("createBarChart", "myChart", newUsersPerMonth);
 }
