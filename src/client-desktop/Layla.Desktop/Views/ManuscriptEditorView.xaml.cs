@@ -19,11 +19,11 @@ namespace Layla.Desktop.Views
         private Guid? _currentChapterId;
         private bool _isLoaded = false;
         private bool _isSaving = false;
-        private System.Threading.Timer _debounceTimer;
+        private System.Threading.Timer? _debounceTimer;
 
-        private AdornerLayer _adornerLayer;
-        private ImageResizerAdorner _currentAdorner;
-        private Image _selectedImage;
+        private AdornerLayer? _adornerLayer;
+        private ImageResizerAdorner? _currentAdorner;
+        private Image? _selectedImage;
 
         public ManuscriptEditorView(Guid projectId)
         {
@@ -38,7 +38,7 @@ namespace Layla.Desktop.Views
             try
             {
                 var manuscript = await _apiService.GetManuscriptAsync(_projectId);
-                Models.Chapter targetChapter = null;
+                Models.Chapter? targetChapter = null;
 
                 if (manuscript != null && manuscript.Chapters.Any())
                 {
@@ -230,8 +230,8 @@ namespace Layla.Desktop.Views
             _adornerLayer = AdornerLayer.GetAdornerLayer(_selectedImage);
             if (_adornerLayer != null)
             {
-                _currentAdorner = new ImageResizerAdorner(_selectedImage);
-                _adornerLayer.Add(_currentAdorner);
+            _currentAdorner = new ImageResizerAdorner(_selectedImage);
+            _adornerLayer?.Add(_currentAdorner);
             }
         }
 
@@ -242,8 +242,8 @@ namespace Layla.Desktop.Views
                 _adornerLayer.Remove(_currentAdorner);
                 _currentAdorner = null;
                 _adornerLayer = null;
-                _selectedImage = null;
             }
+            _selectedImage = null;
         }
     }
 }

@@ -22,34 +22,7 @@ namespace Layla.Desktop.Views
 
         private void InitializeMockData()
         {
-            var dianaNode = new GraphNode
-            {
-                Id = "diana",
-                Name = "Diana",
-                Subtitle = "Gray Fox",
-                Center = new Point(300, 200),
-                Radius = 55
-            };
-
-            var menudoNode = new GraphNode
-            {
-                Id = "menudo",
-                Name = "Menudo",
-                Subtitle = "Terrier",
-                Center = new Point(600, 350),
-                Radius = 55
-            };
-
-            var loveEdge = new GraphEdge
-            {
-                Source = menudoNode,
-                Target = dianaNode,
-                Label = "Falls in love with"
-            };
-
-            _mockNodes.Add(dianaNode);
-            _mockNodes.Add(menudoNode);
-            _mockEdges.Add(loveEdge);
+            // TODO-Integration: Load real nodes and edges from the service
         }
 
         private void DrawGraph()

@@ -5,9 +5,8 @@ import { getNeo4jDriver } from "@/db/neo4j";
 /**
  * Middleware factory that enforces per-project access control.
  *
- * Queries the Neo4j `:Project` node for a `projectId` / `ownerId` match
- * against the authenticated user's JWT `id`. Returns **403 Forbidden**
- * if the project does not exist or the user is not the owner.
+ * Queries the Neo4j `:Project` node for access.
+ * Returns **403 Forbidden** if the project does not exist or access is denied.
  *
  * Must be used **after** {@link MiddlewareAuthenticate} so that
  * `req.user` is already populated.
@@ -37,9 +36,11 @@ export const requireProjectAccess = () => {
     const session = driver.session();
 
     try {
+      // TODO: Alignment with SQL ProjectRole system. 
+      // Current check only verifies ownership in Neo4j.
       const result = await session.run(
-        `MATCH (p:Project { projectId: $projectId, ownerId: $ownerId }) RETURN p LIMIT 1`,
-        { projectId, ownerId: req.user.id },
+        `MATCH (u:User { id: $userId })-[:MEMBER_OF]->(p:Project { projectId: $projectId }) RETURN p LIMIT 1`,
+        { projectId, userId: req.user.id },
       );
 
       if (result.records.length === 0) {

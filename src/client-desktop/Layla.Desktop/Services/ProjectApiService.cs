@@ -11,14 +11,9 @@ namespace Layla.Desktop.Services
     public class ProjectApiService : IProjectApiService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "https://localhost:7165";
-
         public ProjectApiService()
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(BaseUrl)
-            };
+            _httpClient = ConfigurationService.CreateHttpClient(ConfigurationService.ServerCoreUrl);
         }
 
         private void AddAuthorizationHeader()
@@ -33,7 +28,7 @@ namespace Layla.Desktop.Services
             }
         }
 
-        public async Task<IEnumerable<Project>> GetMyProjectsAsync()
+        public async Task<IEnumerable<Project>?> GetMyProjectsAsync()
         {
             AddAuthorizationHeader();
             

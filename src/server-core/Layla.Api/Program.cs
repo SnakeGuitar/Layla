@@ -1,4 +1,5 @@
 using Layla.Api.Extensions;
+using Layla.Api.Hubs;
 using Layla.Api.Middleware;
 using Layla.Core.Entities;
 using Layla.Core.Extensions;
@@ -32,6 +33,25 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IVoiceRoomManager, VoiceRoomManager>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LaylaCors", policy =>
+    {
+        policy.WithOrigins(
+                "https://0.0.0.0:7165",
+                "http://0.0.0.0:5287",
+                "https://0.0.0.0:3000",
+                "http://0.0.0.0:3000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(options =>
 {
@@ -55,6 +75,16 @@ builder.Services.AddAuthentication(options =>
         };
         options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
         {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/voice"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            },
             OnAuthenticationFailed = context =>
             {
                 return Task.CompletedTask;
@@ -108,6 +138,7 @@ builder.Services.AddCoreServices(builder.Configuration);
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseCors("LaylaCors");
 
 if (app.Environment.IsDevelopment())
 {
@@ -122,6 +153,7 @@ else
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<VoiceHub>("/hubs/voice");
 
 using (var scope = app.Services.CreateScope())
 {

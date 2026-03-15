@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IAppUserRepository, AppUserRepository>();
-        services.AddScoped<IEventPublisher, DummyEventPublisher>();
+        services.AddSingleton<IEventPublisher, EventBus>();
         services.AddSingleton<IEventBus, EventBus>();
         services.AddScoped<IAuthService, AuthService>();
 

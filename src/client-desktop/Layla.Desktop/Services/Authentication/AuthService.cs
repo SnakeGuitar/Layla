@@ -11,14 +11,9 @@ namespace Layla.Desktop.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _httpClient;
-        private const string BaseUrl = "https://localhost:7165";
-
         public AuthService()
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(BaseUrl)
-            };
+            _httpClient = ConfigurationService.CreateHttpClient(ConfigurationService.ServerCoreUrl);
         }
 
         public async Task<AuthResult> LoginAsync(LoginRequest request)

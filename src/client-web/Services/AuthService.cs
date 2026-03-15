@@ -15,11 +15,9 @@ public class AuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest requestData)
     {
-        requestData.Password = EncryptData.Sha256(requestData.Password);
-
         LoginResponse response = await _api.RequestAsync<LoginResponse>(new RequestHttp
         {
-            Endpoint = "/login",
+            Endpoint = "/api/tokens",
             Method = HttpMethod.Post,
             Body = requestData,
         });

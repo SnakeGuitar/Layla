@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Layla.Infrastructure.Messaging;
 
-public class EventBus : IEventBus, IDisposable
+public class EventBus : IEventBus, IDisposable, IEventPublisher
 {
     private readonly IConnection _connection;
     private readonly IModel _channel;
@@ -26,9 +26,18 @@ public class EventBus : IEventBus, IDisposable
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.WriteLine($"[EventBus] Error connecting to RabbitMQ: {ex.Message}");
         }
+    }
+
+    public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class
+    {
+        const string exchangeName = "worldbuilding.events";
+        var routingKey = @event.GetType().Name.ToLower().Replace("event", "");
+        
+        await Task.Run(() => Publish(@event, exchangeName, routingKey), cancellationToken);
     }
 
     public void Publish<T>(T @event, string exchangeName, string routingKey = "") where T : class

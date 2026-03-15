@@ -5,41 +5,43 @@
 @using client_web.Schemas.Auth
 @using client_web.Services
 @using client_web.Services.Http
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject AuthService AuthService
 @inject NavigationManager Navigation
+@inject ProtectedLocalStorage LocalStorage
 
 
-<PageTitle>Inicio de sesión</PageTitle>
+<PageTitle>Login</PageTitle>
 
 <main class="min-h-screen bg-linear-to-tr from-base-1 to-base-2 flex items-center justify-center px-4">
 
-    <!-- Decoración de fondo -->
+    <!-- Background decoration -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-32 -right-32 size-50 rounded-full bg-amber-100 opacity-40 blur-3xl"></div>
         <div class="absolute -bottom-24 -left-24 size-50 rounded-full bg-stone-200 opacity-60 blur-3xl"></div>
     </div>
 
     <div class="relative h-auto">
-        <!-- Tarjeta -->
+        <!-- Card -->
         <div class=" bg-stone-50 rounded-2xl px-8 py-10 animate-[fadeInUp_0.5s_ease_both]">
-            <!-- Encabezado -->
+            <!-- Header -->
             <header class="mb-8 animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.1s]">
                 <img type="image/png" src="./favicon.png" class="mx-auto" />
                 <h1 class="text-3xl text-center text-stone-900 leading-tight">
-                    Inicio de sesión
+                    Login
                 </h1>
                 <p class="text-sm text-center text-stone-400 font-light">
-                    Inicia sesión para continuar
+                    Login to continue
                 </p>
             </header>
 
-            <!-- Formulario -->
+            <!-- Form -->
             <div class="space-y-5">
 
                 <!-- User -->
                 <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.2s]">
                     <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest mb-2">
-                        Correo electrónico
+                        Email
                     </label>
                     <input
                         type="User"
@@ -48,14 +50,14 @@
                         class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0,0,0,3pxrgba(26,26,26,0.08)]" />
                 </div>
 
-                <!-- Contraseña -->
+                <!-- Password -->
                 <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.3s]">
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest">
-                            Contraseña
+                            Password
                         </label>
                         <a href="#" class="text-xs text-stone-400 hover:text-stone-700 transition-colors">
-                            ¿Olvidaste tu contraseña?
+                            Forgot your password?
                         </a>
                     </div>
                     <input
@@ -76,7 +78,7 @@
                     </div>
                 }
 
-                <!-- Botón -->
+                <!-- Button -->
                 <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.4s] pt-2">
                     <button
                         @onclick="HandleLogin"
@@ -89,12 +91,12 @@
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                                 </svg>
-                                Iniciando sesión...
+                                Logging in...
                             </span>
                         }
                         else
                         {
-                            <span>Iniciar sesión →</span>
+                            <span>Login →</span>
                         }
                     </button>
                 </div>
@@ -103,9 +105,9 @@
 
             <!-- Footer -->
             <footer class="mt-8 text-center text-sm text-stone-300">
-                ¿No tienes cuenta?
+                Don't have an account?
                 <a href="/auth/register" class="text-stone-500 hover:text-stone-800 transition-colors font-medium">
-                    Regístrate
+                    Register
                 </a>
             </footer>
 
@@ -123,7 +125,7 @@
     {
         if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
         {
-            _errorMessage = "Por favor completa todos los campos.";
+            _errorMessage = "Please fill in all fields.";
             return;
         }
 
@@ -134,14 +136,20 @@
                 Email = _email,
                 Password = _password
             };
-            LoginResponse? resultado = await AuthService.LoginAsync(data);
+            LoginResponse? result = await AuthService.LoginAsync(data);
 
-            // TODO-Desarrollo: Guarda el token / navega según tu lógica de sesión
-            Navigation.NavigateTo("/home");
+            if (result != null && result.Token != null)
+            {
+                await LocalStorage.SetAsync("authToken", result.Token);
+                await LocalStorage.SetAsync("userEmail", result.Email);
+                await LocalStorage.SetAsync("userDisplayName", resultado.Nombre);
+                
+                Navigation.NavigateTo("/home");
+            }
         } catch (ApiException ex) {
             _errorMessage = ex.Message;
         } catch (Exception) {
-            _errorMessage = "Ocurrió un error inesperado.";
+            _errorMessage = "An unexpected error occurred.";
         } finally {
             _isLoading = false;
         }

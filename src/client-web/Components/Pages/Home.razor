@@ -1,6 +1,10 @@
-﻿@page "/"
+@page "/"
 @page "/home"
 @using client_web.Components.Components
+@using client_web.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProjectService ProjectService
+@inject ProtectedLocalStorage LocalStorage
 <PageTitle>Home</PageTitle>
 
 @* Header *@
@@ -36,38 +40,33 @@ else
 @code {
     private List<ProjectViewModel>? projects;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Replace with your actual data service call, e.g.:
-        // projects = await ProjectService.GetAllAsync();
-
-        projects = new List<ProjectViewModel>
+        var tokenResult = await LocalStorage.GetAsync<string>("authToken");
+        if (tokenResult.Success && !string.IsNullOrEmpty(tokenResult.Value))
         {
-            new ProjectViewModel() {
-                Id = Guid.NewGuid(),
-                Title = "El último jardín de los sueños",
-                Synopsis = "Una historia sobre la memoria, los sueños y los jardines secretos que guardamos en lo más profundo de nuestra mente.",
-                LiteraryGenre = "Fantasía",
-                CoverImageUrl = null,
-                UpdatedAt = DateTime.Now.AddDays(-3)
-            },
-            new ProjectViewModel() {
-                Id = Guid.NewGuid(),
-                Title = "Cartas desde el fin del mundo",
-                Synopsis = "Un epistolario íntimo que recorre los últimos días de una civilización a través de las cartas de quienes la vivieron.",
-                LiteraryGenre = "Ciencia Ficción",
-                CoverImageUrl = null,
-                UpdatedAt = DateTime.Now.AddDays(-10)
-            },
-            new ProjectViewModel() {
-                Id = Guid.NewGuid(),
-                Title = "La ciudad de los espejos rotos",
-                Synopsis = "Un detective sin pasado investiga desapariciones en una ciudad donde los espejos muestran lo que pudo haber sido.",
-                LiteraryGenre = "Noir",
-                CoverImageUrl = null,
-                UpdatedAt = DateTime.Now.AddDays(-1)
-            },
-        };
+            try
+            {
+                var response = await ProjectService.GetUserProjectsAsync(tokenResult.Value);
+                projects = response.Select(p => new ProjectViewModel
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Synopsis = p.Synopsis,
+                    LiteraryGenre = p.LiteraryGenre,
+                    CoverImageUrl = p.CoverImageUrl,
+                    UpdatedAt = p.UpdatedAt
+                }).ToList();
+            }
+            catch
+            {
+                projects = new List<ProjectViewModel>();
+            }
+        }
+        else
+        {
+            projects = new List<ProjectViewModel>();
+        }
     }
 
     private void HandleCardClick(Guid projectId)

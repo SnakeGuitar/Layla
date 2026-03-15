@@ -1,0 +1,267 @@
+@page "/projects/{ProjectId:guid}/voice"
+@using client_web.Services
+@inject VoiceService VoiceService
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="max-w-2xl mx-auto p-6">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-white">Voice Room</h2>
+        <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full @StatusColor"></span>
+            <span class="text-sm text-gray-400">@_connectionState</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4 text-red-200 text-sm">
+            @_error
+        </div>
+    }
+
+    @if (!_isConnected)
+    {
+        <div class="mb-6">
+            <label class="block text-sm text-gray-400 mb-2">Auth Token</label>
+            <input type="text" @bind="_token" placeholder="Paste your JWT token"
+                   class="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white text-sm mb-3" />
+            <button @onclick="ConnectAsync" disabled="@_isConnecting"
+                    class="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-medium transition-colors">
+                @(_isConnecting ? "Connecting..." : "Join Voice Room")
+            </button>
+        </div>
+    }
+
+    <!-- Participants -->
+    <div class="bg-gray-800 rounded-lg p-4 mb-6 min-h-[200px]">
+        <h3 class="text-sm font-medium text-gray-400 mb-3">Participants (@_participants.Count)</h3>
+        @if (_participants.Count == 0)
+        {
+            <p class="text-gray-500 text-center py-8">No participants in voice room</p>
+        }
+        else
+        {
+            @foreach (var p in _participants)
+            {
+                <div class="flex items-center gap-3 py-2">
+                    <span class="w-2.5 h-2.5 rounded-full @(p.IsSpeaking ? "bg-green-400" : "bg-gray-500")"></span>
+                    <span class="text-white">@p.DisplayName</span>
+                    @if (p.Role == "Reader")
+                    {
+                        <span class="text-xs text-gray-500">(Listener)</span>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    <!-- PTT Button -->
+    @if (_isConnected)
+    {
+        <div class="flex flex-col items-center gap-4">
+            <button @onmousedown="StartSpeakingAsync" @onmouseup="StopSpeakingAsync"
+                    @ontouchstart="StartSpeakingAsync" @ontouchend="StopSpeakingAsync"
+                    class="w-36 h-36 rounded-full text-white font-bold text-2xl transition-all select-none
+                           @(_isSpeaking ? "bg-red-600 scale-110" : "bg-blue-600 hover:bg-blue-700")">
+                PTT
+                <br/>
+                <span class="text-xs font-normal opacity-70">
+                    @(_isSpeaking ? "Release to stop" : "Hold to talk")
+                </span>
+            </button>
+
+            <button @onclick="LeaveRoomAsync" class="text-red-400 hover:text-red-300 text-sm">
+                Leave Room
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+
+    private string _connectionState = "Disconnected";
+    private bool _isConnected;
+    private bool _isConnecting;
+    private bool _isSpeaking;
+    private string _token = "";
+    private string? _error;
+    private List<VoiceParticipant> _participants = new();
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<VoiceRoom>? _dotNetRef;
+
+    private string StatusColor => _connectionState switch
+    {
+        "Connected" => "bg-green-400",
+        "Reconnecting" => "bg-yellow-400",
+        _ => "bg-gray-500"
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/voiceAudio.js");
+        }
+    }
+
+    private async Task ConnectAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_token)) { _error = "Token is required"; return; }
+
+        _isConnecting = true;
+        _error = null;
+        StateHasChanged();
+
+        try
+        {
+            VoiceService.OnRoomState += OnRoomState;
+            VoiceService.OnUserJoined += OnUserJoined;
+            VoiceService.OnUserLeft += OnUserLeft;
+            VoiceService.OnSpeakerStarted += OnSpeakerStarted;
+            VoiceService.OnSpeakerStopped += OnSpeakerStopped;
+            VoiceService.OnAudioReceived += OnAudioReceived;
+            VoiceService.OnConnectionChanged += OnConnectionChanged;
+
+            await VoiceService.ConnectAsync(_token);
+            await VoiceService.JoinRoomAsync(ProjectId);
+
+            if (_jsModule != null)
+                await _jsModule.InvokeVoidAsync("initPlayback");
+
+            _isConnected = true;
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to connect: {ex.Message}";
+        }
+        finally
+        {
+            _isConnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartSpeakingAsync()
+    {
+        if (!_isConnected) return;
+        try
+        {
+            await VoiceService.StartSpeakingAsync(ProjectId);
+            _isSpeaking = true;
+
+            if (_jsModule != null)
+            {
+                _dotNetRef = DotNetObjectReference.Create(this);
+                await _jsModule.InvokeVoidAsync("startCapture", _dotNetRef);
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        StateHasChanged();
+    }
+
+    private async Task StopSpeakingAsync()
+    {
+        if (!_isSpeaking) return;
+        _isSpeaking = false;
+
+        if (_jsModule != null)
+            await _jsModule.InvokeVoidAsync("stopCapture");
+
+        await VoiceService.StopSpeakingAsync(ProjectId);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnAudioCaptured(string base64Audio)
+    {
+        var audioData = Convert.FromBase64String(base64Audio);
+        await VoiceService.SendAudioAsync(ProjectId, audioData);
+    }
+
+    private async Task LeaveRoomAsync()
+    {
+        if (_isSpeaking) await StopSpeakingAsync();
+        await VoiceService.LeaveRoomAsync(ProjectId);
+        await VoiceService.DisconnectAsync();
+
+        if (_jsModule != null)
+            await _jsModule.InvokeVoidAsync("disposePlayback");
+
+        _isConnected = false;
+        _participants.Clear();
+        _connectionState = "Disconnected";
+        StateHasChanged();
+    }
+
+    private void OnRoomState(List<VoiceParticipant> participants)
+    {
+        _participants = participants;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnUserJoined(VoiceParticipant participant)
+    {
+        if (_participants.All(p => p.UserId != participant.UserId))
+            _participants.Add(participant);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnUserLeft(string userId)
+    {
+        _participants.RemoveAll(p => p.UserId == userId);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSpeakerStarted(string userId, string displayName)
+    {
+        var idx = _participants.FindIndex(p => p.UserId == userId);
+        if (idx >= 0)
+            _participants[idx] = _participants[idx] with { IsSpeaking = true };
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSpeakerStopped(string userId)
+    {
+        var idx = _participants.FindIndex(p => p.UserId == userId);
+        if (idx >= 0)
+            _participants[idx] = _participants[idx] with { IsSpeaking = false };
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnAudioReceived(string senderId, byte[] audioData)
+    {
+        if (_jsModule != null)
+        {
+            var base64 = Convert.ToBase64String(audioData);
+            await _jsModule.InvokeVoidAsync("playAudio", base64);
+        }
+    }
+
+    private void OnConnectionChanged(string state)
+    {
+        _connectionState = state;
+        _isConnected = state == "Connected";
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        VoiceService.OnRoomState -= OnRoomState;
+        VoiceService.OnUserJoined -= OnUserJoined;
+        VoiceService.OnUserLeft -= OnUserLeft;
+        VoiceService.OnSpeakerStarted -= OnSpeakerStarted;
+        VoiceService.OnSpeakerStopped -= OnSpeakerStopped;
+        VoiceService.OnAudioReceived -= OnAudioReceived;
+        VoiceService.OnConnectionChanged -= OnConnectionChanged;
+
+        _dotNetRef?.Dispose();
+
+        if (_jsModule != null)
+            await _jsModule.DisposeAsync();
+    }
+}

@@ -13,10 +13,7 @@ namespace Layla.Desktop.Services
         private readonly HttpClient _httpClient;
         public ManuscriptApiService()
         {
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(ConfigurationService.WorldbuildingApiUrl)
-            };
+            _httpClient = ConfigurationService.CreateHttpClient(ConfigurationService.WorldbuildingApiUrl);
         }
 
         private void AddAuthorizationHeader()
@@ -31,7 +28,7 @@ namespace Layla.Desktop.Services
             }
         }
 
-        public async Task<Manuscript> GetManuscriptAsync(Guid projectId)
+        public async Task<Manuscript?> GetManuscriptAsync(Guid projectId)
         {
             AddAuthorizationHeader();
             try
@@ -49,7 +46,7 @@ namespace Layla.Desktop.Services
             return null;
         }
 
-        public async Task<Chapter> GetChapterAsync(Guid projectId, Guid chapterId)
+        public async Task<Chapter?> GetChapterAsync(Guid projectId, Guid chapterId)
         {
             AddAuthorizationHeader();
             try
@@ -67,7 +64,7 @@ namespace Layla.Desktop.Services
             return null;
         }
 
-        public async Task<Chapter> CreateChapterAsync(Guid projectId, string title, string content, int order)
+        public async Task<Chapter?> CreateChapterAsync(Guid projectId, string title, string content, int order)
         {
             AddAuthorizationHeader();
             try
@@ -86,7 +83,7 @@ namespace Layla.Desktop.Services
             return null;
         }
 
-        public async Task<Chapter> UpdateChapterAsync(Guid projectId, Guid chapterId, string title, string content, int order, DateTime? clientTimestamp = null)
+        public async Task<Chapter?> UpdateChapterAsync(Guid projectId, Guid chapterId, string title, string content, int order, DateTime? clientTimestamp = null)
         {
             AddAuthorizationHeader();
             try

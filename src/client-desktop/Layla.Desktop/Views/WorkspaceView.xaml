@@ -87,6 +87,10 @@
                 <TabItem Header="Graph">
                     <Frame Source="NarrativeGraphView.xaml" NavigationUIVisibility="Hidden"/>
                 </TabItem>
+
+                <TabItem Header="Voice">
+                    <Frame x:Name="VoiceFrame" NavigationUIVisibility="Hidden"/>
+                </TabItem>
             </TabControl>
         </Grid>
     </Grid>

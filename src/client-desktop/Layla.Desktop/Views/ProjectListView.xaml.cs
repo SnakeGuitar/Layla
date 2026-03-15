@@ -1,4 +1,4 @@
-﻿using Layla.Desktop.Services;
+using Layla.Desktop.Services;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,7 +23,10 @@ namespace Layla.Desktop.Views
             try
             {
                 var projects = await _projectApiService.GetMyProjectsAsync();
-                ProjectsListView.ItemsSource = projects;
+                if (projects != null)
+                {
+                    ProjectsListView.ItemsSource = projects;
+                }
             }
             catch (Exception ex)
             {
@@ -208,7 +211,10 @@ namespace Layla.Desktop.Views
             try
             {
                 var projects = await _projectApiService.GetMyProjectsAsync();
-                ProjectsListView.ItemsSource = projects;
+                if (projects != null)
+                {
+                    ProjectsListView.ItemsSource = projects;
+                }
             }
             catch (Exception ex)
             {

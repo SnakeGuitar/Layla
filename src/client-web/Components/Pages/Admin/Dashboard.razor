@@ -9,7 +9,7 @@
     <div class="mt-4 w-16 h-px bg-amber-500"></div>
 </header>
 
-@* Datos Generales *@
+@* General Data *@
 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4 text-center">
     <div class="bg-base-gray-2 shadow rounded-lg p-4 flex flex-col justify-center">
         <h3 class="text-stone-300 text-xl">Número total de usuarios</h3>
@@ -50,14 +50,19 @@
 <script src="@Assets["js/chartInterop.js"]"></script>
 
 @code {
-    public int ActiveUsers = 124;
-    public int ActiveProjects = 38;
-    public int ChaptersToday = 56;
-    public int PendingReports = 3;
-    public int[] newUsersPerMonth = {
-        10, 20, 15, 30, 25, 40, 35, 50, 45, 60, 55, 70
-    };
+    // TODO-Integration: Replace with real calls to ProjectService/UserService
+    public int ActiveUsers = 0;
+    public int ActiveProjects = 0;
+    public int ChaptersToday = 0;
+    public int PendingReports = 0;
+    public int[] newUsersPerMonth = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    protected override async Task OnAfterRenderAsync (bool firstRender) =>
-        await JS.InvokeVoidAsync("createBarChart", "myChart", newUsersPerMonth);
+    protected override async Task OnAfterRenderAsync (bool firstRender)
+    {
+        if (firstRender)
+        {
+             // TODO: Load real data here
+             await JS.InvokeVoidAsync("createBarChart", "myChart", newUsersPerMonth);
+        }
+    }
 }

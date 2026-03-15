@@ -2,17 +2,21 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using Layla.Desktop.Models;
+using Layla.Desktop.Services;
+using System.Collections.Generic;
 
 namespace Layla.Desktop.Views
 {
     public partial class WorkspaceView : Page
     {
         private readonly Project _currentProject;
+        private readonly IProjectApiService _projectApiService;
 
         public WorkspaceView(Project currentProject)
         {
             InitializeComponent();
             _currentProject = currentProject;
+            _projectApiService = new ProjectApiService();
             this.Loaded += WorkspaceView_Loaded;
         }
 
@@ -21,6 +25,7 @@ namespace Layla.Desktop.Views
             ProjectTitleText.Text = _currentProject.Title;
             
             EditorFrame.Navigate(new ManuscriptEditorView(_currentProject.Id));
+            VoiceFrame.Navigate(new VoicePanelView(_currentProject.Id));
 
             try 
             {
