@@ -29,7 +29,7 @@ public class ProjectService : IProjectService
         _logger = logger;
     }
 
-    public async Task<Result<Project>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ProjectResponseDto>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
     {
         await _projectRepository.BeginTransactionAsync(cancellationToken);
         try
@@ -81,46 +81,47 @@ public class ProjectService : IProjectService
 
             _logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
 
-            return Result<Project>.Success(project);
+            return Result<ProjectResponseDto>.Success(MapToResponseDto(project, "OWNER"));
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
             await _projectRepository.RollbackTransactionAsync(cancellationToken);
             _logger.LogError(ex, "Failed to create project for user {UserId}", userId);
-            return Result<Project>.Failure("An error occurred while creating the project.");
+            return Result<ProjectResponseDto>.Failure("An error occurred while creating the project.");
         }
     }
 
-    public async Task<Result<IEnumerable<Project>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default)
     {
         try
         {
             var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
-            return Result<IEnumerable<Project>>.Success(projects);
+            var dtos = projects.Select(p => MapToResponseDto(p, p.Roles.FirstOrDefault(r => r.AppUserId == userId)?.Role ?? string.Empty));
+            return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
         }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
             _logger.LogError(ex, "Failed to retrieve projects for user {UserId}", userId);
-            return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
+            return Result<IEnumerable<ProjectResponseDto>>.Failure("An error occurred while retrieving projects.");
         }
     }
 
-    public async Task<Result<Project>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ProjectResponseDto>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
     {
         try
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, "OWNER", cancellationToken);
             if (!hasRole)
             {
-                return Result<Project>.Failure("Unauthorized.");
+                return Result<ProjectResponseDto>.Failure("Unauthorized.");
             }
 
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
             {
-                return Result<Project>.Failure("Project not found.");
+                return Result<ProjectResponseDto>.Failure("Project not found.");
             }
 
             project.Title = request.Title;
@@ -134,12 +135,12 @@ public class ProjectService : IProjectService
 
             _logger.LogInformation("Project {ProjectId} updated successfully by user {UserId}", projectId, userId);
 
-            return Result<Project>.Success(project);
+            return Result<ProjectResponseDto>.Success(MapToResponseDto(project, "OWNER"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<Project>.Failure("An error occurred while updating the project.");
+            return Result<ProjectResponseDto>.Failure("An error occurred while updating the project.");
         }
     }
 
@@ -173,20 +174,20 @@ public class ProjectService : IProjectService
         }
     }
 
-    public async Task<Result<Project>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)
+    public async Task<Result<ProjectResponseDto>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         try
         {
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
-                return Result<Project>.Failure("Project not found.");
+                return Result<ProjectResponseDto>.Failure("Project not found.");
 
-            return Result<Project>.Success(project);
+            return Result<ProjectResponseDto>.Success(MapToResponseDto(project));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve project {ProjectId}", projectId);
-            return Result<Project>.Failure("An error occurred while retrieving the project.");
+            return Result<ProjectResponseDto>.Failure("An error occurred while retrieving the project.");
         }
     }
 
@@ -195,18 +196,35 @@ public class ProjectService : IProjectService
         return await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
     }
 
-    public async Task<Result<IEnumerable<Project>>> GetAllProjectsAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetAllProjectsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             var projects = await _projectRepository.GetAllProjectsAsync(cancellationToken);
-            return Result<IEnumerable<Project>>.Success(projects);
+            var dtos = projects.Select(p => MapToResponseDto(p));
+            return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
 
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve all projects");
-            return Result<IEnumerable<Project>>.Failure("An error occurred while retrieving projects.");
+            return Result<IEnumerable<ProjectResponseDto>>.Failure("An error occurred while retrieving projects.");
         }
+    }
+
+    private static ProjectResponseDto MapToResponseDto(Project project, string userRole = "")
+    {
+        return new ProjectResponseDto
+        {
+            Id = project.Id,
+            Title = project.Title,
+            Synopsis = project.Synopsis,
+            LiteraryGenre = project.LiteraryGenre,
+            CoverImageUrl = project.CoverImageUrl,
+            CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
+            IsPublic = project.IsPublic,
+            UserRole = userRole
+        };
     }
 }

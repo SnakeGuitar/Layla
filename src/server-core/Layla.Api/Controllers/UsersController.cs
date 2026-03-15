@@ -50,7 +50,7 @@ public class UsersController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(IEnumerable<AppUser>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<UserResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllUsers(CancellationToken cancellationToken)
     {
         var result = await _appUserService.GetAllAppUsersAsync(cancellationToken);
@@ -65,7 +65,7 @@ public class UsersController : ControllerBase
     /// Get a user by their ID.
     /// </summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(AppUser), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserById(Guid id, CancellationToken cancellationToken)
     {
@@ -81,7 +81,7 @@ public class UsersController : ControllerBase
     /// Update the authenticated user's own profile, or an admin can update any user.
     /// </summary>
     [HttpPut("{id:guid}")]
-    [ProducesResponseType(typeof(AppUser), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateAppUserRequestDto request, CancellationToken cancellationToken)

@@ -44,7 +44,7 @@ public class ProjectsController : ControllerBase
     /// Get projects belonging to the authenticated user.
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Project>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ProjectResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetProjects(CancellationToken cancellationToken)
     {
@@ -66,7 +66,7 @@ public class ProjectsController : ControllerBase
     /// </summary>
     [HttpGet("all")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(IEnumerable<Project>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ProjectResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllProjects(CancellationToken cancellationToken)
     {
@@ -81,7 +81,7 @@ public class ProjectsController : ControllerBase
     /// Get a single project by ID. The caller must be a member of the project.
     /// </summary>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(Project), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProjectResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetProjectById(Guid id, CancellationToken cancellationToken)

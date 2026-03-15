@@ -1,13 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
-import { ManuscriptModel } from "@/models/Manuscript.model";
 import { IChapter } from "@/interfaces/manuscript/IManuscript";
+import { MongooseManuscriptRepository } from "@/repositories/MongooseManuscriptRepository";
+
+const manuscriptRepo = new MongooseManuscriptRepository();
 
 /**
  * Returns the manuscript index for a project: chapter list without `content`.
  * Returns `null` if no manuscript exists for the given `projectId`.
  */
 export const getManuscript = async (projectId: string) => {
-  const manuscript = await ManuscriptModel.findOne({ projectId }).lean();
+  const manuscript = await manuscriptRepo.getManuscript(projectId);
   if (!manuscript) return null;
 
   const chapters = manuscript.chapters.map(
@@ -28,10 +30,7 @@ export const getManuscript = async (projectId: string) => {
  * Returns `null` if neither the manuscript nor the chapter is found.
  */
 export const getChapter = async (projectId: string, chapterId: string) => {
-  const manuscript = await ManuscriptModel.findOne({ projectId }).lean();
-  if (!manuscript) return null;
-
-  return manuscript.chapters.find((c) => c.chapterId === chapterId) ?? null;
+  return manuscriptRepo.getChapter(projectId, chapterId);
 };
 
 /**
@@ -49,13 +48,7 @@ export const createChapter = async (
     order: data.order ?? 0,
   };
 
-  const manuscript = await ManuscriptModel.findOneAndUpdate(
-    { projectId },
-    { $push: { chapters: newChapter } },
-    { upsert: true, new: true },
-  );
-
-  return manuscript.chapters.find((c) => c.chapterId === newChapter.chapterId);
+  return manuscriptRepo.createChapter(projectId, newChapter);
 };
 
 /** Data accepted by {@link updateChapter}. */
@@ -74,21 +67,14 @@ export interface UpdateChapterResult {
 
 /**
  * Updates a chapter's fields using a Last-Write-Wins (LWW) strategy.
- *
- * If `clientTimestamp` is provided and is older than the chapter's stored
- * `updatedAt`, returns `{ conflict: true, chapter }` with the current version
- * so the client can reconcile. Returns `{ conflict: false }` if the chapter
- * or manuscript does not exist.
  */
 export const updateChapter = async (
   projectId: string,
   chapterId: string,
   data: UpdateChapterData,
 ): Promise<UpdateChapterResult> => {
-  const manuscript = await ManuscriptModel.findOne({ projectId });
-  if (!manuscript) return { conflict: false };
-
-  const chapter = manuscript.chapters.find((c) => c.chapterId === chapterId);
+  // We need to fetch the chapter first to check for conflicts
+  const chapter = await manuscriptRepo.getChapter(projectId, chapterId);
   if (!chapter) return { conflict: false };
 
   if (data.clientTimestamp) {
@@ -98,13 +84,17 @@ export const updateChapter = async (
     }
   }
 
-  if (data.title !== undefined) chapter.title = data.title;
-  if (data.content !== undefined) chapter.content = data.content;
-  if (data.order !== undefined) chapter.order = data.order;
-  chapter.updatedAt = new Date();
+  const updateData: any = {};
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.content !== undefined) updateData.content = data.content;
+  if (data.order !== undefined) updateData.order = data.order;
+  updateData.updatedAt = new Date();
 
-  await manuscript.save();
-  return { conflict: false, chapter };
+  await manuscriptRepo.updateChapter(projectId, chapterId, updateData);
+  
+  // Fetch again to return updated version (or we could optimize this)
+  const updatedChapter = await manuscriptRepo.getChapter(projectId, chapterId);
+  return { conflict: false, chapter: updatedChapter ?? undefined };
 };
 
 /**
@@ -115,9 +105,5 @@ export const deleteChapter = async (
   projectId: string,
   chapterId: string,
 ): Promise<boolean> => {
-  const result = await ManuscriptModel.updateOne(
-    { projectId },
-    { $pull: { chapters: { chapterId } } },
-  );
-  return result.modifiedCount > 0;
+  return manuscriptRepo.deleteChapter(projectId, chapterId);
 };

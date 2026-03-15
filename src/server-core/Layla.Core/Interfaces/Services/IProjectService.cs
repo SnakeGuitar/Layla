@@ -6,11 +6,11 @@ namespace Layla.Core.Interfaces.Services;
 
 public interface IProjectService
 {
-    Task<Result<Project>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
-    Task<Result<IEnumerable<Project>>> GetAllProjectsAsync(CancellationToken cancellationToken = default);
-    Task<Result<IEnumerable<Project>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default);
-    Task<Result<Project>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default);
+    Task<Result<ProjectResponseDto>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<ProjectResponseDto>>> GetAllProjectsAsync(CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<ProjectResponseDto>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<Result<ProjectResponseDto>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default);
     Task<bool> UserHasAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
-    Task<Result<Project>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
+    Task<Result<ProjectResponseDto>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
     Task<Result<bool>> DeleteProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
 }

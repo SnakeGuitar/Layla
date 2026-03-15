@@ -18,42 +18,52 @@ public class AppUserService : IAppUserService
         _logger = logger;
     }
 
-    public async Task<Result<IEnumerable<AppUser>>> GetAllAppUsersAsync(CancellationToken cancellationToken = default)
+    public async Task<Result<IEnumerable<UserResponseDto>>> GetAllAppUsersAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _appUserRepository.GetAllAppUsersAsync(cancellationToken);
+            var result = await _appUserRepository.GetAllAppUsersAsync(cancellationToken);
+            if (!result.IsSuccess) return Result<IEnumerable<UserResponseDto>>.Failure(result.Error);
+            
+            var dtos = result.Data!.Select(MapToResponseDto);
+            return Result<IEnumerable<UserResponseDto>>.Success(dtos);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve all users");
-            return Result<IEnumerable<AppUser>>.Failure("An error occurred while retrieving users.");
+            return Result<IEnumerable<UserResponseDto>>.Failure("An error occurred while retrieving users.");
         }
     }
 
-    public async Task<Result<AppUser>> GetAppUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result<UserResponseDto>> GetAppUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _appUserRepository.GetAppUserByIdAsync(userId, cancellationToken);
+            var result = await _appUserRepository.GetAppUserByIdAsync(userId, cancellationToken);
+            if (!result.IsSuccess) return Result<UserResponseDto>.Failure(result.Error);
+
+            return Result<UserResponseDto>.Success(MapToResponseDto(result.Data!));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve user {UserId}", userId);
-            return Result<AppUser>.Failure("An error occurred while retrieving the user.");
+            return Result<UserResponseDto>.Failure("An error occurred while retrieving the user.");
         }
     }
 
-    public async Task<Result<AppUser>> UpdateAppUserAsync(Guid userId, UpdateAppUserRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<Result<UserResponseDto>> UpdateAppUserAsync(Guid userId, UpdateAppUserRequestDto request, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _appUserRepository.UpdateAppUserAsync(userId, request, cancellationToken);
+            var result = await _appUserRepository.UpdateAppUserAsync(userId, request, cancellationToken);
+            if (!result.IsSuccess) return Result<UserResponseDto>.Failure(result.Error);
+
+            return Result<UserResponseDto>.Success(MapToResponseDto(result.Data!));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update user {UserId}", userId);
-            return Result<AppUser>.Failure("An error occurred while updating the user.");
+            return Result<UserResponseDto>.Failure("An error occurred while updating the user.");
         }
     }
 
@@ -81,5 +91,18 @@ public class AppUserService : IAppUserService
             _logger.LogError(ex, "Failed to ban user {UserId}", userId);
             return Result<bool>.Failure("An error occurred while banning the user.");
         }
+    }
+
+    private static UserResponseDto MapToResponseDto(AppUser user)
+    {
+        return new UserResponseDto
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Bio = user.Bio,
+            CreatedAt = user.CreatedAt
+        };
     }
 }
