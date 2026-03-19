@@ -212,6 +212,21 @@ public class ProjectService : IProjectService
         }
     }
 
+    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetPublicProjectsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var projects = await _projectRepository.GetPublicProjectsAsync(cancellationToken);
+            var dtos = projects.Select(p => MapToResponseDto(p));
+            return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve public projects");
+            return Result<IEnumerable<ProjectResponseDto>>.Failure("An error occurred while retrieving public projects.");
+        }
+    }
+
     private static ProjectResponseDto MapToResponseDto(Project project, string userRole = "")
     {
         return new ProjectResponseDto

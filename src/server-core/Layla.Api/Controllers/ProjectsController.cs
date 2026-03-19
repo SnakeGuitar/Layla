@@ -62,6 +62,21 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Get all public projects. No authentication required.
+    /// </summary>
+    [HttpGet("public")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<ProjectResponseDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPublicProjects(CancellationToken cancellationToken)
+    {
+        var result = await _projectService.GetPublicProjectsAsync(cancellationToken);
+        if (!result.IsSuccess)
+            return BadRequest(new { Error = result.Error });
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
     /// Get all projects globally (Admin only).
     /// </summary>
     [HttpGet("all")]

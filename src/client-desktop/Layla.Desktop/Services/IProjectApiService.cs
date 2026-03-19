@@ -7,8 +7,13 @@ namespace Layla.Desktop.Services
     public interface IProjectApiService
     {
         Task<IEnumerable<Project>?> GetMyProjectsAsync();
+        Task<IEnumerable<Project>?> GetPublicProjectsAsync();
         Task<Project?> CreateProjectAsync(CreateProjectRequest request);
         Task<Project?> UpdateProjectAsync(Guid id, UpdateProjectRequest request);
         Task<bool> DeleteProjectAsync(Guid id);
+        Task ConnectPresenceHubAsync(Action<Guid, bool> onAuthorStatusChanged);
+        Task DisconnectPresenceHubAsync();
+        Task AuthorHeartbeatAsync(Guid projectId);
+        Task WatchProjectAsync(Guid projectId);
     }
 }

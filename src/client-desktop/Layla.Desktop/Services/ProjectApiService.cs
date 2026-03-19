@@ -5,12 +5,15 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Layla.Desktop.Models;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace Layla.Desktop.Services
 {
     public class ProjectApiService : IProjectApiService
     {
         private readonly HttpClient _httpClient;
+        private HubConnection? _presenceHub;
+
         public ProjectApiService()
         {
             _httpClient = ConfigurationService.CreateHttpClient(ConfigurationService.ServerCoreUrl);
@@ -101,7 +104,7 @@ namespace Layla.Desktop.Services
         public async Task<bool> DeleteProjectAsync(Guid id)
         {
             AddAuthorizationHeader();
-            
+
             try
             {
                 var response = await _httpClient.DeleteAsync($"/api/projects/{id}");
@@ -109,7 +112,7 @@ namespace Layla.Desktop.Services
                 {
                     return true;
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine($"Failed to delete project: {response.StatusCode}");
             }
             catch (Exception ex)
@@ -118,6 +121,64 @@ namespace Layla.Desktop.Services
             }
 
             return false;
+        }
+
+        public async Task<IEnumerable<Project>?> GetPublicProjectsAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("/api/projects/public");
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<Project>>();
+
+                System.Diagnostics.Debug.WriteLine($"Failed to retrieve public projects: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error retrieving public projects: {ex.Message}");
+            }
+
+            return new List<Project>();
+        }
+
+        public async Task ConnectPresenceHubAsync(Action<Guid, bool> onAuthorStatusChanged)
+        {
+            if (_presenceHub != null) return;
+
+            _presenceHub = new HubConnectionBuilder()
+                .WithUrl($"{ConfigurationService.ServerCoreUrl}/hubs/presence", options =>
+                {
+                    if (SessionManager.IsAuthenticated)
+                        options.AccessTokenProvider = () => Task.FromResult<string?>(SessionManager.CurrentToken);
+                })
+                .WithAutomaticReconnect()
+                .Build();
+
+            _presenceHub.On<Guid, bool>("AuthorStatusChanged", onAuthorStatusChanged);
+
+            await _presenceHub.StartAsync();
+        }
+
+        public async Task WatchProjectAsync(Guid projectId)
+        {
+            if (_presenceHub?.State == HubConnectionState.Connected)
+                await _presenceHub.InvokeAsync("WatchProject", projectId);
+        }
+
+        public async Task AuthorHeartbeatAsync(Guid projectId)
+        {
+            if (_presenceHub?.State == HubConnectionState.Connected)
+                await _presenceHub.InvokeAsync("AuthorHeartbeat", projectId);
+        }
+
+        public async Task DisconnectPresenceHubAsync()
+        {
+            if (_presenceHub != null)
+            {
+                await _presenceHub.StopAsync();
+                await _presenceHub.DisposeAsync();
+                _presenceHub = null;
+            }
         }
     }
 }

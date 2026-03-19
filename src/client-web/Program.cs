@@ -15,10 +15,15 @@ builder.Services.AddHttpClient<ApiClient>((sp, client) =>
 }).AddTypedClient((httpClient, sp) =>
     new ApiClient(httpClient, apiAccesoUrl)
 );
+builder.Services.AddHttpClient("ServerCore", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiUrls:Core"] ?? "https://localhost:7165");
+});
 builder.Services.AddSingleton<HttpContextAccessor>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<VoiceService>();
+builder.Services.AddScoped<PresenceService>();
 
 var app = builder.Build();
 

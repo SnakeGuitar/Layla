@@ -35,6 +35,7 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IVoiceRoomManager, VoiceRoomManager>();
+builder.Services.AddSingleton<IPresenceTracker, PresenceTracker>();
 
 builder.Services.AddCors(options =>
 {
@@ -79,7 +80,8 @@ builder.Services.AddAuthentication(options =>
             {
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/voice"))
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/hubs/voice") || path.StartsWithSegments("/hubs/presence")))
                 {
                     context.Token = accessToken;
                 }
@@ -154,6 +156,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<VoiceHub>("/hubs/voice");
+app.MapHub<PresenceHub>("/hubs/presence");
 
 using (var scope = app.Services.CreateScope())
 {

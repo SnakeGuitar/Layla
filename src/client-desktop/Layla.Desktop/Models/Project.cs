@@ -15,5 +15,7 @@ namespace Layla.Desktop.Models
         public string? CoverImageUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public bool IsPublic { get; set; }
+        public bool IsAuthorActive { get; set; }
     }
 }

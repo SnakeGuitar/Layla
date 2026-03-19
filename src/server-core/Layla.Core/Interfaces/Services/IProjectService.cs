@@ -13,4 +13,5 @@ public interface IProjectService
     Task<bool> UserHasAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
     Task<Result<ProjectResponseDto>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default);
     Task<Result<bool>> DeleteProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<ProjectResponseDto>>> GetPublicProjectsAsync(CancellationToken cancellationToken = default);
 }

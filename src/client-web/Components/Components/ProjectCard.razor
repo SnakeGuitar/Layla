@@ -26,6 +26,15 @@
         <span class="absolute top-3 left-3 px-2 py-0.5 bg-amber-500 text-stone-950 text-[10px] font-bold tracking-[0.15em] uppercase">
             @LiteraryGenre
         </span>
+
+        @* Author active indicator *@
+        <div class="absolute top-3 right-3 flex items-center gap-1.5">
+            <span class="@(IsAuthorActive ? "bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.5)]" : "bg-stone-600") w-2.5 h-2.5 rounded-full transition-all duration-500"></span>
+            @if (IsAuthorActive)
+            {
+                <span class="text-emerald-400 text-[9px] font-bold tracking-widest uppercase">Working</span>
+            }
+        </div>
     </div>
 
     @* Content *@
@@ -69,6 +78,7 @@
     [Parameter, EditorRequired] public string LiteraryGenre { get; set; } = string.Empty;
     [Parameter] public string? CoverImageUrl { get; set; }
     [Parameter] public DateTime UpdatedAt { get; set; }
+    [Parameter] public bool IsAuthorActive { get; set; }
     [Parameter] public EventCallback<Guid> OnCardClick { get; set; }
 
     private async Task OnClick()

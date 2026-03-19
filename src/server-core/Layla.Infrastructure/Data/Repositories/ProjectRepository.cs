@@ -118,6 +118,15 @@ public class ProjectRepository : IProjectRepository
             .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId, cancellationToken);
     }
 
+    public async Task<IEnumerable<Project>> GetPublicProjectsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Projects
+            .AsNoTracking()
+            .Where(p => p.IsPublic)
+            .OrderByDescending(p => p.UpdatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);

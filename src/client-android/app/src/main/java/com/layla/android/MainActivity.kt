@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.layla.android.data.api.PresenceSignalRClient
 import com.layla.android.data.api.RetrofitClient
 import com.layla.android.data.local.SessionManager
 import com.layla.android.data.repository.AuthRepository
@@ -16,6 +17,9 @@ import com.layla.android.ui.auth.AuthViewModel
 import com.layla.android.ui.auth.AuthViewModelFactory
 import com.layla.android.ui.auth.LoginScreen
 import com.layla.android.ui.auth.RegisterScreen
+import com.layla.android.ui.feed.ProjectFeedScreen
+import com.layla.android.ui.feed.ProjectFeedViewModel
+import com.layla.android.ui.feed.ProjectFeedViewModelFactory
 import com.layla.android.ui.theme.LaylaAndroidTheme
 
 class MainActivity : ComponentActivity() {
@@ -38,11 +42,23 @@ class MainActivity : ComponentActivity() {
                             viewModel = authViewModel,
                             onNavigateToRegister = { navController.navigate("register") },
                             onLoginSuccess = {
-                                val token = sessionManager.fetchAuthToken()
-                                Toast.makeText(this@MainActivity, "Login Successful! Token saved.", Toast.LENGTH_SHORT).show()
-                                // Navigate to Home/Dashboard when implemented
+                                Toast.makeText(this@MainActivity, "Login Successful!", Toast.LENGTH_SHORT).show()
+                                navController.navigate("feed") {
+                                    popUpTo("login") { inclusive = true }
+                                }
                             }
                         )
+                    }
+                    composable("feed") {
+                        val token = sessionManager.fetchAuthToken()
+                        val feedViewModel: ProjectFeedViewModel = viewModel(
+                            factory = ProjectFeedViewModelFactory(
+                                projectApiService = RetrofitClient.projectApiService,
+                                presenceClient = PresenceSignalRClient("http://10.0.2.2:7165"),
+                                token = token
+                            )
+                        )
+                        ProjectFeedScreen(viewModel = feedViewModel)
                     }
                     composable("register") {
                         RegisterScreen(
