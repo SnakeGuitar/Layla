@@ -29,6 +29,9 @@ namespace Layla.Infrastructure.Data
                 .HasOne(pr => pr.AppUser)
                 .WithMany()
                 .HasForeignKey(pr => pr.AppUserId);
+
+            builder.Entity<Project>()
+                .HasIndex(p => p.IsPublic);
         }
     }
 }
