@@ -11,4 +11,5 @@ public interface IAppUserRepository
     Task<Result<AppUser>> UpdateAppUserAsync(Guid userId, UpdateAppUserRequestDto request, CancellationToken cancellationToken = default);
     Task<Result<bool>> DeleteAppUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<Result<bool>> BanAppUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result<AppUser>> GetAppUserByEmailAsync(string email, CancellationToken cancellationToken = default);
 }

@@ -105,14 +105,17 @@ public class ProjectsController : ControllerBase
         if (string.IsNullOrEmpty(userId))
             return Unauthorized(new { Error = "User ID not found in token." });
 
-        var isMember = await _projectService.UserHasAccessAsync(id, userId, cancellationToken);
-        if (!isMember)
-            return Forbid();
-
         var result = await _projectService.GetProjectByIdAsync(id, cancellationToken);
-
         if (!result.IsSuccess)
             return NotFound(new { Error = result.Error });
+
+        // Allow access if project is public or user is a member
+        if (!result.Data!.IsPublic)
+        {
+            var isMember = await _projectService.UserHasAccessAsync(id, userId, cancellationToken);
+            if (!isMember)
+                return Forbid();
+        }
 
         return Ok(result.Data);
     }
@@ -165,6 +168,86 @@ public class ProjectsController : ControllerBase
             {
                 return NotFound(new { Error = result.Error });
             }
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Join a public project as a READER.
+    /// </summary>
+    [HttpPost("{id:guid}/join")]
+    public async Task<IActionResult> JoinPublicProject(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Error = "User ID not found in token." });
+
+        var result = await _projectService.JoinPublicProjectAsync(id, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { Error = result.Error });
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Invite a collaborator by email (OWNER only).
+    /// </summary>
+    [HttpPost("{id:guid}/collaborators")]
+    public async Task<IActionResult> InviteCollaborator(Guid id, [FromBody] InviteCollaboratorRequestDto request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Error = "User ID not found in token." });
+
+        var result = await _projectService.InviteCollaboratorAsync(id, request, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Unauthorized.")
+                return Forbid();
+            return BadRequest(new { Error = result.Error });
+        }
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Get all collaborators of a project.
+    /// </summary>
+    [HttpGet("{id:guid}/collaborators")]
+    public async Task<IActionResult> GetCollaborators(Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Error = "User ID not found in token." });
+
+        var result = await _projectService.GetCollaboratorsAsync(id, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(new { Error = result.Error });
+
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Remove a collaborator from a project (OWNER only).
+    /// </summary>
+    [HttpDelete("{id:guid}/collaborators/{collaboratorUserId}")]
+    public async Task<IActionResult> RemoveCollaborator(Guid id, string collaboratorUserId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId();
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { Error = "User ID not found in token." });
+
+        var result = await _projectService.RemoveCollaboratorAsync(id, collaboratorUserId, userId, cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == "Unauthorized.")
+                return Forbid();
             return BadRequest(new { Error = result.Error });
         }
 

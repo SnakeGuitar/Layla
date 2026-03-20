@@ -141,6 +141,89 @@ namespace Layla.Desktop.Services
             return new List<Project>();
         }
 
+        public async Task<Project?> GetProjectByIdAsync(Guid id)
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/projects/{id}");
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<Project>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error retrieving project: {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Collaborator?> JoinPublicProjectAsync(Guid projectId)
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                var response = await _httpClient.PostAsync($"/api/projects/{projectId}/join", null);
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<Collaborator>();
+
+                System.Diagnostics.Debug.WriteLine($"Failed to join project: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error joining project: {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<Collaborator?> InviteCollaboratorAsync(Guid projectId, InviteCollaboratorRequest request)
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"/api/projects/{projectId}/collaborators", request);
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<Collaborator>();
+
+                System.Diagnostics.Debug.WriteLine($"Failed to invite collaborator: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error inviting collaborator: {ex.Message}");
+            }
+            return null;
+        }
+
+        public async Task<IEnumerable<Collaborator>?> GetCollaboratorsAsync(Guid projectId)
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                var response = await _httpClient.GetAsync($"/api/projects/{projectId}/collaborators");
+                if (response.IsSuccessStatusCode)
+                    return await response.Content.ReadFromJsonAsync<IEnumerable<Collaborator>>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error retrieving collaborators: {ex.Message}");
+            }
+            return new List<Collaborator>();
+        }
+
+        public async Task<bool> RemoveCollaboratorAsync(Guid projectId, string collaboratorUserId)
+        {
+            AddAuthorizationHeader();
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"/api/projects/{projectId}/collaborators/{collaboratorUserId}");
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error removing collaborator: {ex.Message}");
+            }
+            return false;
+        }
+
         public async Task ConnectPresenceHubAsync(Action<Guid, bool> onAuthorStatusChanged)
         {
             if (_presenceHub != null) return;

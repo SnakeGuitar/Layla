@@ -18,15 +18,17 @@ namespace Layla.Desktop.Views
     {
         private readonly ManuscriptEditorViewModel _viewModel;
         private bool _isLoaded = false;
+        private bool _isReadOnly = false;
         private System.Threading.Timer? _debounceTimer;
 
         private AdornerLayer? _adornerLayer;
         private ImageResizerAdorner? _currentAdorner;
         private Image? _selectedImage;
 
-        public ManuscriptEditorView(Guid projectId)
+        public ManuscriptEditorView(Guid projectId, bool isReadOnly = false)
         {
             InitializeComponent();
+            _isReadOnly = isReadOnly;
             _viewModel = ServiceLocator.GetService<ManuscriptEditorViewModel>() ?? throw new InvalidOperationException("ViewModel not found");
             DataContext = _viewModel;
             _viewModel.Initialize(projectId);
@@ -47,6 +49,16 @@ namespace Layla.Desktop.Views
                 }
             }
             _isLoaded = true;
+
+            if (_isReadOnly)
+            {
+                EditorRichTextBox.IsReadOnly = true;
+                // Hide the entire toolbar in read-only mode
+                var toolBarTray = EditorRichTextBox.Parent is Border border ?
+                    ((Grid)border.Parent).Children.OfType<ToolBarTray>().FirstOrDefault() : null;
+                if (toolBarTray != null)
+                    toolBarTray.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void EditorRichTextBox_TextChanged(object sender, TextChangedEventArgs e)

@@ -13,17 +13,20 @@ namespace Layla.Core.Services;
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
+    private readonly IAppUserRepository _appUserRepository;
     private readonly IEventPublisher _eventPublisher;
     private readonly IEventBus _eventBus;
     private readonly ILogger<ProjectService> _logger;
 
     public ProjectService(
         IProjectRepository projectRepository,
+        IAppUserRepository appUserRepository,
         IEventPublisher eventPublisher,
         IEventBus eventBus,
         ILogger<ProjectService> logger)
     {
         _projectRepository = projectRepository;
+        _appUserRepository = appUserRepository;
         _eventPublisher = eventPublisher;
         _eventBus = eventBus;
         _logger = logger;
@@ -41,6 +44,7 @@ public class ProjectService : IProjectService
                 Synopsis = request.Synopsis,
                 LiteraryGenre = request.LiteraryGenre,
                 CoverImageUrl = request.CoverImageUrl,
+                IsPublic = request.IsPublic,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -128,6 +132,7 @@ public class ProjectService : IProjectService
             project.Synopsis = request.Synopsis;
             project.LiteraryGenre = request.LiteraryGenre;
             project.CoverImageUrl = request.CoverImageUrl;
+            project.IsPublic = request.IsPublic;
             project.UpdatedAt = DateTime.UtcNow;
 
             await _projectRepository.UpdateProjectAsync(project, cancellationToken);
@@ -224,6 +229,152 @@ public class ProjectService : IProjectService
         {
             _logger.LogError(ex, "Failed to retrieve public projects");
             return Result<IEnumerable<ProjectResponseDto>>.Failure("An error occurred while retrieving public projects.");
+        }
+    }
+
+    public async Task<Result<CollaboratorResponseDto>> JoinPublicProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
+            if (project == null)
+                return Result<CollaboratorResponseDto>.Failure("Project not found.");
+
+            if (!project.IsPublic)
+                return Result<CollaboratorResponseDto>.Failure("Project is not public.");
+
+            var existingRole = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
+            if (existingRole)
+                return Result<CollaboratorResponseDto>.Failure("You are already a member of this project.");
+
+            var projectRole = new ProjectRole
+            {
+                ProjectId = projectId,
+                AppUserId = userId,
+                Role = "READER",
+                AssignedAt = DateTime.UtcNow
+            };
+
+            await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            var userResult = await _appUserRepository.GetAppUserByIdAsync(Guid.Parse(userId), cancellationToken);
+            var user = userResult.Data;
+
+            return Result<CollaboratorResponseDto>.Success(new CollaboratorResponseDto
+            {
+                UserId = userId,
+                DisplayName = user?.DisplayName,
+                Email = user?.Email,
+                Role = "READER",
+                AssignedAt = projectRole.AssignedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to join public project {ProjectId} for user {UserId}", projectId, userId);
+            return Result<CollaboratorResponseDto>.Failure("An error occurred while joining the project.");
+        }
+    }
+
+    public async Task<Result<CollaboratorResponseDto>> InviteCollaboratorAsync(Guid projectId, InviteCollaboratorRequestDto request, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, "OWNER", cancellationToken);
+            if (!hasRole)
+                return Result<CollaboratorResponseDto>.Failure("Unauthorized.");
+
+            var targetUserResult = await _appUserRepository.GetAppUserByEmailAsync(request.Email, cancellationToken);
+            if (!targetUserResult.IsSuccess || targetUserResult.Data == null)
+                return Result<CollaboratorResponseDto>.Failure("User with that email not found.");
+
+            var targetUser = targetUserResult.Data;
+
+            var alreadyMember = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, targetUser.Id, cancellationToken);
+            if (alreadyMember)
+                return Result<CollaboratorResponseDto>.Failure("User is already a member of this project.");
+
+            var role = request.Role is "READER" or "EDITOR" ? request.Role : "READER";
+
+            var projectRole = new ProjectRole
+            {
+                ProjectId = projectId,
+                AppUserId = targetUser.Id,
+                Role = role,
+                AssignedAt = DateTime.UtcNow
+            };
+
+            await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            return Result<CollaboratorResponseDto>.Success(new CollaboratorResponseDto
+            {
+                UserId = targetUser.Id,
+                DisplayName = targetUser.DisplayName,
+                Email = targetUser.Email,
+                Role = role,
+                AssignedAt = projectRole.AssignedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to invite collaborator to project {ProjectId}", projectId);
+            return Result<CollaboratorResponseDto>.Failure("An error occurred while inviting the collaborator.");
+        }
+    }
+
+    public async Task<Result<IEnumerable<CollaboratorResponseDto>>> GetCollaboratorsAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var hasAccess = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
+            if (!hasAccess)
+                return Result<IEnumerable<CollaboratorResponseDto>>.Failure("Unauthorized.");
+
+            var roles = await _projectRepository.GetProjectCollaboratorsAsync(projectId, cancellationToken);
+            var dtos = roles.Select(r => new CollaboratorResponseDto
+            {
+                UserId = r.AppUserId,
+                DisplayName = r.AppUser?.DisplayName,
+                Email = r.AppUser?.Email,
+                Role = r.Role,
+                AssignedAt = r.AssignedAt
+            });
+
+            return Result<IEnumerable<CollaboratorResponseDto>>.Success(dtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get collaborators for project {ProjectId}", projectId);
+            return Result<IEnumerable<CollaboratorResponseDto>>.Failure("An error occurred while retrieving collaborators.");
+        }
+    }
+
+    public async Task<Result<bool>> RemoveCollaboratorAsync(Guid projectId, string collaboratorUserId, string userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var isOwner = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, "OWNER", cancellationToken);
+            if (!isOwner)
+                return Result<bool>.Failure("Unauthorized.");
+
+            var role = await _projectRepository.GetProjectRoleAsync(projectId, collaboratorUserId, cancellationToken);
+            if (role == null)
+                return Result<bool>.Failure("Collaborator not found.");
+
+            if (role.Role == "OWNER")
+                return Result<bool>.Failure("Cannot remove the project owner.");
+
+            await _projectRepository.RemoveProjectRoleAsync(role, cancellationToken);
+            await _projectRepository.SaveChangesAsync(cancellationToken);
+
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove collaborator from project {ProjectId}", projectId);
+            return Result<bool>.Failure("An error occurred while removing the collaborator.");
         }
     }
 

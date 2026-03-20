@@ -37,6 +37,11 @@ namespace Layla.Desktop.Views
             NavigationService.Navigate(new SettingsView());
         }
 
+        private void BrowsePublicButton_Click(object sender, RoutedEventArgs e)
+        {
+            NavigationService.Navigate(new PublicProjectsView());
+        }
+
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
             Services.SessionManager.ClearSession();

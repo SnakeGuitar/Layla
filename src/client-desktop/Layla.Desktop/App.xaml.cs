@@ -147,6 +147,8 @@ namespace Layla.Desktop
             services.AddTransient<ViewModels.WikiEntityEditorViewModel>();
             services.AddTransient<ViewModels.VoicePanelViewModel>();
             services.AddTransient<ViewModels.NarrativeGraphViewModel>();
+            services.AddTransient<ViewModels.PublicProjectsViewModel>();
+            services.AddTransient<ViewModels.ReaderWorkspaceViewModel>();
         }
 
         protected override void OnExit(ExitEventArgs e)

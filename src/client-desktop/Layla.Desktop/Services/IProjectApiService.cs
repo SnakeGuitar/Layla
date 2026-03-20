@@ -8,9 +8,16 @@ namespace Layla.Desktop.Services
     {
         Task<IEnumerable<Project>?> GetMyProjectsAsync();
         Task<IEnumerable<Project>?> GetPublicProjectsAsync();
+        Task<Project?> GetProjectByIdAsync(Guid id);
         Task<Project?> CreateProjectAsync(CreateProjectRequest request);
         Task<Project?> UpdateProjectAsync(Guid id, UpdateProjectRequest request);
         Task<bool> DeleteProjectAsync(Guid id);
+
+        Task<Collaborator?> JoinPublicProjectAsync(Guid projectId);
+        Task<Collaborator?> InviteCollaboratorAsync(Guid projectId, InviteCollaboratorRequest request);
+        Task<IEnumerable<Collaborator>?> GetCollaboratorsAsync(Guid projectId);
+        Task<bool> RemoveCollaboratorAsync(Guid projectId, string collaboratorUserId);
+
         Task ConnectPresenceHubAsync(Action<Guid, bool> onAuthorStatusChanged);
         Task DisconnectPresenceHubAsync();
         Task AuthorHeartbeatAsync(Guid projectId);

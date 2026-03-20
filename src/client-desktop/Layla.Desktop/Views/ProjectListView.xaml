@@ -31,11 +31,13 @@
                 <TextBlock Grid.Column="0" Text="My Projects" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="➕ Create Project" Background="{DynamicResource AccentColor}" Foreground="White" BorderThickness="0" 
+                    <Button Content="Browse Public" Background="Transparent" Foreground="{DynamicResource AccentColor}" BorderThickness="0"
+                            Padding="10,5" Margin="0,0,10,0" Cursor="Hand" Click="BrowsePublicButton_Click"/>
+                    <Button Content="➕ Create Project" Background="{DynamicResource AccentColor}" Foreground="White" BorderThickness="0"
                             Padding="10,5" Margin="0,0,15,0" Cursor="Hand" Command="{Binding OpenCreateModalCommand}"/>
-                    <Button Content="⚙ Settings" Background="Transparent" Foreground="{DynamicResource SecondaryText}" BorderThickness="0" 
+                    <Button Content="⚙ Settings" Background="Transparent" Foreground="{DynamicResource SecondaryText}" BorderThickness="0"
                             Padding="10,5" Margin="0,0,10,0" Cursor="Hand" Click="SettingsButton_Click"/>
-                    <Button Content="🚪 Logout" Background="Transparent" Foreground="IndianRed" BorderThickness="0" 
+                    <Button Content="🚪 Logout" Background="Transparent" Foreground="IndianRed" BorderThickness="0"
                             Padding="10,5" Cursor="Hand" Click="LogoutButton_Click"/>
                 </StackPanel>
             </Grid>
@@ -51,7 +53,13 @@
                                 </Grid.ColumnDefinitions>
                                 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource PrimaryText}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource PrimaryText}"/>
+                                        <Border Background="{DynamicResource AccentColor}" CornerRadius="3" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                Visibility="{Binding IsPublic, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="PUBLIC" FontSize="10" Foreground="White" FontWeight="Bold"/>
+                                        </Border>
+                                    </StackPanel>
                                     <TextBlock Text="{Binding LiteraryGenre}" FontStyle="Italic" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,5" />
                                     <TextBlock Text="{Binding Synopsis}" TextWrapping="Wrap" MaxWidth="600" Foreground="{DynamicResource PrimaryText}"/>
                                 </StackPanel>
@@ -83,9 +91,11 @@
                              Text="{Binding NewProjectGenre, UpdateSourceTrigger=PropertyChanged}"/>
                     
                     <TextBlock Text="Synopsis" FontWeight="SemiBold" Margin="0,0,0,5" Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBox x:Name="NewProjectSynopsis" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,20" Padding="5" Background="{DynamicResource ControlBackground}" Foreground="{DynamicResource PrimaryText}" BorderBrush="{DynamicResource BorderColor}"
+                    <TextBox x:Name="NewProjectSynopsis" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10" Padding="5" Background="{DynamicResource ControlBackground}" Foreground="{DynamicResource PrimaryText}" BorderBrush="{DynamicResource BorderColor}"
                              Text="{Binding NewProjectSynopsis, UpdateSourceTrigger=PropertyChanged}"/>
-                    
+
+                    <CheckBox Content="Public project" IsChecked="{Binding NewProjectIsPublic}" Margin="0,0,0,20" Foreground="{DynamicResource PrimaryText}"/>
+
                     <TextBlock x:Name="CreateProjectError" Foreground="IndianRed" Visibility="{Binding CreateError, Converter={StaticResource BoolToVis}}" Margin="0,0,0,10" TextWrapping="Wrap"
                                Text="{Binding CreateError}"/>
 
@@ -111,9 +121,11 @@
                              Text="{Binding EditProjectGenre, UpdateSourceTrigger=PropertyChanged}"/>
                     
                     <TextBlock Text="Synopsis" FontWeight="SemiBold" Margin="0,0,0,5" Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBox x:Name="EditProjectSynopsis" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,20" Padding="5" Background="{DynamicResource ControlBackground}" Foreground="{DynamicResource PrimaryText}" BorderBrush="{DynamicResource BorderColor}"
+                    <TextBox x:Name="EditProjectSynopsis" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,10" Padding="5" Background="{DynamicResource ControlBackground}" Foreground="{DynamicResource PrimaryText}" BorderBrush="{DynamicResource BorderColor}"
                              Text="{Binding EditProjectSynopsis, UpdateSourceTrigger=PropertyChanged}"/>
-                    
+
+                    <CheckBox Content="Public project" IsChecked="{Binding EditProjectIsPublic}" Margin="0,0,0,20" Foreground="{DynamicResource PrimaryText}"/>
+
                     <TextBlock x:Name="EditProjectError" Foreground="IndianRed" Visibility="{Binding EditError, Converter={StaticResource BoolToVis}}" Margin="0,0,0,10" TextWrapping="Wrap"
                                Text="{Binding EditError}"/>
 

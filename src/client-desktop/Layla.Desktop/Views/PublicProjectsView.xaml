@@ -1,0 +1,73 @@
+<Page x:Class="Layla.Desktop.Views.PublicProjectsView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d"
+      d:DesignHeight="450" d:DesignWidth="800"
+      ShowsNavigationUI="False"
+      Title="Public Projects"
+      Background="{DynamicResource WindowBackground}"
+      Foreground="{DynamicResource PrimaryText}">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+
+    <Grid Background="{DynamicResource WindowBackground}" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Public Projects" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1" Content="← My Projects" Background="Transparent" Foreground="{DynamicResource SecondaryText}"
+                    BorderThickness="0" Padding="10,5" Cursor="Hand" Command="{Binding BackToMyProjectsCommand}"/>
+        </Grid>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding PublicProjects}" BorderThickness="0" Background="Transparent"
+                  x:Name="PublicProjectsList" MouseDoubleClick="PublicProjectsList_MouseDoubleClick">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="1" CornerRadius="5" Padding="10" Margin="5,5,5,10"
+                            Background="{DynamicResource ControlBackground}" Cursor="Hand">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource PrimaryText}"/>
+                                    <Border Background="Green" CornerRadius="8" Width="12" Height="12" Margin="8,0,0,0" VerticalAlignment="Center"
+                                            Visibility="{Binding IsAuthorActive, Converter={StaticResource BoolToVis}}" ToolTip="Author is active"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding LiteraryGenre}" FontStyle="Italic" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,5"/>
+                                <TextBlock Text="{Binding Synopsis}" TextWrapping="Wrap" MaxWidth="600" Foreground="{DynamicResource PrimaryText}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="View" Background="{DynamicResource AccentColor}" Foreground="White" BorderThickness="0"
+                                        Padding="10,5" Margin="0,0,5,0" Cursor="Hand"
+                                        Command="{Binding DataContext.ViewProjectCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Content="Join" Background="Green" Foreground="White" BorderThickness="0"
+                                        Padding="10,5" Cursor="Hand"
+                                        Command="{Binding DataContext.JoinProjectCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                        CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>

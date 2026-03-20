@@ -127,6 +127,27 @@ public class ProjectRepository : IProjectRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IEnumerable<ProjectRole>> GetProjectCollaboratorsAsync(Guid projectId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ProjectRoles
+            .Include(pr => pr.AppUser)
+            .Where(pr => pr.ProjectId == projectId)
+            .OrderBy(pr => pr.AssignedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ProjectRole?> GetProjectRoleAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ProjectRoles
+            .FirstOrDefaultAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId, cancellationToken);
+    }
+
+    public Task RemoveProjectRoleAsync(ProjectRole role, CancellationToken cancellationToken = default)
+    {
+        _dbContext.ProjectRoles.Remove(role);
+        return Task.CompletedTask;
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.SaveChangesAsync(cancellationToken);

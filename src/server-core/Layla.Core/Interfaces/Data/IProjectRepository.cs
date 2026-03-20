@@ -20,5 +20,9 @@ public interface IProjectRepository
     Task<bool> UserHasAnyRoleInProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<Project>> GetPublicProjectsAsync(CancellationToken cancellationToken = default);
 
+    Task<IEnumerable<ProjectRole>> GetProjectCollaboratorsAsync(Guid projectId, CancellationToken cancellationToken = default);
+    Task<ProjectRole?> GetProjectRoleAsync(Guid projectId, string userId, CancellationToken cancellationToken = default);
+    Task RemoveProjectRoleAsync(ProjectRole role, CancellationToken cancellationToken = default);
+
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

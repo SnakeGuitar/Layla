@@ -134,4 +134,13 @@ public class AppUserRepository : IAppUserRepository
 
         return Result<bool>.Success(true);
     }
+
+    public async Task<Result<AppUser>> GetAppUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return Result<AppUser>.Failure("User not found.");
+
+        return Result<AppUser>.Success(user);
+    }
 }

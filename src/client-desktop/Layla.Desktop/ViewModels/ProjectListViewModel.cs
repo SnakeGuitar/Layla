@@ -35,6 +35,9 @@ namespace Layla.Desktop.ViewModels
         private string _newProjectSynopsis = string.Empty;
 
         [ObservableProperty]
+        private bool _newProjectIsPublic;
+
+        [ObservableProperty]
         private string _editProjectTitle = string.Empty;
 
         [ObservableProperty]
@@ -42,6 +45,9 @@ namespace Layla.Desktop.ViewModels
 
         [ObservableProperty]
         private string _editProjectSynopsis = string.Empty;
+
+        [ObservableProperty]
+        private bool _editProjectIsPublic;
 
         [ObservableProperty]
         private string _createError = string.Empty;
@@ -88,6 +94,7 @@ namespace Layla.Desktop.ViewModels
             NewProjectTitle = string.Empty;
             NewProjectGenre = string.Empty;
             NewProjectSynopsis = string.Empty;
+            NewProjectIsPublic = false;
             CreateError = string.Empty;
             IsCreateModalVisible = true;
         }
@@ -110,7 +117,8 @@ namespace Layla.Desktop.ViewModels
                 {
                     Title = NewProjectTitle,
                     LiteraryGenre = NewProjectGenre,
-                    Synopsis = NewProjectSynopsis
+                    Synopsis = NewProjectSynopsis,
+                    IsPublic = NewProjectIsPublic
                 };
 
                 var newProject = await _projectApiService.CreateProjectAsync(request);
@@ -137,6 +145,7 @@ namespace Layla.Desktop.ViewModels
             EditProjectTitle = project.Title;
             EditProjectGenre = project.LiteraryGenre;
             EditProjectSynopsis = project.Synopsis;
+            EditProjectIsPublic = project.IsPublic;
             EditError = string.Empty;
             IsEditModalVisible = true;
         }
@@ -159,7 +168,8 @@ namespace Layla.Desktop.ViewModels
                 {
                     Title = EditProjectTitle,
                     LiteraryGenre = EditProjectGenre,
-                    Synopsis = EditProjectSynopsis
+                    Synopsis = EditProjectSynopsis,
+                    IsPublic = EditProjectIsPublic
                 };
 
                 var updated = await _projectApiService.UpdateProjectAsync(_editingProjectId, request);

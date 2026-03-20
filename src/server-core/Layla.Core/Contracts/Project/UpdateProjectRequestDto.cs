@@ -18,4 +18,6 @@ public class UpdateProjectRequestDto
 
     [MaxLength(2048)]
     public string? CoverImageUrl { get; set; }
+
+    public bool IsPublic { get; set; }
 }

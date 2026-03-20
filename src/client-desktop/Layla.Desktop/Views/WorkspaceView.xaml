@@ -11,6 +11,10 @@
       Background="{DynamicResource WindowBackground}"
       Foreground="{DynamicResource PrimaryText}">
 
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Page.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250" MinWidth="200" MaxWidth="400"/>
@@ -32,10 +36,14 @@
                            Foreground="{DynamicResource AccentColor}"/>
 
                 <StackPanel Grid.Row="1" Margin="5">
-                    <Button Content="← Back to Projects" Background="Transparent" BorderThickness="0" 
+                    <Button Content="← Back to Projects" Background="Transparent" BorderThickness="0"
                             HorizontalAlignment="Left" Padding="10,5"
                             Foreground="{DynamicResource SecondaryText}" Cursor="Hand"
                             Command="{Binding BackToProjectsCommand}"/>
+                    <Button Content="Collaborators" Background="Transparent" BorderThickness="0"
+                            HorizontalAlignment="Left" Padding="10,5"
+                            Foreground="{DynamicResource AccentColor}" Cursor="Hand"
+                            Command="{Binding OpenCollaboratorsModalCommand}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" Margin="15,0">
@@ -93,5 +101,84 @@
                 </TabItem>
             </TabControl>
         </Grid>
+
+        <!-- Collaborators Modal -->
+        <Border Visibility="{Binding IsCollaboratorsModalVisible, Converter={StaticResource BoolToVis}}"
+                Background="#CC000000" Panel.ZIndex="100" Grid.ColumnSpan="3">
+            <Border Background="{DynamicResource WindowBackground}" Width="500" MaxHeight="500"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="Collaborators" FontSize="20" FontWeight="Bold"
+                               Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}"/>
+
+                    <!-- Invite section -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                        <TextBlock Text="Invite by email" FontWeight="SemiBold" Margin="0,0,0,5"
+                                   Foreground="{DynamicResource PrimaryText}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Padding="5"
+                                     Background="{DynamicResource ControlBackground}"
+                                     Foreground="{DynamicResource PrimaryText}"
+                                     BorderBrush="{DynamicResource BorderColor}"
+                                     Text="{Binding InviteEmail, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="1" Content="Invite" Margin="5,0,0,0"
+                                    Background="{DynamicResource AccentColor}" Foreground="White"
+                                    BorderThickness="0" Padding="10,5" Cursor="Hand"
+                                    Command="{Binding InviteCollaboratorCommand}"/>
+                        </Grid>
+                        <TextBlock Text="{Binding InviteError}" Foreground="IndianRed" FontSize="12"
+                                   Margin="0,5,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding InviteError, Converter={StaticResource BoolToVis}}"/>
+                    </StackPanel>
+
+                    <!-- Collaborators list -->
+                    <ListView Grid.Row="2" ItemsSource="{Binding Collaborators}" BorderThickness="0"
+                              Background="Transparent" MaxHeight="250">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1"
+                                        Padding="5" Margin="0,2">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource PrimaryText}"/>
+                                            <TextBlock Text="{Binding Email}" FontSize="11"
+                                                       Foreground="{DynamicResource SecondaryText}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Role}" VerticalAlignment="Center"
+                                                   Margin="10,0" FontSize="11" Foreground="{DynamicResource SecondaryText}"/>
+                                        <Button Grid.Column="2" Content="X" Background="Transparent"
+                                                Foreground="IndianRed" BorderThickness="0" Padding="5,2" Cursor="Hand"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding DataContext.RemoveCollaboratorCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Button Grid.Row="3" Content="Close" Background="Transparent" BorderThickness="0"
+                            Foreground="Gray" Padding="15,5" Cursor="Hand" HorizontalAlignment="Right"
+                            Margin="0,10,0,0" Command="{Binding CloseCollaboratorsModalCommand}"/>
+                </Grid>
+            </Border>
+        </Border>
     </Grid>
 </Page>
