@@ -57,9 +57,22 @@ namespace Layla.Desktop.ViewModels
 
         private Guid _editingProjectId;
 
+        public event EventHandler? OnLogout;
+
         public ProjectListViewModel(IProjectApiService projectApiService)
         {
             _projectApiService = projectApiService;
+            _projectApiService.SessionDisplaced += OnSessionDisplaced;
+        }
+
+        private void OnSessionDisplaced()
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show("Sessión terminada: Se ha iniciado sesión en otro dispositivo con esta cuenta.", 
+                    "Seguridad", MessageBoxButton.OK, MessageBoxImage.Warning);
+                OnLogout?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         [RelayCommand]

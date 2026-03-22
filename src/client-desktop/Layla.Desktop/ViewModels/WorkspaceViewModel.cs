@@ -38,11 +38,45 @@ namespace Layla.Desktop.ViewModels
         public WorkspaceViewModel(IProjectApiService projectApiService)
         {
             _projectApiService = projectApiService;
+            _projectApiService.SessionDisplaced += OnSessionDisplaced;
         }
+
+        private void OnSessionDisplaced()
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show("Sessión terminada: Se ha iniciado sesión en otro dispositivo con esta cuenta.", 
+                    "Seguridad", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Logout();
+            });
+        }
+
+        private System.Windows.Threading.DispatcherTimer? _heartbeatTimer;
 
         public void Initialize(Project project)
         {
             CurrentProject = project;
+            StartHeartbeat();
+        }
+
+        private void StartHeartbeat()
+        {
+            _heartbeatTimer = new System.Windows.Threading.DispatcherTimer();
+            _heartbeatTimer.Interval = TimeSpan.FromSeconds(30);
+            _heartbeatTimer.Tick += async (s, e) => await SendHeartbeat();
+            _heartbeatTimer.Start();
+            _ = SendHeartbeat();
+        }
+
+        private async Task SendHeartbeat()
+        {
+            if (CurrentProject == null) return;
+            try
+            {
+                await _projectApiService.ConnectPresenceHubAsync();
+                await _projectApiService.AuthorHeartbeatAsync(CurrentProject.Id);
+            }
+            catch { }
         }
 
         [RelayCommand]

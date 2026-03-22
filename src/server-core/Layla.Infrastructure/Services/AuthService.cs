@@ -110,6 +110,7 @@ public class AuthService(
 
         return Result<AuthResponseDto>.Success(new AuthResponseDto
         {
+            UserId = user.Id,
             Token = token,
             Email = user.Email ?? "",
             DisplayName = user.DisplayName ?? "",

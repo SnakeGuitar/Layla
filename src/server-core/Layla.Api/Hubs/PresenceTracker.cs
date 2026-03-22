@@ -4,25 +4,34 @@ namespace Layla.Api.Hubs;
 
 public class PresenceTracker : IPresenceTracker
 {
-    // connectionId → (projectId, userId)
     private readonly ConcurrentDictionary<string, (Guid ProjectId, string UserId)> _connections = new();
-    // projectId → (userId → connectionCount)
-    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, int>> _activeAuthors = new();
+    private readonly ConcurrentDictionary<Guid, ConcurrentDictionary<string, InternalParticipant>> _projectParticipants = new();
+    private readonly ConcurrentDictionary<string, string> _userConnections = new();
     private readonly object _lock = new();
 
-    public bool MarkActive(Guid projectId, string userId, string connectionId)
+    private record InternalParticipant(string UserId, string DisplayName, string Role, int ConnectionCount);
+
+    public bool MarkActive(Guid projectId, string userId, string connectionId, string displayName, string role)
     {
         _connections[connectionId] = (projectId, userId);
+        _userConnections[userId] = connectionId;
 
         lock (_lock)
         {
-            var authors = _activeAuthors.GetOrAdd(projectId, _ => new ConcurrentDictionary<string, int>());
+            var participants = _projectParticipants.GetOrAdd(projectId, _ => new ConcurrentDictionary<string, InternalParticipant>());
             
-            bool projectWasInactive = authors.Count == 0;
+            bool wasActive = IsProjectActive(projectId);
             
-            authors.AddOrUpdate(userId, 1, (_, count) => count + 1);
+            participants.AddOrUpdate(userId, 
+                _ => new InternalParticipant(userId, displayName, role, 1),
+                (_, existing) => {
+                    string finalRole = existing.Role;
+                    if (role == "Owner" || role == "Author" || role == "Editor") finalRole = role;
+                    return existing with { ConnectionCount = existing.ConnectionCount + 1, Role = finalRole };
+                });
             
-            return projectWasInactive;
+            bool isNowActive = IsProjectActive(projectId);
+            return !wasActive && isNowActive;
         }
     }
 
@@ -38,27 +47,37 @@ public class PresenceTracker : IPresenceTracker
         projectId = info.ProjectId;
         userId = info.UserId;
 
+        if (_userConnections.TryGetValue(userId, out var activeConnId) && activeConnId == connectionId)
+        {
+            _userConnections.TryRemove(userId, out _);
+        }
+
         lock (_lock)
         {
-            if (_activeAuthors.TryGetValue(projectId, out var authors))
+            if (_projectParticipants.TryGetValue(projectId, out var participants))
             {
-                if (authors.TryGetValue(userId, out int count))
+                bool wasActive = IsProjectActive(projectId);
+
+                if (participants.TryGetValue(userId, out var existing))
                 {
-                    if (count <= 1)
+                    if (existing.ConnectionCount <= 1)
                     {
-                        authors.TryRemove(userId, out _);
+                        participants.TryRemove(userId, out _);
                     }
                     else
                     {
-                        authors[userId] = count - 1;
+                        participants[userId] = existing with { ConnectionCount = existing.ConnectionCount - 1 };
                     }
                 }
 
-                if (authors.IsEmpty)
+                if (participants.IsEmpty)
                 {
-                    _activeAuthors.TryRemove(projectId, out _);
-                    return true;
+                    _projectParticipants.TryRemove(projectId, out _);
+                    return wasActive;
                 }
+
+                bool isNowActive = IsProjectActive(projectId);
+                return wasActive && !isNowActive;
             }
         }
 
@@ -67,6 +86,23 @@ public class PresenceTracker : IPresenceTracker
 
     public bool IsProjectActive(Guid projectId)
     {
-        return _activeAuthors.TryGetValue(projectId, out var authors) && !authors.IsEmpty;
+        if (!_projectParticipants.TryGetValue(projectId, out var participants))
+            return false;
+
+        return participants.Values.Any(p => 
+            p.Role == "Owner" || p.Role == "Author" || p.Role == "Editor" || p.Role == "WRITER");
+    }
+
+    public IEnumerable<ParticipantPresenceDto> GetActiveParticipants(Guid projectId)
+    {
+        if (!_projectParticipants.TryGetValue(projectId, out var participants))
+            return Enumerable.Empty<ParticipantPresenceDto>();
+
+        return participants.Values.Select(p => new ParticipantPresenceDto(p.UserId, p.DisplayName, p.Role));
+    }
+
+    public string? GetUserConnection(string userId)
+    {
+        return _userConnections.TryGetValue(userId, out var connId) ? connId : null;
     }
 }

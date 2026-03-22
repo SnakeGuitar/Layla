@@ -49,9 +49,48 @@ namespace Layla.Desktop.ViewModels
         {
         }
 
+        [ObservableProperty]
+        private ObservableCollection<ParticipantPresence> _onlineParticipants = new();
+
+        [ObservableProperty]
+        private bool _isOnlineParticipantsVisible = false;
+
         public void Initialize(Guid projectId)
         {
             _projectId = projectId;
+            _ = StartWatchingPresenceAsync();
+        }
+
+        private async Task StartWatchingPresenceAsync()
+        {
+            try
+            {
+                var api = ServiceLocator.GetService<IProjectApiService>();
+                if (api == null) return;
+
+                api.ParticipantsUpdated += OnParticipantsUpdated;
+
+                await api.ConnectPresenceHubAsync();
+                await api.WatchProjectAsync(_projectId);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to start watching presence: {ex.Message}");
+            }
+        }
+
+        private void OnParticipantsUpdated(Guid projectId, IEnumerable<ParticipantPresence> participants)
+        {
+            if (projectId == _projectId)
+            {
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    OnlineParticipants.Clear();
+                    foreach (var p in participants)
+                        OnlineParticipants.Add(p);
+                    IsOnlineParticipantsVisible = OnlineParticipants.Count > 0;
+                });
+            }
         }
 
         [RelayCommand]
@@ -106,12 +145,19 @@ namespace Layla.Desktop.ViewModels
         {
             if (_voice == null || !_voice.IsConnected) return;
 
+            var localUser = Participants.FirstOrDefault(p => p.UserId == Services.SessionManager.CurrentUserId);
+            if (localUser?.Role == "Reader")
+            {
+                PttStatusText = "Listen only mode";
+                return;
+            }
+
             try
             {
                 await _voice.StartSpeakingAsync();
                 PttStatusText = "Transmitting...";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 PttStatusText = "Cannot transmit";
             }

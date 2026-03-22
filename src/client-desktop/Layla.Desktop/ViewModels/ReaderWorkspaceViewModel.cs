@@ -4,6 +4,7 @@ using Layla.Desktop.Models;
 using Layla.Desktop.Services;
 using System;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Layla.Desktop.ViewModels
 {
@@ -26,6 +27,17 @@ namespace Layla.Desktop.ViewModels
         public ReaderWorkspaceViewModel(IProjectApiService projectApiService)
         {
             _projectApiService = projectApiService;
+            _projectApiService.SessionDisplaced += OnSessionDisplaced;
+        }
+
+        private void OnSessionDisplaced()
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show("Sessión terminada: Se ha iniciado sesión en otro dispositivo con esta cuenta.", 
+                    "Seguridad", MessageBoxButton.OK, MessageBoxImage.Warning);
+                Logout();
+            });
         }
 
         public void Initialize(Project project)
@@ -41,23 +53,26 @@ namespace Layla.Desktop.ViewModels
 
             try
             {
-                await _projectApiService.ConnectPresenceHubAsync((projectId, isActive) =>
-                {
-                    if (CurrentProject != null && projectId == CurrentProject.Id)
-                    {
-                        App.Current.Dispatcher.Invoke(() =>
-                        {
-                            IsAuthorActive = isActive;
-                            AuthorStatusText = isActive ? "Author is active - live changes" : "Author is offline";
-                        });
-                    }
-                });
-
+                _projectApiService.AuthorStatusChanged += OnAuthorStatusChanged;
+                
+                await _projectApiService.ConnectPresenceHubAsync();
                 await _projectApiService.WatchProjectAsync(CurrentProject.Id);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error connecting to presence hub: {ex.Message}");
+            }
+        }
+
+        private void OnAuthorStatusChanged(Guid projectId, bool isActive)
+        {
+            if (CurrentProject != null && projectId == CurrentProject.Id)
+            {
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    IsAuthorActive = isActive;
+                    AuthorStatusText = isActive ? "Author is active - live changes" : "Author is offline";
+                });
             }
         }
 
