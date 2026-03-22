@@ -29,17 +29,20 @@ namespace Layla.Desktop.Views
         {
             if (_viewModel.CurrentProject != null)
             {
-                EditorFrame.Navigate(new ManuscriptEditorView(_viewModel.CurrentProject.Id));
-                VoiceFrame.Navigate(new VoicePanelView(_viewModel.CurrentProject.Id));
+                var projectId = _viewModel.CurrentProject.Id;
+                EditorFrame.Navigate(new ManuscriptEditorView(projectId));
+                WikiFrame.Navigate(new WikiEntityEditorView(projectId));
+                GraphFrame.Navigate(new NarrativeGraphView(projectId));
+                VoiceFrame.Navigate(new VoicePanelView(projectId));
             }
 
-            try 
+            try
             {
                 while (NavigationService != null && NavigationService.CanGoBack)
                 {
                     NavigationService.RemoveBackEntry();
                 }
-            } 
+            }
             catch { }
         }
     }

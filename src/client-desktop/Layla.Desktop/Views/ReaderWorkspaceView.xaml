@@ -110,13 +110,11 @@
                 </TabItem>
 
                 <TabItem Header="Wiki">
-                    <Grid>
-                        <TextBlock Text="Wiki Content Here..." Foreground="{DynamicResource PrimaryText}" Margin="20"/>
-                    </Grid>
+                    <Frame x:Name="WikiFrame" NavigationUIVisibility="Hidden"/>
                 </TabItem>
 
                 <TabItem Header="Graph">
-                    <Frame Source="NarrativeGraphView.xaml" NavigationUIVisibility="Hidden"/>
+                    <Frame x:Name="GraphFrame" NavigationUIVisibility="Hidden"/>
                 </TabItem>
 
                 <TabItem Header="Voice">

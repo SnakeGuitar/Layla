@@ -42,4 +42,11 @@ router.delete(
   asyncHandler(WikiController.deleteEntry),
 );
 
+router.get(
+  "/:projectId/entries/:entityId/appearances",
+  MiddlewareAuthenticate,
+  asyncHandler(requireProjectAccess()),
+  asyncHandler(WikiController.getEntityAppearances),
+);
+
 export default router;

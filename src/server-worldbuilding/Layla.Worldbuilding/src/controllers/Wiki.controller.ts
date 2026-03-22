@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as WikiService from "@/services/WikiEntry.service";
+import * as GraphService from "@/services/Graph.service";
 import { WikiEntityType } from "@/interfaces/wiki/IWikiEntry";
 
 /**
@@ -107,4 +108,21 @@ export const deleteEntry = async (
     return;
   }
   res.status(204).send();
+};
+
+/**
+ * GET /api/wiki/:projectId/entries/:entityId/appearances
+ *
+ * Returns all chapters where the entity is mentioned (via APPEARS_IN edges in Neo4j).
+ * Each result includes `manuscriptId`, `manuscriptTitle`, `chapterId`, and `chapterTitle`.
+ */
+export const getEntityAppearances = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const appearances = await GraphService.getEntityAppearances(
+    req.params["projectId"] as string,
+    req.params["entityId"] as string,
+  );
+  res.json(appearances);
 };

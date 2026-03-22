@@ -79,4 +79,11 @@ router.delete(
   asyncHandler(ManuscriptsController.deleteChapter),
 );
 
+router.get(
+  "/:projectId/:manuscriptId/chapters/:chapterId/mentions",
+  MiddlewareAuthenticate,
+  asyncHandler(requireProjectAccess()),
+  asyncHandler(ManuscriptsController.getChapterMentions),
+);
+
 export default router;

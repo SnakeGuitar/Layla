@@ -1,5 +1,13 @@
 import { IGraphResult } from "../graph/IGraphResult";
 
+/** Describes a chapter-to-entity appearance link stored in Neo4j. */
+export interface IAppearanceRecord {
+  manuscriptId: string;
+  manuscriptTitle: string;
+  chapterId: string;
+  chapterTitle: string;
+}
+
 export interface IGraphRepository {
   getGraph(projectId: string, entityType?: string): Promise<IGraphResult>;
   mergeEntity(data: {
@@ -21,4 +29,26 @@ export interface IGraphRepository {
     sourceEntityId: string;
     targetEntityId: string;
   }): Promise<void>;
+
+  /** Creates or updates an APPEARS_IN edge between an entity and a chapter node. */
+  mergeAppearance(data: {
+    projectId: string;
+    entityId: string;
+    manuscriptId: string;
+    manuscriptTitle: string;
+    chapterId: string;
+    chapterTitle: string;
+  }): Promise<void>;
+
+  /** Removes all APPEARS_IN edges for a given chapter (used before re-syncing mentions). */
+  clearChapterAppearances(data: {
+    projectId: string;
+    chapterId: string;
+  }): Promise<void>;
+
+  /** Returns all chapters in which a given entity appears. */
+  getEntityAppearances(data: {
+    projectId: string;
+    entityId: string;
+  }): Promise<IAppearanceRecord[]>;
 }

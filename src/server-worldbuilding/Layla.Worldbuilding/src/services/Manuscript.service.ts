@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { IChapter, IManuscript } from "@/interfaces/manuscript/IManuscript";
 import { MongooseManuscriptRepository } from "@/repositories/MongooseManuscriptRepository";
+import { syncChapterMentions } from "@/services/Mention.service";
 
 const manuscriptRepo = new MongooseManuscriptRepository();
 
@@ -200,6 +201,28 @@ export const updateChapter = async (
   updateData.updatedAt = new Date();
 
   await manuscriptRepo.updateChapter(projectId, manuscriptId, chapterId, updateData);
+
+  if (data.content !== undefined) {
+    const manuscript = await manuscriptRepo.getManuscript(projectId, manuscriptId);
+    const chapterDoc = manuscript?.chapters.find((c: any) => c.chapterId === chapterId);
+
+    if (manuscript && chapterDoc) {
+      try {
+        const mentions = await syncChapterMentions({
+          projectId,
+          manuscriptId,
+          manuscriptTitle: manuscript.title,
+          chapterId,
+          chapterTitle: chapterDoc.title,
+          content: data.content,
+        });
+
+        await manuscriptRepo.updateChapter(projectId, manuscriptId, chapterId, { mentions });
+      } catch (err) {
+        console.warn(`[Manuscript.service] Mention sync failed for chapter ${chapterId}`, err);
+      }
+    }
+  }
 
   const updatedChapter = await manuscriptRepo.getChapter(projectId, manuscriptId, chapterId);
   return { conflict: false, chapter: updatedChapter ?? undefined };

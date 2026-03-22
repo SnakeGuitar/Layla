@@ -38,6 +38,25 @@ const definition: swaggerJsdoc.OAS3Definition = {
       },
     },
     schemas: {
+      Mention: {
+        type: "object",
+        description: "A reference from a chapter to a wiki entity, detected automatically from the text.",
+        properties: {
+          entityId: { type: "string", format: "uuid", description: "UUID of the referenced wiki entry." },
+          name: { type: "string", description: "Entity name at the time of detection." },
+          entityType: { type: "string", description: "Entity type (Character, Location, Event, Object)." },
+        },
+      },
+      AppearanceRecord: {
+        type: "object",
+        description: "A chapter in which a wiki entity appears.",
+        properties: {
+          manuscriptId: { type: "string", format: "uuid" },
+          manuscriptTitle: { type: "string" },
+          chapterId: { type: "string", format: "uuid" },
+          chapterTitle: { type: "string" },
+        },
+      },
       Chapter: {
         type: "object",
         properties: {
@@ -45,6 +64,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
           title: { type: "string", maxLength: 200, description: "Display title shown in the navigation panel." },
           content: { type: "string", description: "Full RTF content. Omitted in index responses." },
           order: { type: "integer", minimum: 0, description: "Zero-based position within the manuscript." },
+          mentions: { type: "array", description: "Wiki entities referenced in this chapter.", items: { $ref: "#/components/schemas/Mention" } },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
         },
@@ -302,6 +322,22 @@ const definition: swaggerJsdoc.OAS3Definition = {
         },
       },
     },
+    "/api/manuscripts/{projectId}/{manuscriptId}/chapters/{chapterId}/mentions": {
+      get: {
+        tags: ["Chapters"],
+        summary: "Get wiki mentions for a chapter",
+        description: "Returns the list of wiki entities detected in the chapter's text.",
+        parameters: [
+          { name: "projectId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "manuscriptId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "chapterId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: {
+          "200": { description: "Array of mentions.", content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/Mention" } } } } },
+          "404": { description: "Chapter not found." },
+        },
+      },
+    },
     "/api/wiki/{projectId}": {
       get: {
         tags: ["Wiki"],
@@ -368,6 +404,25 @@ const definition: swaggerJsdoc.OAS3Definition = {
         responses: {
           "204": { description: "Entry deleted." },
           "404": { description: "Entry not found." },
+        },
+      },
+    },
+    "/api/wiki/{projectId}/entries/{entityId}/appearances": {
+      get: {
+        tags: ["Wiki"],
+        summary: "Get chapters where an entity appears",
+        description:
+          "Returns all chapters that mention this wiki entity, based on APPEARS_IN " +
+          "edges in the narrative graph. Useful for building character arc views.",
+        parameters: [
+          { name: "projectId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          { name: "entityId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+        ],
+        responses: {
+          "200": {
+            description: "Array of appearance records.",
+            content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/AppearanceRecord" } } } },
+          },
         },
       },
     },

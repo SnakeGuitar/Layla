@@ -51,6 +51,9 @@ namespace Layla.Desktop.ViewModels
         /// <summary>Chapters of <see cref="SelectedManuscript"/>, ordered by <see cref="Chapter.Order"/>.</summary>
         public ObservableCollection<Chapter> CurrentChapters { get; } = new();
 
+        /// <summary>Wiki entities detected in the currently loaded chapter.</summary>
+        public ObservableCollection<Mention> CurrentMentions { get; } = new();
+
         /// <summary>
         /// Raised on the calling thread when the view should reload the RTF content
         /// from <see cref="CurrentChapter"/> into the editor control.
@@ -161,6 +164,14 @@ namespace Layla.Desktop.ViewModels
             var fullChapter = await _apiService.GetChapterAsync(_projectId, SelectedManuscript.ManuscriptId, chapterIndex.ChapterId);
             CurrentChapter = fullChapter ?? chapterIndex;
             SelectedChapterItem = chapterIndex;
+
+            CurrentMentions.Clear();
+            if (CurrentChapter?.Mentions != null)
+            {
+                foreach (var mention in CurrentChapter.Mentions)
+                    CurrentMentions.Add(mention);
+            }
+
             ContentReloadRequested?.Invoke();
         }
 
@@ -286,7 +297,7 @@ namespace Layla.Desktop.ViewModels
 
             try
             {
-                await _apiService.UpdateChapterAsync(
+                var saved = await _apiService.UpdateChapterAsync(
                     _projectId,
                     SelectedManuscript.ManuscriptId,
                     CurrentChapter.ChapterId,
@@ -294,6 +305,13 @@ namespace Layla.Desktop.ViewModels
                     rtfContent,
                     CurrentChapter.Order
                 );
+
+                if (saved?.Mentions != null)
+                {
+                    CurrentMentions.Clear();
+                    foreach (var mention in saved.Mentions)
+                        CurrentMentions.Add(mention);
+                }
             }
             catch (Exception ex)
             {

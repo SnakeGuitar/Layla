@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Layla.Desktop.Models
 {
@@ -23,6 +24,9 @@ namespace Layla.Desktop.Models
 
         /// <summary>Zero-based position of the chapter within its parent manuscript.</summary>
         public int Order { get; set; }
+
+        /// <summary>Wiki entities detected in this chapter's text by the mention system.</summary>
+        public List<Mention> Mentions { get; set; } = new();
 
         /// <summary>UTC timestamp set by the server when the chapter was created.</summary>
         public DateTime CreatedAt { get; set; }

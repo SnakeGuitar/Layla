@@ -28,11 +28,12 @@ namespace Layla.Desktop.Views
         {
             if (_viewModel.CurrentProject != null)
             {
-                // Load manuscript in read-only mode
-                EditorFrame.Navigate(new ManuscriptEditorView(_viewModel.CurrentProject.Id, isReadOnly: true));
-                VoiceFrame.Navigate(new VoicePanelView(_viewModel.CurrentProject.Id));
+                var projectId = _viewModel.CurrentProject.Id;
+                EditorFrame.Navigate(new ManuscriptEditorView(projectId, isReadOnly: true));
+                WikiFrame.Navigate(new WikiEntityEditorView(projectId));
+                GraphFrame.Navigate(new NarrativeGraphView(projectId));
+                VoiceFrame.Navigate(new VoicePanelView(projectId));
 
-                // Start watching for author presence
                 await _viewModel.StartWatchingPresenceAsync();
             }
 

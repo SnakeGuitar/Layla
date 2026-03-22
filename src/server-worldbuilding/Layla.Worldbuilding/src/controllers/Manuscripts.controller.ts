@@ -216,3 +216,25 @@ export const deleteChapter = async (
   }
   res.status(204).send();
 };
+
+/**
+ * GET /api/manuscripts/:projectId/:manuscriptId/chapters/:chapterId/mentions
+ *
+ * Returns the list of wiki entity mentions detected in the chapter.
+ * Each mention includes `entityId`, `name`, and `entityType`.
+ */
+export const getChapterMentions = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const chapter = await ManuscriptService.getChapter(
+    req.params["projectId"] as string,
+    req.params["manuscriptId"] as string,
+    req.params["chapterId"] as string,
+  );
+  if (!chapter) {
+    res.status(404).json({ error: "Chapter not found" });
+    return;
+  }
+  res.json(chapter.mentions ?? []);
+};

@@ -1,6 +1,6 @@
 import { getNeo4jDriver } from "../db/neo4j";
 import { IGraphResult, GraphNode, GraphEdge } from "../interfaces/graph/IGraphResult";
-import { IGraphRepository } from "../interfaces/repositories/IGraphRepository";
+import { IGraphRepository, IAppearanceRecord } from "../interfaces/repositories/IGraphRepository";
 
 export class Neo4jGraphRepository implements IGraphRepository {
   async getGraph(projectId: string, entityType?: string): Promise<IGraphResult> {
@@ -149,6 +149,84 @@ export class Neo4jGraphRepository implements IGraphRepository {
           projectId: data.projectId,
         }
       );
+    } finally {
+      await session.close();
+    }
+  }
+
+  async mergeAppearance(data: {
+    projectId: string;
+    entityId: string;
+    manuscriptId: string;
+    manuscriptTitle: string;
+    chapterId: string;
+    chapterTitle: string;
+  }): Promise<void> {
+    const driver = getNeo4jDriver();
+    const session = driver.session();
+
+    try {
+      await session.run(
+        `MERGE (ch:Chapter { chapterId: $chapterId, projectId: $projectId })
+         ON CREATE SET ch.manuscriptId = $manuscriptId, ch.manuscriptTitle = $manuscriptTitle, ch.chapterTitle = $chapterTitle
+         ON MATCH  SET ch.manuscriptTitle = $manuscriptTitle, ch.chapterTitle = $chapterTitle
+         WITH ch
+         MATCH (e:Entity { entityId: $entityId, projectId: $projectId })
+         MERGE (e)-[:APPEARS_IN]->(ch)`,
+        {
+          projectId: data.projectId,
+          entityId: data.entityId,
+          manuscriptId: data.manuscriptId,
+          manuscriptTitle: data.manuscriptTitle,
+          chapterId: data.chapterId,
+          chapterTitle: data.chapterTitle,
+        }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  async clearChapterAppearances(data: {
+    projectId: string;
+    chapterId: string;
+  }): Promise<void> {
+    const driver = getNeo4jDriver();
+    const session = driver.session();
+
+    try {
+      await session.run(
+        `MATCH (e:Entity)-[r:APPEARS_IN]->(ch:Chapter { chapterId: $chapterId, projectId: $projectId })
+         DELETE r`,
+        { chapterId: data.chapterId, projectId: data.projectId }
+      );
+    } finally {
+      await session.close();
+    }
+  }
+
+  async getEntityAppearances(data: {
+    projectId: string;
+    entityId: string;
+  }): Promise<IAppearanceRecord[]> {
+    const driver = getNeo4jDriver();
+    const session = driver.session();
+
+    try {
+      const result = await session.run(
+        `MATCH (e:Entity { entityId: $entityId, projectId: $projectId })-[:APPEARS_IN]->(ch:Chapter { projectId: $projectId })
+         RETURN ch.manuscriptId AS manuscriptId, ch.manuscriptTitle AS manuscriptTitle,
+                ch.chapterId AS chapterId, ch.chapterTitle AS chapterTitle
+         ORDER BY ch.manuscriptId, ch.chapterId`,
+        { entityId: data.entityId, projectId: data.projectId }
+      );
+
+      return result.records.map((r) => ({
+        manuscriptId: r.get("manuscriptId") as string,
+        manuscriptTitle: r.get("manuscriptTitle") as string,
+        chapterId: r.get("chapterId") as string,
+        chapterTitle: r.get("chapterTitle") as string,
+      }));
     } finally {
       await session.close();
     }

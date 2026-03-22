@@ -1,4 +1,5 @@
 import { IGraphResult } from "@/interfaces/graph/IGraphResult";
+import { IAppearanceRecord } from "@/interfaces/repositories/IGraphRepository";
 import { Neo4jGraphRepository } from "@/repositories/Neo4jGraphRepository";
 
 const graphRepo = new Neo4jGraphRepository();
@@ -35,4 +36,14 @@ export const deleteRelationship = async (data: {
   targetEntityId: string;
 }): Promise<void> => {
   return graphRepo.deleteRelationship(data);
+};
+
+/**
+ * Returns all chapters where a given entity appears via APPEARS_IN edges.
+ */
+export const getEntityAppearances = async (
+  projectId: string,
+  entityId: string,
+): Promise<IAppearanceRecord[]> => {
+  return graphRepo.getEntityAppearances({ projectId, entityId });
 };

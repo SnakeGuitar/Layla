@@ -8,12 +8,22 @@ import { IManuscript } from "@/interfaces/manuscript/IManuscript";
  * where `updatedAt` is consumed by the Last-Write-Wins conflict detection
  * in {@link Manuscript.service}.
  */
+const MentionSchema = new Schema(
+  {
+    entityId: { type: String, required: true },
+    name: { type: String, required: true },
+    entityType: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const ChapterSchema = new Schema(
   {
     chapterId: { type: String, required: true },
     title: { type: String, required: true, maxlength: 200 },
     content: { type: String, default: "" },
     order: { type: Number, required: true },
+    mentions: { type: [MentionSchema], default: [] },
   },
   { timestamps: true },
 );

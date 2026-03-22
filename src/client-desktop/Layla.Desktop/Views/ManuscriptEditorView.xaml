@@ -18,6 +18,9 @@
             <ColumnDefinition Width="2"/>
             <!-- Editor area -->
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2"/>
+            <!-- Context panel (wiki entities in current chapter) -->
+            <ColumnDefinition Width="240" MinWidth="180" MaxWidth="400"/>
         </Grid.ColumnDefinitions>
 
         <!-- ═══ LEFT SIDEBAR: Manuscripts + Chapters ═══ -->
@@ -34,7 +37,7 @@
                 <Border Grid.Row="0" Padding="10,10,10,5" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1">
                     <StackPanel>
                         <TextBlock Text="MANUSCRIPTS" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"
-                                   Foreground="{DynamicResource SecondaryText}" LetterSpacing="1"/>
+                                   Foreground="{DynamicResource SecondaryText}"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -74,7 +77,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="CHAPTERS" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center" LetterSpacing="1"/>
+                                   Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
                         <Button Grid.Column="1" Content="+ Add" ToolTip="Add chapter"
                                 Background="Transparent" Foreground="{DynamicResource AccentColor}"
                                 BorderThickness="0" FontSize="11" Cursor="Hand" Padding="4,2"
@@ -271,6 +274,124 @@
                 </Grid>
             </Border>
         </Grid>
+
+        <!-- ═══ RIGHT SPLITTER ═══ -->
+        <GridSplitter Grid.Column="3" Width="2" HorizontalAlignment="Stretch"
+                      Background="{DynamicResource BorderColor}" Cursor="SizeWE"/>
+
+        <!-- ═══ RIGHT SIDEBAR: Context Panel (entities in current chapter) ═══ -->
+        <Border Grid.Column="4" Background="{DynamicResource SidebarBackground}"
+                BorderBrush="{DynamicResource BorderColor}" BorderThickness="1,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0" Padding="10,10,10,5" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,0,0,1">
+                    <TextBlock Text="CONTEXT" FontSize="10" FontWeight="Bold"
+                               Foreground="{DynamicResource SecondaryText}"/>
+                </Border>
+
+                <!-- Mentions list -->
+                <ListBox Grid.Row="1" x:Name="MentionsListBox"
+                         ItemsSource="{Binding CurrentMentions}"
+                         Background="Transparent" BorderThickness="0" Padding="5,5">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="6,5" Margin="0,1" CornerRadius="4"
+                                    Background="{DynamicResource ControlBackground}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="8" Height="8" CornerRadius="4" Margin="0,0,8,0"
+                                            VerticalAlignment="Center">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource AccentColor}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EntityType}" Value="Character">
+                                                        <Setter Property="Background" Value="#4FC3F7"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding EntityType}" Value="Location">
+                                                        <Setter Property="Background" Value="#81C784"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding EntityType}" Value="Event">
+                                                        <Setter Property="Background" Value="#FFB74D"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding EntityType}" Value="Object">
+                                                        <Setter Property="Background" Value="#CE93D8"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                    </Border>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryText}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding EntityType}" FontSize="10"
+                                                   Foreground="{DynamicResource SecondaryText}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <!-- Empty state -->
+                <TextBlock Grid.Row="1" Text="No entities detected in this chapter yet.&#x0a;&#x0a;Create wiki entries and their names will be automatically linked when you write."
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                           TextWrapping="Wrap" Padding="12,20"
+                           HorizontalAlignment="Center" VerticalAlignment="Top"
+                           TextAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentMentions.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
+                <!-- Legend -->
+                <Border Grid.Row="2" Padding="10,8" BorderBrush="{DynamicResource BorderColor}" BorderThickness="0,1,0,0">
+                    <WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                            <Border Width="8" Height="8" CornerRadius="4" Background="#4FC3F7" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Character" FontSize="9" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                            <Border Width="8" Height="8" CornerRadius="4" Background="#81C784" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Location" FontSize="9" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,10,0">
+                            <Border Width="8" Height="8" CornerRadius="4" Background="#FFB74D" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Event" FontSize="9" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="8" Height="8" CornerRadius="4" Background="#CE93D8" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Object" FontSize="9" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
+            </Grid>
+        </Border>
 
         <!-- ═══ COLOR PICKER POPUP ═══ -->
         <Popup x:Name="ColorPickerPopup" StaysOpen="False" Placement="Mouse" AllowsTransparency="True">

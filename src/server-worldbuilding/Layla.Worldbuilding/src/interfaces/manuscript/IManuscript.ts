@@ -1,3 +1,13 @@
+/** A reference from a chapter to a wiki entity, created automatically or by the user. */
+export interface IMention {
+  /** UUID of the referenced wiki entry. */
+  entityId: string;
+  /** Cached entity name at the time of mention (for display without extra lookups). */
+  name: string;
+  /** Cached entity type at the time of mention. */
+  entityType: string;
+}
+
 /** Represents a single chapter within a manuscript. */
 export interface IChapter {
   /** UUID identifying this chapter within its manuscript. */
@@ -8,6 +18,8 @@ export interface IChapter {
   content: string;
   /** Zero-based position of the chapter within the manuscript. */
   order: number;
+  /** Wiki entities referenced in this chapter's text. */
+  mentions: IMention[];
   /** Timestamp set by Mongoose on document creation. */
   createdAt: Date;
   /** Timestamp updated by Mongoose on every save; used for Last-Write-Wins conflict detection. */
