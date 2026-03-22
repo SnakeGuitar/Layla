@@ -18,7 +18,20 @@ namespace Layla.Desktop
 
         protected override void OnStartup(StartupEventArgs e)
         {
+            for (int i = 0; i < e.Args.Length; i++)
+            {
+                if (e.Args[i].StartsWith("--profile="))
+                {
+                    SessionManager.ProfileName = e.Args[i].Replace("--profile=", "session_");
+                }
+                else if ((e.Args[i] == "-p" || e.Args[i] == "--profile") && i + 1 < e.Args.Length)
+                {
+                    SessionManager.ProfileName = "session_" + e.Args[i + 1];
+                    i++;
+                }
+            }
 
+            SessionManager.LoadSession();
             base.OnStartup(e);
 
             var services = new ServiceCollection();
@@ -126,7 +139,6 @@ namespace Layla.Desktop
             services.AddSingleton<IProjectApiService, ProjectApiService>();
             services.AddSingleton<IAuthService, AuthService>();
 
-            // ViewModels
             services.AddTransient<ViewModels.ManuscriptEditorViewModel>();
             services.AddTransient<ViewModels.ProjectListViewModel>();
             services.AddTransient<ViewModels.LoginViewModel>();
