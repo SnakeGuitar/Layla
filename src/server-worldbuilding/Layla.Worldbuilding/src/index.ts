@@ -2,11 +2,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express, { Request, Response, NextFunction } from "express";
+import swaggerUi from "swagger-ui-express";
 import { config } from "@/config/env";
 import { connectMongoDB } from "@/db/mongoose";
 import { verifyNeo4jConnection, closeNeo4jDriver } from "@/db/neo4j";
 import { startProjectCreatedConsumer } from "@/consumers/projectCreated.consumer";
 import { startNeo4jSyncWorker } from "@/workers/neo4jSyncWorker";
+import { swaggerSpec } from "@/docs/swagger";
 
 import ManuscriptsRouter from "@/routes/Manuscripts";
 import WikiRouter from "@/routes/Wiki";
@@ -18,6 +20,9 @@ app.use(express.json({ limit: "10mb" }));
 app.use("/api/manuscripts", ManuscriptsRouter);
 app.use("/api/wiki", WikiRouter);
 app.use("/api/graph", GraphRouter);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 /** Global error handler — Express 5 forwards thrown errors to this handler via asyncHandler. */
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

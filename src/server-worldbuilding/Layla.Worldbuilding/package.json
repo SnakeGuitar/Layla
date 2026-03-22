@@ -23,10 +23,14 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.4",
     "neo4j-driver": "^6.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "tsconfig-paths": "^4.2.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "@eslint/css": "^0.14.1",
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^1.0.1",
