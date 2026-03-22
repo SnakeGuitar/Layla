@@ -2,36 +2,69 @@ import { ManuscriptModel } from "../models/Manuscript.model";
 import { IManuscript, IChapter } from "../interfaces/manuscript/IManuscript";
 import { IManuscriptRepository } from "../interfaces/repositories/IManuscriptRepository";
 
+/** Mongoose implementation of {@link IManuscriptRepository}. */
 export class MongooseManuscriptRepository implements IManuscriptRepository {
-  async getManuscript(projectId: string): Promise<IManuscript | null> {
-    return ManuscriptModel.findOne({ projectId }).lean() as unknown as IManuscript | null;
+
+  /** @inheritdoc */
+  async getManuscriptsByProject(projectId: string): Promise<IManuscript[]> {
+    return ManuscriptModel.find({ projectId })
+      .sort({ order: 1 })
+      .lean() as unknown as IManuscript[];
   }
 
-  async getChapter(projectId: string, chapterId: string): Promise<IChapter | null> {
-    const manuscript = await ManuscriptModel.findOne({ projectId }).lean();
+  /** @inheritdoc */
+  async getManuscript(projectId: string, manuscriptId: string): Promise<IManuscript | null> {
+    return ManuscriptModel.findOne({ projectId, manuscriptId })
+      .lean() as unknown as IManuscript | null;
+  }
+
+  /** @inheritdoc */
+  async createManuscript(data: Partial<IManuscript>): Promise<IManuscript> {
+    const manuscript = await ManuscriptModel.create(data);
+    return manuscript.toObject() as unknown as IManuscript;
+  }
+
+  /** @inheritdoc */
+  async updateManuscript(projectId: string, manuscriptId: string, data: Partial<IManuscript>): Promise<IManuscript | null> {
+    return ManuscriptModel.findOneAndUpdate(
+      { projectId, manuscriptId },
+      { $set: data },
+      { new: true },
+    ).lean() as unknown as IManuscript | null;
+  }
+
+  /** @inheritdoc */
+  async deleteManuscript(projectId: string, manuscriptId: string): Promise<boolean> {
+    const result = await ManuscriptModel.deleteOne({ projectId, manuscriptId });
+    return result.deletedCount > 0;
+  }
+
+  /** @inheritdoc */
+  async getChapter(projectId: string, manuscriptId: string, chapterId: string): Promise<IChapter | null> {
+    const manuscript = await ManuscriptModel.findOne({ projectId, manuscriptId }).lean();
     if (!manuscript) return null;
     return (manuscript.chapters.find((c: any) => c.chapterId === chapterId) ?? null) as unknown as IChapter | null;
   }
 
-  async createChapter(projectId: string, chapter: Partial<IChapter>): Promise<IChapter | null> {
+  /** @inheritdoc */
+  async createChapter(projectId: string, manuscriptId: string, chapter: Partial<IChapter>): Promise<IChapter | null> {
     const manuscript = await ManuscriptModel.findOneAndUpdate(
-      { projectId },
+      { projectId, manuscriptId },
       { $push: { chapters: chapter } },
-      { upsert: true, new: true }
+      { new: true },
     );
+    if (!manuscript) return null;
     return (manuscript.chapters.find((c: any) => c.chapterId === chapter.chapterId) ?? null) as unknown as IChapter | null;
   }
 
-  async updateChapter(projectId: string, chapterId: string, data: any): Promise<IManuscript | null> {
-    // This is a more complex update, potentially involving LWW. 
-    // The service handles the LWW logic, so here we just save the state.
-    // However, the service currently calls manuscript.save().
-    // We can implement a generic update or specifically for chapter.
-    // For now, let's stick to returning the full manuscript after update.
-    
-    // In a real scenario, we might want a more granular update.
-    // But since the service does manuscript.save(), we'll implement that pattern.
-    const manuscript = await ManuscriptModel.findOne({ projectId });
+  /**
+   * @inheritdoc
+   *
+   * Uses `Object.assign` + `document.save()` instead of a positional `$set`
+   * so that Mongoose sub-document hooks and `timestamps` remain active.
+   */
+  async updateChapter(projectId: string, manuscriptId: string, chapterId: string, data: any): Promise<IManuscript | null> {
+    const manuscript = await ManuscriptModel.findOne({ projectId, manuscriptId });
     if (!manuscript) return null;
 
     const chapter = manuscript.chapters.find((c: any) => c.chapterId === chapterId);
@@ -42,10 +75,11 @@ export class MongooseManuscriptRepository implements IManuscriptRepository {
     return manuscript.toObject() as unknown as IManuscript;
   }
 
-  async deleteChapter(projectId: string, chapterId: string): Promise<boolean> {
+  /** @inheritdoc */
+  async deleteChapter(projectId: string, manuscriptId: string, chapterId: string): Promise<boolean> {
     const result = await ManuscriptModel.updateOne(
-        { projectId },
-        { $pull: { chapters: { chapterId } } }
+      { projectId, manuscriptId },
+      { $pull: { chapters: { chapterId } } },
     );
     return result.modifiedCount > 0;
   }

@@ -3,8 +3,10 @@ import { IManuscript } from "@/interfaces/manuscript/IManuscript";
 
 /**
  * Embedded sub-document schema for an individual chapter.
- * `timestamps: true` automatically manages `createdAt` / `updatedAt` fields
- * used by the Last-Write-Wins conflict detection in {@link Manuscript.service}.
+ *
+ * Mongoose `timestamps` automatically manages `createdAt` and `updatedAt`,
+ * where `updatedAt` is consumed by the Last-Write-Wins conflict detection
+ * in {@link Manuscript.service}.
  */
 const ChapterSchema = new Schema(
   {
@@ -17,15 +19,23 @@ const ChapterSchema = new Schema(
 );
 
 /**
- * One `Manuscript` document exists per project.
- * `projectId` is the GUID issued by `server-core` and is used as the primary lookup key.
+ * Top-level schema for a manuscript document.
+ *
+ * Each project may have multiple `Manuscript` documents. The compound index
+ * `(projectId, manuscriptId)` enforces uniqueness and accelerates per-project
+ * look-ups. The `order` field controls display order in the editor sidebar.
  */
 const ManuscriptSchema = new Schema<IManuscript>(
   {
-    projectId: { type: String, required: true, unique: true, index: true },
+    manuscriptId: { type: String, required: true, index: true },
+    projectId: { type: String, required: true, index: true },
+    title: { type: String, required: true, maxlength: 200 },
+    order: { type: Number, required: true, default: 0 },
     chapters: [ChapterSchema],
   },
   { timestamps: true },
 );
+
+ManuscriptSchema.index({ projectId: 1, manuscriptId: 1 }, { unique: true });
 
 export const ManuscriptModel = model<IManuscript>("Manuscript", ManuscriptSchema);
