@@ -138,6 +138,8 @@ namespace Layla.Desktop
             services.AddSingleton<IManuscriptApiService, ManuscriptApiService>();
             services.AddSingleton<IProjectApiService, ProjectApiService>();
             services.AddSingleton<IAuthService, AuthService>();
+            services.AddSingleton<IWikiApiService, WikiApiService>();
+            services.AddSingleton<IGraphApiService, GraphApiService>();
 
             services.AddTransient<ViewModels.ManuscriptEditorViewModel>();
             services.AddTransient<ViewModels.ProjectListViewModel>();
