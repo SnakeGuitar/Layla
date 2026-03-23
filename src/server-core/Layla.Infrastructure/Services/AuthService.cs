@@ -25,7 +25,6 @@ public class AuthService(
     ILogger<AuthService> logger) : IAuthService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
-{
     /// <summary>
     /// Authenticates a user and returns a JWT token if successful.
     /// Overwrites any existing session by incrementing the <see cref="AppUser.TokenVersion"/>.
@@ -38,28 +37,22 @@ public class AuthService(
         {
             var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
-            {
-                return Result<AuthResponseDto>.Failure("Invalid email or password.");
-            }
+                return Result<AuthResponseDto>.Failure(ErrorCode.InvalidCredentials);
 
             var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
-            {
-                return Result<AuthResponseDto>.Failure("Account is locked out due to multiple failed attempts.");
-            }
+                return Result<AuthResponseDto>.Failure(ErrorCode.AccountLocked);
 
             if (!result.Succeeded)
-            {
-                return Result<AuthResponseDto>.Failure("Invalid email or password.");
-            }
+                return Result<AuthResponseDto>.Failure(ErrorCode.InvalidCredentials);
 
             return await GenerateUserResultAsync(user);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to login user {Email}", request.Email);
-            return Result<AuthResponseDto>.Failure("An error occurred during login.");
+            return Result<AuthResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -74,9 +67,7 @@ public class AuthService(
         try
         {
             if (await userManager.FindByEmailAsync(request.Email) != null)
-            {
-                return Result<AuthResponseDto>.Failure("Email is already registered.");
-            }
+                return Result<AuthResponseDto>.Failure(ErrorCode.DuplicateEmail);
 
             var user = new AppUser
             {
@@ -91,7 +82,7 @@ public class AuthService(
             if (!result.Succeeded)
             {
                 var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-                return Result<AuthResponseDto>.Failure($"Registration failed: {errors}");
+                return Result<AuthResponseDto>.Failure(ErrorCode.ValidationFailed, $"Registration failed: {errors}");
             }
 
             await userManager.AddToRoleAsync(user, "Writer");
@@ -101,7 +92,7 @@ public class AuthService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to register user {Email}", request.Email);
-            return Result<AuthResponseDto>.Failure("An error occurred during registration.");
+            return Result<AuthResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 

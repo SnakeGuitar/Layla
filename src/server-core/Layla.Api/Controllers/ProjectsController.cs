@@ -1,4 +1,5 @@
 using Layla.Api.Extensions;
+using Layla.Core.Common;
 using Layla.Core.Contracts.Project;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
@@ -179,13 +180,7 @@ public class ProjectsController : ControllerBase
         var result = await _projectService.UpdateProjectAsync(id, request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "Unauthorized.")
-                return Forbid();
-            if (result.Error == "Project not found.")
-                return NotFound(new { Error = result.Error });
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return Ok(result.Data);
     }
@@ -213,13 +208,7 @@ public class ProjectsController : ControllerBase
         var result = await _projectService.DeleteProjectAsync(id, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "Unauthorized.")
-                return Forbid();
-            if (result.Error == "Project not found.")
-                return NotFound(new { Error = result.Error });
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return NoContent();
     }
@@ -276,11 +265,7 @@ public class ProjectsController : ControllerBase
         var result = await _projectService.InviteCollaboratorAsync(id, request, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "Unauthorized.")
-                return Forbid();
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return Ok(result.Data);
     }
@@ -336,12 +321,17 @@ public class ProjectsController : ControllerBase
         var result = await _projectService.RemoveCollaboratorAsync(id, collaboratorUserId, userId, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "Unauthorized.")
-                return Forbid();
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return NoContent();
     }
+
+    private IActionResult RespondWithError(ErrorCode? errorCode) =>
+        (errorCode?.GetStatusCode() ?? 400) switch
+        {
+            401 => Unauthorized(new { Error = errorCode?.GetMessage() }),
+            403 => Forbid(),
+            404 => NotFound(new { Error = errorCode?.GetMessage() }),
+            _ => BadRequest(new { Error = errorCode?.GetMessage() })
+        };
 }

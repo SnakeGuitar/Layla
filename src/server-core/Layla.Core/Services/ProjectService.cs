@@ -121,11 +121,11 @@ public class ProjectService : IProjectService
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
-                return Result<ProjectResponseDto>.Failure("Unauthorized.");
+                return Result<ProjectResponseDto>.Failure(ErrorCode.Forbidden);
 
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
-                return Result<ProjectResponseDto>.Failure("Project not found.");
+                return Result<ProjectResponseDto>.Failure(ErrorCode.ProjectNotFound);
 
             project.Title = request.Title;
             project.Synopsis = request.Synopsis;
@@ -143,7 +143,7 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<ProjectResponseDto>.Failure("An error occurred while updating the project.");
+            return Result<ProjectResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -153,11 +153,11 @@ public class ProjectService : IProjectService
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
-                return Result<bool>.Failure("Unauthorized.");
+                return Result<bool>.Failure(ErrorCode.Forbidden);
 
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
-                return Result<bool>.Failure("Project not found.");
+                return Result<bool>.Failure(ErrorCode.ProjectNotFound);
 
             await _projectRepository.DeleteProjectAsync(project, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
@@ -168,7 +168,7 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<bool>.Failure("An error occurred while deleting the project.");
+            return Result<bool>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -231,17 +231,17 @@ public class ProjectService : IProjectService
         {
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
-                return Result<CollaboratorResponseDto>.Failure("Project not found.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.ProjectNotFound);
 
             if (!project.IsPublic)
-                return Result<CollaboratorResponseDto>.Failure("Project is not public.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidInput, "Project is not public.");
 
             var existingRole = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
             if (existingRole)
-                return Result<CollaboratorResponseDto>.Failure("You are already a member of this project.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.AlreadyMember);
 
             if (!Guid.TryParse(userId, out var userGuid))
-                return Result<CollaboratorResponseDto>.Failure("Invalid user ID.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidInput, "Invalid user ID.");
 
             var projectRole = new ProjectRole
             {
@@ -269,7 +269,7 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to join public project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<CollaboratorResponseDto>.Failure("An error occurred while joining the project.");
+            return Result<CollaboratorResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -279,17 +279,17 @@ public class ProjectService : IProjectService
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
-                return Result<CollaboratorResponseDto>.Failure("Unauthorized.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.Forbidden);
 
             var targetUserResult = await _appUserRepository.GetAppUserByEmailAsync(request.Email, cancellationToken);
             if (!targetUserResult.IsSuccess || targetUserResult.Data == null)
-                return Result<CollaboratorResponseDto>.Failure("User with that email not found.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.UserNotFound);
 
             var targetUser = targetUserResult.Data;
 
             var alreadyMember = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, targetUser.Id, cancellationToken);
             if (alreadyMember)
-                return Result<CollaboratorResponseDto>.Failure("User is already a member of this project.");
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.AlreadyMember);
 
             var role = request.Role == ProjectRoles.Editor ? ProjectRoles.Editor : ProjectRoles.Reader;
 
@@ -316,7 +316,7 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to invite collaborator to project {ProjectId}", projectId);
-            return Result<CollaboratorResponseDto>.Failure("An error occurred while inviting the collaborator.");
+            return Result<CollaboratorResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -353,14 +353,14 @@ public class ProjectService : IProjectService
         {
             var isOwner = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!isOwner)
-                return Result<bool>.Failure("Unauthorized.");
+                return Result<bool>.Failure(ErrorCode.Forbidden);
 
             var role = await _projectRepository.GetProjectRoleAsync(projectId, collaboratorUserId, cancellationToken);
             if (role == null)
-                return Result<bool>.Failure("Collaborator not found.");
+                return Result<bool>.Failure(ErrorCode.CollaboratorNotFound);
 
             if (role.Role == ProjectRoles.Owner)
-                return Result<bool>.Failure("Cannot remove the project owner.");
+                return Result<bool>.Failure(ErrorCode.InvalidInput, "Cannot remove the project owner.");
 
             await _projectRepository.RemoveProjectRoleAsync(role, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
@@ -370,7 +370,7 @@ public class ProjectService : IProjectService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove collaborator from project {ProjectId}", projectId);
-            return Result<bool>.Failure("An error occurred while removing the collaborator.");
+            return Result<bool>.Failure(ErrorCode.InternalError);
         }
     }
 

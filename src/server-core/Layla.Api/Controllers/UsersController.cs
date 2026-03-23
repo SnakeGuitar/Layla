@@ -1,4 +1,5 @@
 using Layla.Api.Extensions;
+using Layla.Core.Common;
 using Layla.Core.Contracts.AppUser;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
@@ -35,12 +36,7 @@ public class UsersController : ControllerBase
         var result = await _authService.RegisterAsync(request);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error != null && result.Error.Contains("Email is already registered"))
-                return Conflict(new { message = result.Error });
-
-            return BadRequest(new { message = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return Created(string.Empty, result.Data);
     }
@@ -95,12 +91,7 @@ public class UsersController : ControllerBase
         var result = await _appUserService.UpdateAppUserAsync(id, request, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "User not found.")
-                return NotFound(new { Error = result.Error });
-
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return Ok(result.Data);
     }
@@ -123,12 +114,7 @@ public class UsersController : ControllerBase
         var result = await _appUserService.DeleteAppUserAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "User not found.")
-                return NotFound(new { Error = result.Error });
-
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return NoContent();
     }
@@ -145,13 +131,18 @@ public class UsersController : ControllerBase
         var result = await _appUserService.BanAppUserAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
-        {
-            if (result.Error == "User not found.")
-                return NotFound(new { Error = result.Error });
-
-            return BadRequest(new { Error = result.Error });
-        }
+            return RespondWithError(result.ErrorCode);
 
         return NoContent();
     }
+
+    private IActionResult RespondWithError(ErrorCode? errorCode) =>
+        (errorCode?.GetStatusCode() ?? 400) switch
+        {
+            401 => Unauthorized(new { Error = errorCode?.GetMessage() }),
+            403 => Forbid(),
+            404 => NotFound(new { Error = errorCode?.GetMessage() }),
+            409 => Conflict(new { Error = errorCode?.GetMessage() }),
+            _ => BadRequest(new { Error = errorCode?.GetMessage() })
+        };
 }

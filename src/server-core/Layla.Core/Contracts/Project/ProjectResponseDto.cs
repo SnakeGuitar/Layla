@@ -1,5 +1,3 @@
-using Layla.Core.Contracts.User;
-
 namespace Layla.Core.Contracts.Project;
 
 public class ProjectResponseDto

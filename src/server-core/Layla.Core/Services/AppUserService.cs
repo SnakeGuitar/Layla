@@ -40,14 +40,15 @@ public class AppUserService : IAppUserService
         try
         {
             var result = await _appUserRepository.GetAppUserByIdAsync(userId, cancellationToken);
-            if (!result.IsSuccess) return Result<UserResponseDto>.Failure(result.Error);
+            if (!result.IsSuccess)
+                return Result<UserResponseDto>.Failure(ErrorCode.UserNotFound);
 
             return Result<UserResponseDto>.Success(MapToResponseDto(result.Data!));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve user {UserId}", userId);
-            return Result<UserResponseDto>.Failure("An error occurred while retrieving the user.");
+            return Result<UserResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -56,14 +57,15 @@ public class AppUserService : IAppUserService
         try
         {
             var result = await _appUserRepository.UpdateAppUserAsync(userId, request, cancellationToken);
-            if (!result.IsSuccess) return Result<UserResponseDto>.Failure(result.Error);
+            if (!result.IsSuccess)
+                return Result<UserResponseDto>.Failure(ErrorCode.UserNotFound);
 
             return Result<UserResponseDto>.Success(MapToResponseDto(result.Data!));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update user {UserId}", userId);
-            return Result<UserResponseDto>.Failure("An error occurred while updating the user.");
+            return Result<UserResponseDto>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -76,7 +78,7 @@ public class AppUserService : IAppUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to delete user {UserId}", userId);
-            return Result<bool>.Failure("An error occurred while deleting the user.");
+            return Result<bool>.Failure(ErrorCode.InternalError);
         }
     }
 
@@ -89,7 +91,7 @@ public class AppUserService : IAppUserService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to ban user {UserId}", userId);
-            return Result<bool>.Failure("An error occurred while banning the user.");
+            return Result<bool>.Failure(ErrorCode.InternalError);
         }
     }
 
