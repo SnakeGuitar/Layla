@@ -1,9 +1,11 @@
 using Layla.Core.Common;
+using Layla.Core.Configuration;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Layla.Infrastructure.Services;
 
@@ -13,12 +15,16 @@ namespace Layla.Infrastructure.Services;
 /// <param name="userManager">The ASP.NET Core Identity user manager.</param>
 /// <param name="signInManager">The ASP.NET Core Identity sign-in manager.</param>
 /// <param name="tokenService">Service responsible for generating JWT tokens.</param>
+/// <param name="jwtSettings">JWT settings for token expiration.</param>
 /// <param name="logger">Logger for authentication events.</param>
 public class AuthService(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
     ITokenService tokenService,
+    IOptions<JwtSettings> jwtSettings,
     ILogger<AuthService> logger) : IAuthService
+{
+    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 {
     /// <summary>
     /// Authenticates a user and returns a JWT token if successful.
@@ -114,7 +120,7 @@ public class AuthService(
             Token = token,
             Email = user.Email ?? "",
             DisplayName = user.DisplayName ?? "",
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1440)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes)
         });
     }
 }
