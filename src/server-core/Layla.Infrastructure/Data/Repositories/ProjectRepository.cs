@@ -1,3 +1,4 @@
+using Layla.Core.Constants;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Data;
 using Microsoft.EntityFrameworkCore;
@@ -77,9 +78,11 @@ public class ProjectRepository : IProjectRepository
     public async Task<IEnumerable<Project>> GetProjectsByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
         var projects = await (from pr in _dbContext.ProjectRoles
-                              where pr.AppUserId == userId && pr.Role == "OWNER"
+                              where pr.AppUserId == userId
                               join p in _dbContext.Projects on pr.ProjectId equals p.Id
-                              select p).ToListAsync(cancellationToken);
+                              select p)
+                              .Distinct()
+                              .ToListAsync(cancellationToken);
 
         return projects;
     }
@@ -108,8 +111,9 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<bool> UserHasRoleInProjectAsync(Guid projectId, string userId, string role, CancellationToken cancellationToken = default)
     {
+        var normalizedRole = ProjectRoles.Normalize(role) ?? role;
         return await _dbContext.ProjectRoles
-            .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId && pr.Role == role, cancellationToken);
+            .AnyAsync(pr => pr.ProjectId == projectId && pr.AppUserId == userId && pr.Role == normalizedRole, cancellationToken);
     }
 
     public async Task<bool> UserHasAnyRoleInProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)

@@ -1,16 +1,15 @@
 using Layla.Api.Extensions;
 using Layla.Api.Hubs;
 using Layla.Api.Middleware;
-using Layla.Core.Interfaces;
-using Layla.Infrastructure.Services;
 using Layla.Core.Entities;
 using Layla.Core.Extensions;
+using Layla.Core.Interfaces;
 using Layla.Infrastructure.Data;
 using Layla.Infrastructure.Extensions;
+using Layla.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,6 +79,7 @@ builder.Services.AddCors(options =>
 });
 
 System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+builder.Services.AddScoped<TokenVersionValidator>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = "Bearer";
@@ -113,49 +113,10 @@ builder.Services.AddAuthentication(options =>
                 }
                 return Task.CompletedTask;
             },
-            OnAuthenticationFailed = context =>
-            {
-                return Task.CompletedTask;
-            },
-            OnChallenge = context =>
-            {
-                return Task.CompletedTask;
-            },
             OnTokenValidated = async context =>
             {
-                var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                var principal = context.Principal;
-                if (principal == null) 
-                {
-                    context.Fail("No principal.");
-                    return;
-                }
-
-                var userId = principal.FindFirst("sub")?.Value 
-                             ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                var tokenVersionClaim = principal.FindFirst("token_version")?.Value;
-
-                if (!string.IsNullOrEmpty(userId) && int.TryParse(tokenVersionClaim, out int tokenVersion))
-                {
-                    var user = await userManager.FindByIdAsync(userId);
-                    if (user == null || user.TokenVersion != tokenVersion)
-                    {
-                        context.Fail("Session expired. User logged in from another device.");
-                    }
-                    else
-                    {
-                        var identity = principal.Identity as ClaimsIdentity;
-                        if (identity != null && !principal.HasClaim(c => c.Type == ClaimTypes.NameIdentifier))
-                        {
-                            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userId));
-                        }
-                    }
-                }
-                else
-                {
-                    context.Fail("Invalid token structure (missing user identity or TokenVersion).");
-                }
+                var validator = context.HttpContext.RequestServices.GetRequiredService<TokenVersionValidator>();
+                await validator.ValidateAsync(context);
             }
         };
     });
