@@ -87,7 +87,9 @@ public class ProjectService : IProjectService
             CreatedAt = project.CreatedAt
         };
 
-        await _eventPublisher.PublishAsync(projectCreatedEvent, cancellationToken);
+        var domainPublished = await _eventPublisher.PublishAsync(projectCreatedEvent, cancellationToken);
+        if (!domainPublished)
+            _logger.LogWarning("Domain event not published for project {ProjectId}. Downstream services may be out of sync.", project.Id);
 
         var integrationEvent = new Layla.Core.IntegrationEvents.ProjectCreatedEvent
         {
@@ -97,7 +99,9 @@ public class ProjectService : IProjectService
             CreatedAt = project.CreatedAt
         };
 
-        _eventBus.Publish(integrationEvent, exchangeName: "worldbuilding.events", routingKey: "project.created");
+        var integrationPublished = _eventBus.Publish(integrationEvent, exchangeName: "worldbuilding.events", routingKey: "project.created");
+        if (!integrationPublished)
+            _logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
     }
 
     public async Task<Result<IEnumerable<ProjectResponseDto>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default)

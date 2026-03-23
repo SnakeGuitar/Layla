@@ -12,9 +12,9 @@ public class DummyEventPublisher : IEventPublisher
         _logger = logger;
     }
 
-    public Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) where TEvent : class
+    public Task<bool> PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) where TEvent : class
     {
         _logger.LogInformation("Dummy PublishAsync: Event {EventType} published.", typeof(TEvent).Name);
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 }

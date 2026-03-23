@@ -36,21 +36,21 @@ public class EventBus : IEventBus, IDisposable, IEventPublisher
         }
     }
 
-    public async Task PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class
+    public async Task<bool> PublishAsync<T>(T @event, CancellationToken cancellationToken = default) where T : class
     {
         const string exchangeName = "worldbuilding.events";
         var routingKey = @event.GetType().Name.ToLower().Replace("event", "");
 
-        await Task.Run(() => Publish(@event, exchangeName, routingKey), cancellationToken);
+        return await Task.Run(() => Publish(@event, exchangeName, routingKey), cancellationToken);
     }
 
-    public void Publish<T>(T @event, string exchangeName, string routingKey = "") where T : class
+    public bool Publish<T>(T @event, string exchangeName, string routingKey = "") where T : class
     {
         if (_channel == null)
         {
             _logger.LogWarning("Event not published: RabbitMQ channel is unavailable. EventType={EventType}, Exchange={Exchange}, RoutingKey={RoutingKey}",
                 typeof(T).Name, exchangeName, routingKey);
-            return;
+            return false;
         }
 
         try
@@ -76,11 +76,13 @@ public class EventBus : IEventBus, IDisposable, IEventPublisher
 
             _logger.LogDebug("Event published successfully. EventType={EventType}, Exchange={Exchange}, RoutingKey={RoutingKey}",
                 typeof(T).Name, exchangeName, routingKey);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish event. EventType={EventType}, Exchange={Exchange}, RoutingKey={RoutingKey}",
                 typeof(T).Name, exchangeName, routingKey);
+            return false;
         }
     }
 
