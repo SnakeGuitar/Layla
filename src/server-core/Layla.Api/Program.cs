@@ -167,7 +167,8 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Error at creating database or roles");
+        logger.LogCritical(ex, "Fatal error during database migration or role seeding. Aborting startup.");
+        throw;
     }
 }
 

@@ -76,14 +76,11 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<IEnumerable<Project>> GetProjectsByUserIdAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var projects = await (from pr in _dbContext.ProjectRoles
-                              where pr.AppUserId == userId
-                              join p in _dbContext.Projects on pr.ProjectId equals p.Id
-                              select p)
-                              .Distinct()
-                              .ToListAsync(cancellationToken);
-
-        return projects;
+        return await _dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Roles)
+            .Where(p => p.Roles.Any(r => r.AppUserId == userId))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<Project?> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)

@@ -109,7 +109,7 @@ public class ProjectService : IProjectService
         try
         {
             var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
-            var dtos = projects.Select(p => MapToResponseDto(p, p.Roles.FirstOrDefault(r => r.AppUserId == userId)?.Role ?? string.Empty));
+            var dtos = projects.Select(p => MapToResponseDto(p, p.Roles?.FirstOrDefault(r => r.AppUserId == userId)?.Role ?? string.Empty));
             return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
         }
         catch (Exception ex)

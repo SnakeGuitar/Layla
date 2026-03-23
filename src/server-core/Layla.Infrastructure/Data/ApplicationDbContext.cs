@@ -34,6 +34,15 @@ namespace Layla.Infrastructure.Data
 
             builder.Entity<Project>()
                 .HasIndex(p => p.IsPublic);
+
+            builder.Entity<Project>()
+                .HasIndex(p => p.UpdatedAt);
+
+            builder.Entity<ProjectRole>()
+                .HasIndex(pr => pr.AppUserId);
+
+            builder.Entity<ProjectRole>()
+                .HasIndex(pr => pr.ProjectId);
         }
     }
 }
