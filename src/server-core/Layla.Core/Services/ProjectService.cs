@@ -59,10 +59,9 @@ public class ProjectService : IProjectService
 
             await _projectRepository.AddProjectAsync(project, cancellationToken);
             await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
-            // DO NOT call SaveChangesAsync here — let CommitTransactionAsync handle it
             await _projectRepository.CommitTransactionAsync(cancellationToken);
 
-            // Publish events AFTER successful commit (outbox pattern)
+            
             await PublishProjectCreatedEventsAsync(project, userId, cancellationToken);
 
             _logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
@@ -259,13 +258,16 @@ public class ProjectService : IProjectService
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
             var userResult = await _appUserRepository.GetAppUserByIdAsync(userGuid, cancellationToken);
+            if (!userResult.IsSuccess || userResult.Data == null)
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.UserNotFound);
+
             var user = userResult.Data;
 
             return Result<CollaboratorResponseDto>.Success(new CollaboratorResponseDto
             {
                 UserId = userId,
-                DisplayName = user?.DisplayName,
-                Email = user?.Email,
+                DisplayName = user.DisplayName,
+                Email = user.Email,
                 Role = ProjectRoles.Reader,
                 AssignedAt = projectRole.AssignedAt
             });
