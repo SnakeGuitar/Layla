@@ -19,11 +19,11 @@ public class PresenceTracker : IPresenceTracker
 
     public bool MarkActive(Guid projectId, string userId, string connectionId, string displayName, string role)
     {
-        _connections[connectionId] = (projectId, userId);
-        _userConnections[userId] = connectionId;
-
         lock (_lock)
         {
+            _connections[connectionId] = (projectId, userId);
+            _userConnections[userId] = connectionId;
+
             var participants = _projectParticipants.GetOrAdd(projectId, _ => new ConcurrentDictionary<string, InternalParticipant>());
 
             bool wasActive = IsProjectActive(projectId);
@@ -39,7 +39,6 @@ public class PresenceTracker : IPresenceTracker
 
     private static string UpgradeRoleIfNeeded(string existingRole, string newRole)
     {
-        // Upgrade to higher privilege roles: OWNER > EDITOR > READER
         if (newRole == ProjectRoles.Owner) return ProjectRoles.Owner;
         if (newRole == ProjectRoles.Editor && existingRole != ProjectRoles.Owner) return ProjectRoles.Editor;
         return existingRole;
@@ -47,11 +46,11 @@ public class PresenceTracker : IPresenceTracker
 
     public bool MarkInactive(string connectionId, out Guid projectId, out string userId)
     {
-        if (!RemoveConnectionMapping(connectionId, out projectId, out userId))
-            return false;
-
         lock (_lock)
         {
+            if (!RemoveConnectionMapping(connectionId, out projectId, out userId))
+                return false;
+
             if (!_projectParticipants.TryGetValue(projectId, out var participants))
                 return false;
 
