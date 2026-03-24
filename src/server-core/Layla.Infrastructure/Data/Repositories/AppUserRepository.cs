@@ -91,7 +91,7 @@ public class AppUserRepository : IAppUserRepository
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            var errors = FormatIdentityErrors(result.Errors);
             return Result<AppUser>.Failure(ErrorCode.ValidationFailed, errors);
         }
 
@@ -107,7 +107,7 @@ public class AppUserRepository : IAppUserRepository
         var result = await _userManager.DeleteAsync(user);
         if (!result.Succeeded)
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            var errors = FormatIdentityErrors(result.Errors);
             return Result<bool>.Failure(ErrorCode.ValidationFailed, errors);
         }
 
@@ -125,14 +125,14 @@ public class AppUserRepository : IAppUserRepository
         var lockoutResult = await _userManager.SetLockoutEnabledAsync(user, true);
         if (!lockoutResult.Succeeded)
         {
-            var errors = string.Join(", ", lockoutResult.Errors.Select(e => e.Description));
+            var errors = FormatIdentityErrors(lockoutResult.Errors);
             return Result<bool>.Failure(ErrorCode.ValidationFailed, errors);
         }
 
         var lockoutEndResult = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
         if (!lockoutEndResult.Succeeded)
         {
-            var errors = string.Join(", ", lockoutEndResult.Errors.Select(e => e.Description));
+            var errors = FormatIdentityErrors(lockoutEndResult.Errors);
             return Result<bool>.Failure(ErrorCode.ValidationFailed, errors);
         }
 
@@ -149,4 +149,7 @@ public class AppUserRepository : IAppUserRepository
 
         return Result<AppUser>.Success(user);
     }
+
+    private static string FormatIdentityErrors(IEnumerable<IdentityError> errors) =>
+        string.Join(", ", errors.Select(e => e.Description));
 }

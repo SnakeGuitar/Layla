@@ -1,5 +1,6 @@
 using Layla.Core.Common;
 using Layla.Core.Configuration;
+using Layla.Core.Constants;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
@@ -85,7 +86,7 @@ public class AuthService(
                 return Result<AuthResponseDto>.Failure(ErrorCode.ValidationFailed, $"Registration failed: {errors}");
             }
 
-            await userManager.AddToRoleAsync(user, "Writer");
+            await userManager.AddToRoleAsync(user, AppRoles.Writer);
 
             return await GenerateUserResultAsync(user);
         }

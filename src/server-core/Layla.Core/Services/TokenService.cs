@@ -1,4 +1,5 @@
 ﻿using Layla.Core.Configuration;
+using Layla.Core.Constants;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
@@ -33,14 +34,14 @@ namespace Layla.Core.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim("name", user.DisplayName ?? ""),
-                new Claim("token_version", user.TokenVersion.ToString()),
+                new Claim(ClaimNames.Name, user.DisplayName ?? ""),
+                new Claim(ClaimNames.TokenVersion, user.TokenVersion.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim("role", role));
+                claims.Add(new Claim(ClaimNames.Role, role));
             }
 
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

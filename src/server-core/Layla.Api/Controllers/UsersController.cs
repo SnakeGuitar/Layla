@@ -1,5 +1,6 @@
 using Layla.Api.Extensions;
 using Layla.Core.Common;
+using Layla.Core.Constants;
 using Layla.Core.Contracts.AppUser;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
@@ -9,10 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Layla.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UsersController : ControllerBase
+public class UsersController : ApiControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IAppUserService _appUserService;
@@ -83,7 +83,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateAppUserRequestDto request, CancellationToken cancellationToken)
     {
         var callerId = User.GetUserId();
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole(AppRoles.Admin);
 
         if (!isAdmin && callerId != id.ToString())
             return Forbid();
@@ -106,7 +106,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
         var callerId = User.GetUserId();
-        var isAdmin = User.IsInRole("Admin");
+        var isAdmin = User.IsInRole(AppRoles.Admin);
 
         if (!isAdmin && callerId != id.ToString())
             return Forbid();
@@ -136,14 +136,4 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    private IActionResult RespondWithError(ErrorCode? errorCode) =>
-        (errorCode?.GetStatusCode() ?? 500) switch
-        {
-            401 => Unauthorized(new { Error = errorCode?.GetMessage() }),
-            403 => Forbid(),
-            404 => NotFound(new { Error = errorCode?.GetMessage() }),
-            409 => Conflict(new { Error = errorCode?.GetMessage() }),
-            500 => StatusCode(StatusCodes.Status500InternalServerError, new { Error = errorCode?.GetMessage() }),
-            _ => BadRequest(new { Error = errorCode?.GetMessage() })
-        };
 }

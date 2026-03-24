@@ -13,9 +13,8 @@ namespace Layla.Api.Controllers;
 /// All endpoints require a valid JWT Bearer token unless stated otherwise.
 /// </summary>
 [Route("api/[controller]")]
-[ApiController]
 [Authorize]
-public class ProjectsController : ControllerBase
+public class ProjectsController : ApiControllerBase
 {
     private readonly IProjectService _projectService;
 
@@ -326,14 +325,4 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
-    private IActionResult RespondWithError(ErrorCode? errorCode) =>
-        (errorCode?.GetStatusCode() ?? 500) switch
-        {
-            401 => Unauthorized(new { Error = errorCode?.GetMessage() }),
-            403 => Forbid(),
-            404 => NotFound(new { Error = errorCode?.GetMessage() }),
-            409 => Conflict(new { Error = errorCode?.GetMessage() }),
-            500 => StatusCode(StatusCodes.Status500InternalServerError, new { Error = errorCode?.GetMessage() }),
-            _ => BadRequest(new { Error = errorCode?.GetMessage() })
-        };
 }

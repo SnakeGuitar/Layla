@@ -1,6 +1,7 @@
 using Layla.Api.Extensions;
 using Layla.Api.Hubs;
 using Layla.Api.Middleware;
+using Layla.Core.Constants;
 using Layla.Core.Entities;
 using Layla.Core.Extensions;
 using Layla.Core.Interfaces;
@@ -154,7 +155,7 @@ using (var scope = app.Services.CreateScope())
         await context.Database.MigrateAsync();
 
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        var roles = new[] { "Writer", "Editor", "Reader", "Admin" };
+        var roles = AppRoles.All;
 
         foreach (var role in roles)
         {

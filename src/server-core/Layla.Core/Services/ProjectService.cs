@@ -13,6 +13,9 @@ namespace Layla.Core.Services;
 
 public class ProjectService : IProjectService
 {
+    private const string ExchangeName = "worldbuilding.events";
+    private const string ProjectCreatedRoutingKey = "project.created";
+
     private readonly IProjectRepository _projectRepository;
     private readonly IAppUserRepository _appUserRepository;
     private readonly IEventPublisher _eventPublisher;
@@ -38,35 +41,16 @@ public class ProjectService : IProjectService
         await _projectRepository.BeginTransactionAsync(cancellationToken);
         try
         {
-            var project = new Project
-            {
-                Id = Guid.NewGuid(),
-                Title = request.Title,
-                Synopsis = request.Synopsis,
-                LiteraryGenre = request.LiteraryGenre,
-                CoverImageUrl = request.CoverImageUrl,
-                IsPublic = request.IsPublic,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            var projectRole = new ProjectRole
-            {
-                ProjectId = project.Id,
-                AppUserId = userId,
-                Role = ProjectRoles.Owner,
-                AssignedAt = DateTime.UtcNow
-            };
+            var project = BuildProject(request);
+            var projectRole = BuildOwnerRole(project.Id, userId);
 
             await _projectRepository.AddProjectAsync(project, cancellationToken);
             await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
             await _projectRepository.CommitTransactionAsync(cancellationToken);
 
-            
             await PublishProjectCreatedEventsAsync(project, userId, cancellationToken);
 
             _logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
-
             return Result<ProjectResponseDto>.Success(MapToResponseDto(project, ProjectRoles.Owner));
         }
         catch (Exception ex)
@@ -77,51 +61,18 @@ public class ProjectService : IProjectService
         }
     }
 
-    private async Task PublishProjectCreatedEventsAsync(Project project, string userId, CancellationToken cancellationToken)
-    {
-        var projectCreatedEvent = new ProjectCreatedEvent
-        {
-            ProjectId = project.Id,
-            OwnerUserId = userId,
-            Title = project.Title,
-            CreatedAt = project.CreatedAt
-        };
-
-        var domainPublished = await _eventPublisher.PublishAsync(projectCreatedEvent, cancellationToken);
-        if (!domainPublished)
-            _logger.LogWarning("Domain event not published for project {ProjectId}. Downstream services may be out of sync.", project.Id);
-
-        var integrationEvent = new Layla.Core.IntegrationEvents.ProjectCreatedEvent
-        {
-            ProjectId = project.Id.ToString(),
-            OwnerId = userId,
-            Title = project.Title,
-            CreatedAt = project.CreatedAt
-        };
-
-        var integrationPublished = _eventBus.Publish(integrationEvent, exchangeName: "worldbuilding.events", routingKey: "project.created");
-        if (!integrationPublished)
-            _logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
-    }
-
-    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<IEnumerable<ProjectResponseDto>>> GetUserProjectsAsync(string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var projects = await _projectRepository.GetProjectsByUserIdAsync(userId, cancellationToken);
-            var dtos = projects.Select(p => MapToResponseDto(p, p.Roles?.FirstOrDefault(r => r.AppUserId == userId)?.Role ?? string.Empty));
+            var dtos = projects
+                .Select(p => MapToResponseDto(p, p.Roles?.FirstOrDefault(r => r.AppUserId == userId)?.Role ?? string.Empty))
+                .ToList();
             return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve projects for user {UserId}", userId);
-            return Result<IEnumerable<ProjectResponseDto>>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to retrieve projects for user {UserId}", userId);
 
-    public async Task<Result<ProjectResponseDto>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<ProjectResponseDto>> UpdateProjectAsync(Guid projectId, UpdateProjectRequestDto request, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
@@ -131,29 +82,17 @@ public class ProjectService : IProjectService
             if (project == null)
                 return Result<ProjectResponseDto>.Failure(ErrorCode.ProjectNotFound);
 
-            project.Title = request.Title;
-            project.Synopsis = request.Synopsis;
-            project.LiteraryGenre = request.LiteraryGenre;
-            project.CoverImageUrl = request.CoverImageUrl;
-            project.IsPublic = request.IsPublic;
-            project.UpdatedAt = DateTime.UtcNow;
+            ApplyProjectUpdate(project, request);
 
             await _projectRepository.UpdateProjectAsync(project, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Project {ProjectId} updated successfully by user {UserId}", projectId, userId);
+            _logger.LogInformation("Project {ProjectId} updated by user {UserId}", projectId, userId);
             return Result<ProjectResponseDto>.Success(MapToResponseDto(project, ProjectRoles.Owner));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<ProjectResponseDto>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
 
-    public async Task<Result<bool>> DeleteProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<bool>> DeleteProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
@@ -166,73 +105,45 @@ public class ProjectService : IProjectService
             await _projectRepository.DeleteProjectAsync(project, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Project {ProjectId} deleted successfully by user {UserId}", projectId, userId);
+            _logger.LogInformation("Project {ProjectId} deleted by user {UserId}", projectId, userId);
             return Result<bool>.Success(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<bool>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to delete project {ProjectId} for user {UserId}", projectId, userId);
 
-    public async Task<Result<ProjectResponseDto>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<ProjectResponseDto>> GetProjectByIdAsync(Guid projectId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
                 return Result<ProjectResponseDto>.Failure(ErrorCode.ProjectNotFound);
 
             return Result<ProjectResponseDto>.Success(MapToResponseDto(project));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve project {ProjectId}", projectId);
-            return Result<ProjectResponseDto>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to retrieve project {ProjectId}", projectId);
 
-    public async Task<bool> UserHasAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
-    {
-        return await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
-    }
+    public async Task<bool> UserHasAccessAsync(Guid projectId, string userId, CancellationToken cancellationToken = default) =>
+        await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
 
-    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetAllProjectsAsync(CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<IEnumerable<ProjectResponseDto>>> GetAllProjectsAsync(CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var projects = await _projectRepository.GetAllProjectsAsync(cancellationToken);
-            var dtos = projects.Select(p => MapToResponseDto(p));
+            var dtos = projects.Select(MapToResponseDto).ToList();
             return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
+        }, "Failed to retrieve all projects");
 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve all projects");
-            return Result<IEnumerable<ProjectResponseDto>>.Failure(MapException(ex));
-        }
-    }
-
-    public async Task<Result<IEnumerable<ProjectResponseDto>>> GetPublicProjectsAsync(CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<IEnumerable<ProjectResponseDto>>> GetPublicProjectsAsync(CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var projects = await _projectRepository.GetPublicProjectsAsync(cancellationToken);
-            var dtos = projects.Select(p => MapToResponseDto(p));
+            var dtos = projects.Select(MapToResponseDto).ToList();
             return Result<IEnumerable<ProjectResponseDto>>.Success(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve public projects");
-            return Result<IEnumerable<ProjectResponseDto>>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to retrieve public projects");
 
-    public async Task<Result<CollaboratorResponseDto>> JoinPublicProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<CollaboratorResponseDto>> JoinPublicProjectAsync(Guid projectId, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
+            if (!Guid.TryParse(userId, out var userGuid))
+                return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidInput, "Invalid user ID.");
+
             var project = await _projectRepository.GetProjectByIdAsync(projectId, cancellationToken);
             if (project == null)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.ProjectNotFound);
@@ -240,12 +151,9 @@ public class ProjectService : IProjectService
             if (!project.IsPublic)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidInput, "Project is not public.");
 
-            var existingRole = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
-            if (existingRole)
+            var alreadyMember = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
+            if (alreadyMember)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.AlreadyMember);
-
-            if (!Guid.TryParse(userId, out var userGuid))
-                return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidInput, "Invalid user ID.");
 
             var projectRole = new ProjectRole
             {
@@ -262,27 +170,12 @@ public class ProjectService : IProjectService
             if (!userResult.IsSuccess || userResult.Data == null)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.UserNotFound);
 
-            var user = userResult.Data;
+            return Result<CollaboratorResponseDto>.Success(
+                MapToCollaboratorDto(userResult.Data, ProjectRoles.Reader, projectRole.AssignedAt));
+        }, "Failed to join public project {ProjectId} for user {UserId}", projectId, userId);
 
-            return Result<CollaboratorResponseDto>.Success(new CollaboratorResponseDto
-            {
-                UserId = userId,
-                DisplayName = user.DisplayName,
-                Email = user.Email,
-                Role = ProjectRoles.Reader,
-                AssignedAt = projectRole.AssignedAt
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to join public project {ProjectId} for user {UserId}", projectId, userId);
-            return Result<CollaboratorResponseDto>.Failure(MapException(ex));
-        }
-    }
-
-    public async Task<Result<CollaboratorResponseDto>> InviteCollaboratorAsync(Guid projectId, InviteCollaboratorRequestDto request, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<CollaboratorResponseDto>> InviteCollaboratorAsync(Guid projectId, InviteCollaboratorRequestDto request, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var hasRole = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!hasRole)
@@ -302,38 +195,23 @@ public class ProjectService : IProjectService
             if (normalizedRole == null || normalizedRole == ProjectRoles.Owner)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.InvalidRole);
 
-            var role = normalizedRole;
-
             var projectRole = new ProjectRole
             {
                 ProjectId = projectId,
                 AppUserId = targetUser.Id,
-                Role = role,
+                Role = normalizedRole,
                 AssignedAt = DateTime.UtcNow
             };
 
             await _projectRepository.AddProjectRoleAsync(projectRole, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
-            return Result<CollaboratorResponseDto>.Success(new CollaboratorResponseDto
-            {
-                UserId = targetUser.Id,
-                DisplayName = targetUser.DisplayName,
-                Email = targetUser.Email,
-                Role = role,
-                AssignedAt = projectRole.AssignedAt
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to invite collaborator to project {ProjectId}", projectId);
-            return Result<CollaboratorResponseDto>.Failure(MapException(ex));
-        }
-    }
+            return Result<CollaboratorResponseDto>.Success(
+                MapToCollaboratorDto(targetUser, normalizedRole, projectRole.AssignedAt));
+        }, "Failed to invite collaborator to project {ProjectId}", projectId);
 
-    public async Task<Result<IEnumerable<CollaboratorResponseDto>>> GetCollaboratorsAsync(Guid projectId, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<IEnumerable<CollaboratorResponseDto>>> GetCollaboratorsAsync(Guid projectId, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var hasAccess = await _projectRepository.UserHasAnyRoleInProjectAsync(projectId, userId, cancellationToken);
             if (!hasAccess)
@@ -347,20 +225,13 @@ public class ProjectService : IProjectService
                 Email = r.AppUser?.Email,
                 Role = r.Role,
                 AssignedAt = r.AssignedAt
-            });
+            }).ToList();
 
             return Result<IEnumerable<CollaboratorResponseDto>>.Success(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get collaborators for project {ProjectId}", projectId);
-            return Result<IEnumerable<CollaboratorResponseDto>>.Failure(MapException(ex));
-        }
-    }
+        }, "Failed to get collaborators for project {ProjectId}", projectId);
 
-    public async Task<Result<bool>> RemoveCollaboratorAsync(Guid projectId, string collaboratorUserId, string userId, CancellationToken cancellationToken = default)
-    {
-        try
+    public Task<Result<bool>> RemoveCollaboratorAsync(Guid projectId, string collaboratorUserId, string userId, CancellationToken cancellationToken = default) =>
+        ExecuteAsync(async () =>
         {
             var isOwner = await _projectRepository.UserHasRoleInProjectAsync(projectId, userId, ProjectRoles.Owner, cancellationToken);
             if (!isOwner)
@@ -377,35 +248,104 @@ public class ProjectService : IProjectService
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
             return Result<bool>.Success(true);
+        }, "Failed to remove collaborator from project {ProjectId}", projectId);
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private async Task<Result<T>> ExecuteAsync<T>(Func<Task<Result<T>>> action, string logMessage, params object?[] args)
+    {
+        try
+        {
+            return await action();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove collaborator from project {ProjectId}", projectId);
-            return Result<bool>.Failure(MapException(ex));
+            _logger.LogError(ex, logMessage, args);
+            return Result<T>.Failure(MapException(ex));
         }
     }
 
-    /// <summary>Maps a caught exception to the appropriate ErrorCode.</summary>
+    private async Task PublishProjectCreatedEventsAsync(Project project, string userId, CancellationToken cancellationToken)
+    {
+        var domainEvent = new ProjectCreatedEvent
+        {
+            ProjectId = project.Id,
+            OwnerUserId = userId,
+            Title = project.Title,
+            CreatedAt = project.CreatedAt
+        };
+
+        if (!await _eventPublisher.PublishAsync(domainEvent, cancellationToken))
+            _logger.LogWarning("Domain event not published for project {ProjectId}. Downstream services may be out of sync.", project.Id);
+
+        var integrationEvent = new Layla.Core.IntegrationEvents.ProjectCreatedEvent
+        {
+            ProjectId = project.Id.ToString(),
+            OwnerId = userId,
+            Title = project.Title,
+            CreatedAt = project.CreatedAt
+        };
+
+        if (!_eventBus.Publish(integrationEvent, exchangeName: ExchangeName, routingKey: ProjectCreatedRoutingKey))
+            _logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
+    }
+
+    private static Project BuildProject(CreateProjectRequestDto request) => new()
+    {
+        Id = Guid.NewGuid(),
+        Title = request.Title,
+        Synopsis = request.Synopsis,
+        LiteraryGenre = request.LiteraryGenre,
+        CoverImageUrl = request.CoverImageUrl,
+        IsPublic = request.IsPublic,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    private static ProjectRole BuildOwnerRole(Guid projectId, string userId) => new()
+    {
+        ProjectId = projectId,
+        AppUserId = userId,
+        Role = ProjectRoles.Owner,
+        AssignedAt = DateTime.UtcNow
+    };
+
+    private static void ApplyProjectUpdate(Project project, UpdateProjectRequestDto request)
+    {
+        project.Title = request.Title;
+        project.Synopsis = request.Synopsis;
+        project.LiteraryGenre = request.LiteraryGenre;
+        project.CoverImageUrl = request.CoverImageUrl;
+        project.IsPublic = request.IsPublic;
+        project.UpdatedAt = DateTime.UtcNow;
+    }
+
+    private static CollaboratorResponseDto MapToCollaboratorDto(AppUser user, string role, DateTime assignedAt) => new()
+    {
+        UserId = user.Id,
+        DisplayName = user.DisplayName,
+        Email = user.Email,
+        Role = role,
+        AssignedAt = assignedAt
+    };
+
     private static ErrorCode MapException(Exception ex) => ex switch
     {
         DbUpdateException => ErrorCode.DatabaseError,
-        OperationCanceledException => ErrorCode.InternalError,
+        OperationCanceledException oce => throw oce,
         _ => ErrorCode.InternalError
     };
 
-    private static ProjectResponseDto MapToResponseDto(Project project, string userRole = "")
+    private static ProjectResponseDto MapToResponseDto(Project project, string userRole = "") => new()
     {
-        return new ProjectResponseDto
-        {
-            Id = project.Id,
-            Title = project.Title,
-            Synopsis = project.Synopsis,
-            LiteraryGenre = project.LiteraryGenre,
-            CoverImageUrl = project.CoverImageUrl,
-            CreatedAt = project.CreatedAt,
-            UpdatedAt = project.UpdatedAt,
-            IsPublic = project.IsPublic,
-            UserRole = userRole
-        };
-    }
+        Id = project.Id,
+        Title = project.Title,
+        Synopsis = project.Synopsis,
+        LiteraryGenre = project.LiteraryGenre,
+        CoverImageUrl = project.CoverImageUrl,
+        CreatedAt = project.CreatedAt,
+        UpdatedAt = project.UpdatedAt,
+        IsPublic = project.IsPublic,
+        UserRole = userRole
+    };
 }

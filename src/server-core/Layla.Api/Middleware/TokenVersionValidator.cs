@@ -1,3 +1,4 @@
+using Layla.Core.Constants;
 using Layla.Core.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -53,8 +54,8 @@ public class TokenVersionValidator
     }
 
     private static string? ExtractUserId(ClaimsPrincipal principal) =>
-        principal.FindFirst("sub")?.Value ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        principal.FindFirst(ClaimNames.Sub)?.Value ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
     private static int ExtractTokenVersion(ClaimsPrincipal principal) =>
-        int.TryParse(principal.FindFirst("token_version")?.Value, out var version) ? version : -1;
+        int.TryParse(principal.FindFirst(ClaimNames.TokenVersion)?.Value, out var version) ? version : -1;
 }
