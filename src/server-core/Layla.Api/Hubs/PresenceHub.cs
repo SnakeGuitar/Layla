@@ -23,12 +23,18 @@ public class PresenceHub : Hub
     public async Task WatchProject(Guid projectId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(projectId));
-        
+
         if (Context.User?.Identity?.IsAuthenticated == true)
         {
-            var userId = Context.User?.GetUserId() ?? "Unknown";
+            var userId = Context.User?.GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("WatchProject called but user identity could not be extracted.");
+                return;
+            }
+
             var displayName = Context.User?.GetDisplayName() ?? "Unknown";
-            
+
             var existingConnectionId = _presenceTracker.GetUserConnection(userId);
             if (existingConnectionId != null && existingConnectionId != Context.ConnectionId)
             {
