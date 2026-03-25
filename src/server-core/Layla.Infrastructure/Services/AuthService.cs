@@ -4,6 +4,7 @@ using Layla.Core.Constants;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
 using Layla.Core.Interfaces.Services;
+using Layla.Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,7 +24,7 @@ public class AuthService(
     SignInManager<AppUser> signInManager,
     ITokenService tokenService,
     IOptions<JwtSettings> jwtSettings,
-    ILogger<AuthService> logger) : IAuthService
+    ILogger<AuthService> logger) : BaseService<AuthService>(logger), IAuthService
 {
     private readonly JwtSettings _jwtSettings = jwtSettings.Value;
     /// <summary>
@@ -32,9 +33,8 @@ public class AuthService(
     /// </summary>
     /// <param name="request">The login credentials.</param>
     /// <returns>A result containing the authentication response with the JWT token.</returns>
-    public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request)
-    {
-        try
+    public Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request) =>
+        ExecuteAsync(async () =>
         {
             var user = await userManager.FindByEmailAsync(request.Email);
             if (user == null)
@@ -49,13 +49,7 @@ public class AuthService(
                 return Result<AuthResponseDto>.Failure(ErrorCode.InvalidCredentials);
 
             return await GenerateUserResultAsync(user);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to login user {Email}", request.Email);
-            return Result<AuthResponseDto>.Failure(ErrorCode.InternalError);
-        }
-    }
+        }, "Failed to login user {Email}", request.Email);
 
     /// <summary>
     /// Registers a new user and returns a JWT token upon successful creation.
@@ -63,9 +57,8 @@ public class AuthService(
     /// </summary>
     /// <param name="request">The registration details.</param>
     /// <returns>A result containing the authentication response with the JWT token.</returns>
-    public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
-    {
-        try
+    public Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto request) =>
+        ExecuteAsync(async () =>
         {
             if (await userManager.FindByEmailAsync(request.Email) != null)
                 return Result<AuthResponseDto>.Failure(ErrorCode.DuplicateEmail);
@@ -82,20 +75,17 @@ public class AuthService(
 
             if (!result.Succeeded)
             {
-                var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+                var errors = FormatIdentityErrors(result.Errors);
                 return Result<AuthResponseDto>.Failure(ErrorCode.ValidationFailed, $"Registration failed: {errors}");
             }
 
             await userManager.AddToRoleAsync(user, AppRoles.Writer);
 
             return await GenerateUserResultAsync(user);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to register user {Email}", request.Email);
-            return Result<AuthResponseDto>.Failure(ErrorCode.InternalError);
-        }
-    }
+        }, "Failed to register user {Email}", request.Email);
+
+    private static string FormatIdentityErrors(IEnumerable<IdentityError> errors) =>
+        string.Join(", ", errors.Select(e => e.Description));
 
     private async Task<Result<AuthResponseDto>> GenerateUserResultAsync(AppUser user)
     {
