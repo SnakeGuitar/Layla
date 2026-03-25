@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Layla.Core.Constants;
 
 namespace Layla.Api.Extensions;
 
@@ -9,9 +10,7 @@ public static class ClaimsPrincipalExtensions
 
     public static string? GetUserId(this ClaimsPrincipal user)
     {
-        return user.FindFirst("sub")?.Value
-               ?? user.FindFirstValue("sub")
-               ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        return user.FindFirstValue(ClaimNames.Sub)
                ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 
