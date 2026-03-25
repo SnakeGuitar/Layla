@@ -93,7 +93,12 @@ public class AppUserRepository : IAppUserRepository
             return Result<bool>.Failure(ErrorCode.ValidationFailed, errors);
         }
 
-        await _userManager.UpdateAsync(user);
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            var errors = FormatIdentityErrors(updateResult.Errors);
+            return Result<bool>.Failure(ErrorCode.ValidationFailed, errors);
+        }
 
         return Result<bool>.Success(true);
     }
