@@ -6,12 +6,11 @@ using Layla.Core.Events;
 using Layla.Core.Interfaces.Data;
 using Layla.Core.Interfaces.Messaging;
 using Layla.Core.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Layla.Core.Services;
 
-public class ProjectService : IProjectService
+public class ProjectService : BaseService<ProjectService>, IProjectService
 {
     private const string ExchangeName = "worldbuilding.events";
     private const string ProjectCreatedRoutingKey = "project.created";
@@ -20,7 +19,6 @@ public class ProjectService : IProjectService
     private readonly IAppUserRepository _appUserRepository;
     private readonly IEventPublisher _eventPublisher;
     private readonly IEventBus _eventBus;
-    private readonly ILogger<ProjectService> _logger;
 
     public ProjectService(
         IProjectRepository projectRepository,
@@ -28,12 +26,12 @@ public class ProjectService : IProjectService
         IEventPublisher eventPublisher,
         IEventBus eventBus,
         ILogger<ProjectService> logger)
+        : base(logger)
     {
         _projectRepository = projectRepository;
         _appUserRepository = appUserRepository;
         _eventPublisher = eventPublisher;
         _eventBus = eventBus;
-        _logger = logger;
     }
 
     public async Task<Result<ProjectResponseDto>> CreateProjectAsync(CreateProjectRequestDto request, string userId, CancellationToken cancellationToken = default)
@@ -50,13 +48,13 @@ public class ProjectService : IProjectService
 
             await PublishProjectCreatedEventsAsync(project, userId, cancellationToken);
 
-            _logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
+            Logger.LogInformation("Project {ProjectId} created successfully by user {UserId}", project.Id, userId);
             return Result<ProjectResponseDto>.Success(MapToResponseDto(project, ProjectRoles.Owner));
         }
         catch (Exception ex)
         {
             await _projectRepository.RollbackTransactionAsync(cancellationToken);
-            _logger.LogError(ex, "Failed to create project for user {UserId}", userId);
+            Logger.LogError(ex, "Failed to create project for user {UserId}", userId);
             return Result<ProjectResponseDto>.Failure(MapException(ex));
         }
     }
@@ -87,7 +85,7 @@ public class ProjectService : IProjectService
             await _projectRepository.UpdateProjectAsync(project, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Project {ProjectId} updated by user {UserId}", projectId, userId);
+            Logger.LogInformation("Project {ProjectId} updated by user {UserId}", projectId, userId);
             return Result<ProjectResponseDto>.Success(MapToResponseDto(project, ProjectRoles.Owner));
         }, "Failed to update project {ProjectId} for user {UserId}", projectId, userId);
 
@@ -105,7 +103,7 @@ public class ProjectService : IProjectService
             await _projectRepository.DeleteProjectAsync(project, cancellationToken);
             await _projectRepository.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Project {ProjectId} deleted by user {UserId}", projectId, userId);
+            Logger.LogInformation("Project {ProjectId} deleted by user {UserId}", projectId, userId);
             return Result<bool>.Success(true);
         }, "Failed to delete project {ProjectId} for user {UserId}", projectId, userId);
 
@@ -252,19 +250,6 @@ public class ProjectService : IProjectService
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    private async Task<Result<T>> ExecuteAsync<T>(Func<Task<Result<T>>> action, string logMessage, params object?[] args)
-    {
-        try
-        {
-            return await action();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, logMessage, args);
-            return Result<T>.Failure(MapException(ex));
-        }
-    }
-
     private async Task PublishProjectCreatedEventsAsync(Project project, string userId, CancellationToken cancellationToken)
     {
         var domainEvent = new ProjectCreatedEvent
@@ -276,7 +261,7 @@ public class ProjectService : IProjectService
         };
 
         if (!await _eventPublisher.PublishAsync(domainEvent, cancellationToken))
-            _logger.LogWarning("Domain event not published for project {ProjectId}. Downstream services may be out of sync.", project.Id);
+            Logger.LogWarning("Domain event not published for project {ProjectId}. Downstream services may be out of sync.", project.Id);
 
         var integrationEvent = new Layla.Core.IntegrationEvents.ProjectCreatedEvent
         {
@@ -287,7 +272,7 @@ public class ProjectService : IProjectService
         };
 
         if (!_eventBus.Publish(integrationEvent, exchangeName: ExchangeName, routingKey: ProjectCreatedRoutingKey))
-            _logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
+            Logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
     }
 
     private static Project BuildProject(CreateProjectRequestDto request) => new()
@@ -327,13 +312,6 @@ public class ProjectService : IProjectService
         Email = user.Email,
         Role = role,
         AssignedAt = assignedAt
-    };
-
-    private static ErrorCode MapException(Exception ex) => ex switch
-    {
-        DbUpdateException => ErrorCode.DatabaseError,
-        OperationCanceledException oce => throw oce,
-        _ => ErrorCode.InternalError
     };
 
     private static ProjectResponseDto MapToResponseDto(Project project, string userRole = "") => new()
