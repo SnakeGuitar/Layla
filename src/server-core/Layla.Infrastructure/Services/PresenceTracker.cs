@@ -8,6 +8,11 @@ using Layla.Core.Interfaces;
 
 namespace Layla.Infrastructure.Services;
 
+/// <summary>
+/// Tracks which users are actively present in which projects via SignalR connections.
+/// All public methods are protected by a lock for thread safety; ConcurrentDictionary is used for
+/// convenience but the lock is the primary synchronization mechanism.
+/// </summary>
 public class PresenceTracker : IPresenceTracker
 {
     private readonly ConcurrentDictionary<string, (Guid ProjectId, string UserId)> _connections = new();
