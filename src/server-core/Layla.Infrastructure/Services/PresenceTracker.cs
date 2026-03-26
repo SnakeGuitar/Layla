@@ -31,13 +31,13 @@ public class PresenceTracker : IPresenceTracker
 
             var participants = _projectParticipants.GetOrAdd(projectId, _ => new ConcurrentDictionary<string, InternalParticipant>());
 
-            bool wasActive = IsProjectActive(projectId);
+            bool wasActive = IsProjectActiveUnlocked(projectId);
 
             participants.AddOrUpdate(userId,
                 _ => new InternalParticipant(userId, displayName, role, 1),
                 (_, existing) => existing with { ConnectionCount = existing.ConnectionCount + 1, Role = UpgradeRoleIfNeeded(existing.Role, role) });
 
-            bool isNowActive = IsProjectActive(projectId);
+            bool isNowActive = IsProjectActiveUnlocked(projectId);
             return !wasActive && isNowActive;
         }
     }
@@ -61,13 +61,13 @@ public class PresenceTracker : IPresenceTracker
             if (!_projectParticipants.TryGetValue(projectId, out var participants))
                 return false;
 
-            bool wasActive = IsProjectActive(projectId);
+            bool wasActive = IsProjectActiveUnlocked(projectId);
             DecrementParticipant(participants, userId);
 
             if (participants.IsEmpty)
                 _projectParticipants.TryRemove(projectId, out _);
 
-            bool isNowActive = IsProjectActive(projectId);
+            bool isNowActive = IsProjectActiveUnlocked(projectId);
             return wasActive && !isNowActive;
         }
     }
@@ -101,7 +101,23 @@ public class PresenceTracker : IPresenceTracker
             participants[userId] = existing with { ConnectionCount = existing.ConnectionCount - 1 };
     }
 
+    /// <summary>
+    /// Checks if a project has any active authors (owner or editor).
+    /// Thread-safe — acquires lock internally.
+    /// </summary>
     public bool IsProjectActive(Guid projectId)
+    {
+        lock (_lock)
+        {
+            return IsProjectActiveUnlocked(projectId);
+        }
+    }
+
+    /// <summary>
+    /// Internal version that assumes the caller already holds the lock.
+    /// Use only within lock(\_lock) blocks.
+    /// </summary>
+    private bool IsProjectActiveUnlocked(Guid projectId)
     {
         if (!_projectParticipants.TryGetValue(projectId, out var participants))
             return false;

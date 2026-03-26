@@ -1,6 +1,6 @@
 namespace Layla.Core.Contracts.AppUser;
 
-public class UpdateAppUserRequestDto
+public record UpdateAppUserRequestDto
 {
     public string? DisplayName { get; set; }
     public string? Bio { get; set; }

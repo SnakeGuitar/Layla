@@ -64,8 +64,12 @@ public class VoiceHub : Hub
         return userId;
     }
 
+    /// <summary>
+    /// Determines the participant role for voice communication.
+    /// Public members (non-writers) join as READER, writers and above join as their actual role.
+    /// </summary>
     private static string DetermineParticipantRole(string? projectRole) =>
-        projectRole == ProjectRoles.Reader || projectRole == null ? ProjectRoles.Reader : VoiceEvents.ParticipantRole;
+        projectRole == null || projectRole == ProjectRoles.Reader ? ProjectRoles.Reader : projectRole;
 
     private static string GroupName(Guid projectId) => $"voice:{projectId}";
 
