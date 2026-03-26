@@ -15,7 +15,7 @@ public abstract class ApiControllerBase : ControllerBase
     /// </summary>
     protected string CurrentUserId => HttpContext.Items[HttpContextConstants.UserId] as string ?? string.Empty;
 
-    protected IActionResult RespondWithError(ErrorCode? errorCode) =>
+    protected ActionResult RespondWithError(ErrorCode? errorCode) =>
         (errorCode?.GetStatusCode() ?? 500) switch
         {
             401 => Unauthorized(new { Error = errorCode?.GetMessage() }),
