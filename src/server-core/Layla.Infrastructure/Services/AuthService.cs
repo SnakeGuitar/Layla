@@ -3,6 +3,7 @@ using Layla.Core.Configuration;
 using Layla.Core.Constants;
 using Layla.Core.Contracts.Auth;
 using Layla.Core.Entities;
+using Layla.Core.Extensions;
 using Layla.Core.Interfaces.Services;
 using Layla.Core.Services;
 using Microsoft.AspNetCore.Identity;
@@ -98,7 +99,7 @@ public class AuthService(
 
             if (!result.Succeeded)
             {
-                var errors = FormatIdentityErrors(result.Errors);
+                var errors = IdentityErrorFormatter.Format(result.Errors);
                 return Result<AuthResponseDto>.Failure(ErrorCode.ValidationFailed, $"Registration failed: {errors}");
             }
 
@@ -106,9 +107,6 @@ public class AuthService(
 
             return await GenerateUserResultAsync(user);
         }, "Failed to register user {Email}", request.Email);
-
-    private static string FormatIdentityErrors(IEnumerable<IdentityError> errors) =>
-        string.Join(", ", errors.Select(e => e.Description));
 
     private async Task<Result<AuthResponseDto>> GenerateUserResultAsync(AppUser user)
     {
@@ -118,7 +116,7 @@ public class AuthService(
         var updateResult = await userManager.UpdateAsync(user);
         if (!updateResult.Succeeded)
         {
-            var errors = FormatIdentityErrors(updateResult.Errors);
+            var errors = IdentityErrorFormatter.Format(updateResult.Errors);
             return Result<AuthResponseDto>.Failure(ErrorCode.InternalError, $"Failed to update user token version: {errors}");
         }
 
