@@ -55,8 +55,10 @@ public static class ErrorCodeExtensions
 
         // Authentication → 401
         ErrorCode.Unauthorized or ErrorCode.InvalidCredentials or
-        ErrorCode.AccountLocked or ErrorCode.SessionExpired or
-        ErrorCode.InvalidToken => 401,
+        ErrorCode.SessionExpired or ErrorCode.InvalidToken => 401,
+
+        // Account locked → 423
+        ErrorCode.AccountLocked => 423,
 
         // Authorization → 403
         ErrorCode.Forbidden or ErrorCode.InsufficientPermissions => 403,

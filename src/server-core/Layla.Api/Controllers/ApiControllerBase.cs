@@ -22,6 +22,7 @@ public abstract class ApiControllerBase : ControllerBase
             403 => Forbid(),
             404 => NotFound(new { Error = errorCode?.GetMessage() }),
             409 => Conflict(new { Error = errorCode?.GetMessage() }),
+            423 => StatusCode(StatusCodes.Status423Locked, new { Error = errorCode?.GetMessage() }),
             500 => StatusCode(StatusCodes.Status500InternalServerError, new { Error = errorCode?.GetMessage() }),
             _ => BadRequest(new { Error = errorCode?.GetMessage() })
         };

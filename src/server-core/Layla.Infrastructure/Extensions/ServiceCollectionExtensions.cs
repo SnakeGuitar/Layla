@@ -35,8 +35,12 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IAppUserRepository, AppUserRepository>();
-        services.AddSingleton<IEventPublisher, EventBus>();
-        services.AddSingleton<IEventBus, EventBus>();
+
+        // Register EventBus as a single instance shared by both interfaces
+        services.AddSingleton<EventBus>();
+        services.AddSingleton<IEventPublisher>(sp => sp.GetRequiredService<EventBus>());
+        services.AddSingleton<IEventBus>(sp => sp.GetRequiredService<EventBus>());
+
         services.AddScoped<IAuthService, AuthService>();
 
         return services;

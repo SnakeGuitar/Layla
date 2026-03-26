@@ -41,12 +41,7 @@ namespace Layla.Api.Controllers
             var result = await _authService.LoginAsync(request);
 
             if (!result.IsSuccess)
-            {
-                if (result.ErrorCode == ErrorCode.AccountLocked)
-                    return StatusCode(StatusCodes.Status423Locked, new { Error = result.Error });
-
-                return Unauthorized(new { Error = result.Error });
-            }
+                return RespondWithError(result.ErrorCode);
 
             return Ok(result.Data);
         }
