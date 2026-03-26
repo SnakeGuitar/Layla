@@ -128,7 +128,10 @@ public class PresenceTracker : IPresenceTracker
         if (!_projectParticipants.TryGetValue(projectId, out var participants))
             return false;
 
-        return participants.Values.Any(p => p.Role == ProjectRoles.Owner || p.Role == ProjectRoles.Editor);
+        return participants.Values.Any(p =>
+            p.Role == ProjectRoles.Owner ||
+            p.Role == ProjectRoles.Editor ||
+            p.Role == HubConstants.Presence.RoleAuthor);
     }
 
     public IEnumerable<ParticipantPresenceDto> GetActiveParticipants(Guid projectId)
