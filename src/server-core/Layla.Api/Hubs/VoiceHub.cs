@@ -121,16 +121,24 @@ public class VoiceHub : Hub
         await Clients.OthersInGroup(groupName).SendAsync(VoiceEvents.UserStoppedSpeaking, userId);
     }
 
+    private const int MaxAudioPayloadBytes = 64 * 1024; // 64 KB
+
     public async Task SendAudio(Guid projectId, byte[] audioData)
     {
+        if (audioData.Length > MaxAudioPayloadBytes)
+            throw new HubException($"Audio payload exceeds the maximum allowed size of {MaxAudioPayloadBytes / 1024} KB.");
+
         var userId = ExtractUserId();
         if (userId == null)
             return;
 
         var participant = _roomManager.GetParticipant(projectId, userId);
 
-        if (participant == null || participant.Role == ProjectRoles.Reader)
-            return;
+        if (participant == null)
+            throw new HubException("You are not in this voice room.");
+
+        if (participant.Role == ProjectRoles.Reader)
+            throw new HubException("Listeners cannot send audio. You have a Reader role in this project.");
 
         var groupName = GroupName(projectId);
         await Clients.OthersInGroup(groupName).SendAsync(VoiceEvents.ReceiveAudio, userId, audioData);

@@ -219,7 +219,7 @@ public class ProjectService : BaseService<ProjectService>, IProjectService
             if (!hasRole)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.Forbidden);
 
-            var targetUserResult = await _appUserRepository.GetAppUserByEmailAsync(request.Email, cancellationToken);
+            var targetUserResult = await _appUserRepository.GetAppUserByEmailAsync(request.Email.ToLowerInvariant(), cancellationToken);
             if (!targetUserResult.IsSuccess || targetUserResult.Data == null)
                 return Result<CollaboratorResponseDto>.Failure(ErrorCode.UserNotFound);
 

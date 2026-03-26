@@ -20,6 +20,7 @@ public class PresenceHub : Hub
         _logger = logger;
     }
 
+    [Authorize]
     public async Task WatchProject(Guid projectId)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(projectId));

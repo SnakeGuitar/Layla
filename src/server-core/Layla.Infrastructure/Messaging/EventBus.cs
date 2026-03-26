@@ -69,7 +69,15 @@ public class EventBus : IEventBus, IDisposable, IEventPublisher
         var exchangeName = MessagingConstants.WorldbuildingExchange;
         var routingKey = @event.GetType().Name.ToLower().Replace("event", "");
 
-        return await Task.Run(() => Publish(@event, exchangeName, routingKey), cancellationToken);
+        try
+        {
+            return await Task.Run(() => Publish(@event, exchangeName, routingKey), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Async publish failed. EventType={EventType}", typeof(T).Name);
+            return false;
+        }
     }
 
     public bool Publish<T>(T @event, string exchangeName, string routingKey = "") where T : class
