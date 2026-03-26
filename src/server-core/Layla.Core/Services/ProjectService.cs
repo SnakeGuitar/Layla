@@ -23,8 +23,7 @@ namespace Layla.Core.Services;
 /// Architecture:
 /// - Uses IProjectRepository for SQL queries (via EF Core)
 /// - Uses IAppUserRepository to resolve user details (email → ID) for invitations
-/// - Uses IEventBus (RabbitMQ) to publish ProjectCreatedEvent to the worldbuilding service asynchronously
-/// - Uses IEventPublisher for domain event logging (local event store, optional)
+/// - Uses IEventPublisher (inherits from IEventBus) to publish both domain events and integration events
 /// - Inherits from BaseService&lt;ProjectService&gt; for centralized exception handling and logging
 ///
 /// All public methods return Result&lt;T&gt; to encapsulate success/failure without throwing exceptions.
@@ -38,20 +37,17 @@ public class ProjectService : BaseService<ProjectService>, IProjectService
     private readonly IProjectRepository _projectRepository;
     private readonly IAppUserRepository _appUserRepository;
     private readonly IEventPublisher _eventPublisher;
-    private readonly IEventBus _eventBus;
 
     public ProjectService(
         IProjectRepository projectRepository,
         IAppUserRepository appUserRepository,
         IEventPublisher eventPublisher,
-        IEventBus eventBus,
         ILogger<ProjectService> logger)
         : base(logger)
     {
         _projectRepository = projectRepository;
         _appUserRepository = appUserRepository;
         _eventPublisher = eventPublisher;
-        _eventBus = eventBus;
     }
 
     /// <summary>
@@ -314,7 +310,7 @@ public class ProjectService : BaseService<ProjectService>, IProjectService
             CreatedAt = project.CreatedAt
         };
 
-        if (!_eventBus.Publish(integrationEvent, exchangeName: ExchangeName, routingKey: ProjectCreatedRoutingKey))
+        if (!_eventPublisher.Publish(integrationEvent, exchangeName: ExchangeName, routingKey: ProjectCreatedRoutingKey))
             Logger.LogWarning("Integration event not published for project {ProjectId}. Node.js worldbuilding service may be out of sync.", project.Id);
     }
 
