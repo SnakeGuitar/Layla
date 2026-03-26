@@ -127,14 +127,20 @@ public class PresenceTracker : IPresenceTracker
 
     public IEnumerable<ParticipantPresenceDto> GetActiveParticipants(Guid projectId)
     {
-        if (!_projectParticipants.TryGetValue(projectId, out var participants))
-            return Enumerable.Empty<ParticipantPresenceDto>();
+        lock (_lock)
+        {
+            if (!_projectParticipants.TryGetValue(projectId, out var participants))
+                return Enumerable.Empty<ParticipantPresenceDto>();
 
-        return participants.Values.Select(p => new ParticipantPresenceDto(p.UserId, p.DisplayName, p.Role));
+            return participants.Values.Select(p => new ParticipantPresenceDto(p.UserId, p.DisplayName, p.Role)).ToList();
+        }
     }
 
     public string? GetUserConnection(string userId)
     {
-        return _userConnections.TryGetValue(userId, out var connId) ? connId : null;
+        lock (_lock)
+        {
+            return _userConnections.TryGetValue(userId, out var connId) ? connId : null;
+        }
     }
 }
