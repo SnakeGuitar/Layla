@@ -1,8 +1,6 @@
 import type { IGraphResult } from "@/interfaces/graph/IGraphResult";
 import type { IAppearanceRecord } from "@/interfaces/repositories/IGraphRepository";
-import { Neo4jGraphRepository } from "@/repositories/Neo4jGraphRepository";
-
-const graphRepo = new Neo4jGraphRepository();
+import { container } from "./container";
 
 /**
  * Returns the entity graph for a project as a list of nodes and directed edges.
@@ -10,32 +8,39 @@ const graphRepo = new Neo4jGraphRepository();
 export const getGraph = async (
   projectId: string,
   entityType?: string,
+  repo = container.graphRepo,
 ): Promise<IGraphResult> => {
-  return graphRepo.getGraph(projectId, entityType);
+  return repo.getGraph(projectId, entityType);
 };
 
 /**
  * Creates a directed `:RELATED_TO` relationship between two entity nodes.
  */
-export const createRelationship = async (data: {
-  projectId: string;
-  sourceEntityId: string;
-  targetEntityId: string;
-  type: string;
-  label?: string;
-}): Promise<void> => {
-  return graphRepo.createRelationship(data);
+export const createRelationship = async (
+  data: {
+    projectId: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+    type: string;
+    label?: string;
+  },
+  repo = container.graphRepo,
+): Promise<void> => {
+  return repo.createRelationship(data);
 };
 
 /**
  * Deletes all directed relationships between two entity nodes within a project.
  */
-export const deleteRelationship = async (data: {
-  projectId: string;
-  sourceEntityId: string;
-  targetEntityId: string;
-}): Promise<void> => {
-  return graphRepo.deleteRelationship(data);
+export const deleteRelationship = async (
+  data: {
+    projectId: string;
+    sourceEntityId: string;
+    targetEntityId: string;
+  },
+  repo = container.graphRepo,
+): Promise<void> => {
+  return repo.deleteRelationship(data);
 };
 
 /**
@@ -44,6 +49,7 @@ export const deleteRelationship = async (data: {
 export const getEntityAppearances = async (
   projectId: string,
   entityId: string,
+  repo = container.graphRepo,
 ): Promise<IAppearanceRecord[]> => {
-  return graphRepo.getEntityAppearances({ projectId, entityId });
+  return repo.getEntityAppearances({ projectId, entityId });
 };

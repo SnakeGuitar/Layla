@@ -1,10 +1,6 @@
 import type { IMention } from "@/interfaces/manuscript/IManuscript";
 import type { IWikiEntry } from "@/interfaces/wiki/IWikiEntry";
-import { MongooseWikiEntryRepository } from "@/repositories/MongooseWikiEntryRepository";
-import { Neo4jGraphRepository } from "@/repositories/Neo4jGraphRepository";
-
-const wikiRepo = new MongooseWikiEntryRepository();
-const graphRepo = new Neo4jGraphRepository();
+import { container } from "./container";
 
 /** Escapes special regex characters in a string. */
 const escapeRegex = (str: string): string =>
@@ -60,20 +56,23 @@ export const extractMentions = (
  * Full pipeline: extract mentions from chapter content, persist them
  * to the chapter document, and sync APPEARS_IN edges to Neo4j.
  */
-export const syncChapterMentions = async (data: {
-  projectId: string;
-  manuscriptId: string;
-  manuscriptTitle: string;
-  chapterId: string;
-  chapterTitle: string;
-  content: string;
-}): Promise<IMention[]> => {
-  const entries = await wikiRepo.listEntries(data.projectId);
+export const syncChapterMentions = async (
+  data: {
+    projectId: string;
+    manuscriptId: string;
+    manuscriptTitle: string;
+    chapterId: string;
+    chapterTitle: string;
+    content: string;
+  },
+  repo = container,
+): Promise<IMention[]> => {
+  const entries = await repo.wikiRepo.listEntries(data.projectId);
   const plainText = stripRtf(data.content);
   const mentions = extractMentions(plainText, entries);
 
   try {
-    await graphRepo.syncAppearances({
+    await container.graphRepo.syncAppearances({
       projectId: data.projectId,
       manuscriptId: data.manuscriptId,
       manuscriptTitle: data.manuscriptTitle,
@@ -92,7 +91,7 @@ export const syncChapterMentions = async (data: {
   // se loguean sin abortar el resto del lote.
   const results = await Promise.allSettled(
     mentions.map((mention) =>
-      graphRepo.syncAppearances({
+      container.graphRepo.syncAppearances({
         projectId: data.projectId,
         entityIds: [mention.entityId],
         manuscriptId: data.manuscriptId,
@@ -121,6 +120,7 @@ export const syncChapterMentions = async (data: {
 export const getEntityAppearances = async (
   projectId: string,
   entityId: string,
+  repo = container.graphRepo,
 ) => {
-  return graphRepo.getEntityAppearances({ projectId, entityId });
+  return repo.getEntityAppearances({ projectId, entityId });
 };

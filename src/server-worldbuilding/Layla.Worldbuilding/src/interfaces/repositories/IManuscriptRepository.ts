@@ -1,4 +1,8 @@
-import type { IManuscript, IChapter } from "../manuscript/IManuscript";
+import type {
+  IManuscript,
+  IChapter,
+  ChapterUpdatePayload,
+} from "../manuscript/IManuscript";
 
 /** Data-access contract for manuscript and chapter persistence. */
 export interface IManuscriptRepository {
@@ -69,7 +73,7 @@ export interface IManuscriptRepository {
     projectId: string,
     manuscriptId: string,
     chapterId: string,
-    data: IChapter,
+    data: ChapterUpdatePayload,
   ): Promise<IManuscript | null>;
 
   /**

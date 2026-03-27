@@ -26,6 +26,14 @@ export interface IChapter {
   updatedAt: Date;
 }
 
+export interface ChapterUpdatePayload {
+  title?: string;
+  content?: string;
+  order?: number;
+  mentions?: IMention[];
+  updatedAt: Date;
+}
+
 /** Represents a manuscript belonging to a project. A project may have multiple manuscripts. */
 export interface IManuscript {
   /** UUID identifying this manuscript. Used alongside `projectId` as a compound lookup key. */

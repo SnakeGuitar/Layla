@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import type { IWikiEntry, WikiEntityType } from "@/interfaces/wiki/IWikiEntry";
-import { MongooseWikiEntryRepository } from "@/repositories/MongooseWikiEntryRepository";
-import { Neo4jGraphRepository } from "@/repositories/Neo4jGraphRepository";
-
-const wikiRepo = new MongooseWikiEntryRepository();
-const graphRepo = new Neo4jGraphRepository();
+import { container } from "./container";
 
 /**
  * Lists wiki entries for a project, optionally filtered by entity type.
@@ -12,27 +8,31 @@ const graphRepo = new Neo4jGraphRepository();
 export const listEntries = async (
   projectId: string,
   entityType?: WikiEntityType,
+  repo = container.wikiRepo,
 ) => {
-  return wikiRepo.listEntries(projectId, entityType);
+  return repo.listEntries(projectId, entityType);
 };
 
 /**
  * Returns a single wiki entry by its `entityId`, or `null` if not found.
  */
-export const getEntry = async (entityId: string) => {
-  return wikiRepo.getEntry(entityId);
+export const getEntry = async (entityId: string, repo = container.wikiRepo) => {
+  return repo.getEntry(entityId);
 };
 
 /**
  * Creates a new wiki entry in MongoDB and attempts an immediate Neo4j sync.
  */
-export const createEntry = async (data: {
-  projectId: string;
-  name: string;
-  entityType: WikiEntityType;
-  description?: string;
-  tags?: string[];
-}) => {
+export const createEntry = async (
+  data: {
+    projectId: string;
+    name: string;
+    entityType: WikiEntityType;
+    description?: string;
+    tags?: string[];
+  },
+  repo = container,
+) => {
   const entryData: Partial<IWikiEntry> = {
     projectId: data.projectId,
     entityId: uuidv4(),
@@ -43,17 +43,17 @@ export const createEntry = async (data: {
     neo4jSynced: false,
   };
 
-  const entry = await wikiRepo.createEntry(entryData);
+  const entry = await repo.wikiRepo.createEntry(entryData);
 
   try {
-    await graphRepo.mergeEntity({
+    await repo.graphRepo.mergeEntity({
       entityId: entry.entityId,
       projectId: entry.projectId,
       name: entry.name,
       entityType: entry.entityType,
     });
 
-    await wikiRepo.updateEntry(entry.entityId, { neo4jSynced: true });
+    await repo.wikiRepo.updateEntry(entry.entityId, { neo4jSynced: true });
     entry.neo4jSynced = true;
   } catch (err) {
     console.warn(
@@ -74,12 +74,13 @@ export const updateEntry = async (
   data: Partial<
     Pick<IWikiEntry, "name" | "entityType" | "description" | "tags">
   >,
+  repo = container,
 ) => {
-  const entry = await wikiRepo.updateEntry(entityId, data);
+  const entry = await repo.wikiRepo.updateEntry(entityId, data);
 
   if (entry) {
     try {
-      await graphRepo.mergeEntity({
+      await repo.graphRepo.mergeEntity({
         entityId: entry.entityId,
         projectId: entry.projectId,
         name: entry.name,
@@ -87,7 +88,7 @@ export const updateEntry = async (
       });
 
       if (!entry.neo4jSynced) {
-        await wikiRepo.updateEntry(entityId, { neo4jSynced: true });
+        await repo.wikiRepo.updateEntry(entityId, { neo4jSynced: true });
         entry.neo4jSynced = true;
       }
     } catch (err) {
@@ -104,12 +105,15 @@ export const updateEntry = async (
 /**
  * Deletes a wiki entry from MongoDB and attempts to remove its Neo4j node.
  */
-export const deleteEntry = async (entityId: string): Promise<boolean> => {
-  const deleted = await wikiRepo.deleteEntry(entityId);
+export const deleteEntry = async (
+  entityId: string,
+  repo = container,
+): Promise<boolean> => {
+  const deleted = await repo.wikiRepo.deleteEntry(entityId);
   if (!deleted) return false;
 
   try {
-    await graphRepo.deleteEntity(entityId);
+    await repo.graphRepo.deleteEntity(entityId);
   } catch (err) {
     console.error(
       `[WikiEntry.service] Failed to delete Neo4j node for entity ${entityId}.`,

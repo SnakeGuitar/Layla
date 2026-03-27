@@ -1,13 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import type {
+  ChapterUpdatePayload,
   IChapter,
   IManuscript,
   IMention,
 } from "@/interfaces/manuscript/IManuscript";
-import { MongooseManuscriptRepository } from "@/repositories/MongooseManuscriptRepository";
 import { syncChapterMentions } from "@/services/Mention.service";
-
-const manuscriptRepo = new MongooseManuscriptRepository();
+import { container } from "./container";
 
 type ChapterMeta = Pick<
   IChapter,
@@ -31,8 +30,11 @@ const toChapterMeta = ({
  * Returns all manuscripts belonging to `projectId` as index objects —
  * chapter metadata is included but `content` fields are omitted.
  */
-export const getManuscriptsByProject = async (projectId: string) => {
-  const manuscripts = await manuscriptRepo.getManuscriptsByProject(projectId);
+export const getManuscriptsByProject = async (
+  projectId: string,
+  repo = container.manuscriptRepo,
+) => {
+  const manuscripts = await repo.getManuscriptsByProject(projectId);
   return manuscripts.map((m) => ({
     manuscriptId: m.manuscriptId,
     projectId: m.projectId,
@@ -52,8 +54,9 @@ export const getManuscriptsByProject = async (projectId: string) => {
 export const getManuscript = async (
   projectId: string,
   manuscriptId: string,
+  repo = container.manuscriptRepo,
 ) => {
-  const manuscript = await manuscriptRepo.getManuscript(
+  const manuscript: IManuscript | null = await repo.getManuscript(
     projectId,
     manuscriptId,
   );
@@ -77,11 +80,12 @@ export const getManuscript = async (
 export const createManuscript = async (
   projectId: string,
   data: { title: string; order?: number },
+  repo = container.manuscriptRepo,
 ) => {
-  const existing = await manuscriptRepo.getManuscriptsByProject(projectId);
+  const existing = await repo.getManuscriptsByProject(projectId);
   const order = data.order ?? existing.length;
 
-  const manuscript = await manuscriptRepo.createManuscript({
+  const manuscript = await repo.createManuscript({
     manuscriptId: uuidv4(),
     projectId,
     title: data.title,
@@ -116,12 +120,13 @@ export const updateManuscriptMeta = async (
   projectId: string,
   manuscriptId: string,
   data: UpdateManuscriptData,
+  repo = container.manuscriptRepo,
 ) => {
   const updateData = Object.fromEntries(
     Object.entries(data).filter(([, v]) => v !== undefined),
   ) as UpdateManuscriptData;
 
-  return manuscriptRepo.updateManuscript(projectId, manuscriptId, updateData);
+  return repo.updateManuscript(projectId, manuscriptId, updateData);
 };
 
 /**
@@ -131,8 +136,9 @@ export const updateManuscriptMeta = async (
 export const deleteManuscript = async (
   projectId: string,
   manuscriptId: string,
+  repo = container.manuscriptRepo,
 ) => {
-  return manuscriptRepo.deleteManuscript(projectId, manuscriptId);
+  return repo.deleteManuscript(projectId, manuscriptId);
 };
 
 /**
@@ -143,8 +149,9 @@ export const getChapter = async (
   projectId: string,
   manuscriptId: string,
   chapterId: string,
+  repo = container.manuscriptRepo,
 ) => {
-  return manuscriptRepo.getChapter(projectId, manuscriptId, chapterId);
+  return repo.getChapter(projectId, manuscriptId, chapterId);
 };
 
 /**
@@ -155,11 +162,9 @@ export const createChapter = async (
   projectId: string,
   manuscriptId: string,
   data: { title: string; content?: string; order?: number },
+  repo = container.manuscriptRepo,
 ) => {
-  const manuscript = await manuscriptRepo.getManuscript(
-    projectId,
-    manuscriptId,
-  );
+  const manuscript = await repo.getManuscript(projectId, manuscriptId);
   const defaultOrder = manuscript?.chapters.length ?? 0;
 
   const newChapter: Partial<IChapter> = {
@@ -169,7 +174,7 @@ export const createChapter = async (
     order: data.order ?? defaultOrder,
   };
 
-  return manuscriptRepo.createChapter(projectId, manuscriptId, newChapter);
+  return repo.createChapter(projectId, manuscriptId, newChapter);
 };
 
 /** Fields accepted by {@link updateChapter}. */
@@ -186,14 +191,6 @@ export interface UpdateChapterData {
    * the server's `updatedAt` (Last-Write-Wins guard).
    */
   clientTimestamp?: string;
-}
-
-interface ChapterUpdatePayload {
-  title?: string;
-  content?: string;
-  order?: number;
-  mentions?: IMention[];
-  updatedAt: Date;
 }
 
 /** Result shape returned by {@link updateChapter}. */
@@ -220,12 +217,9 @@ export const updateChapter = async (
   manuscriptId: string,
   chapterId: string,
   data: UpdateChapterData,
+  repo = container.manuscriptRepo,
 ): Promise<UpdateChapterResult> => {
-  const chapter = await manuscriptRepo.getChapter(
-    projectId,
-    manuscriptId,
-    chapterId,
-  );
+  const chapter = await repo.getChapter(projectId, manuscriptId, chapterId);
   if (!chapter) return { conflict: false };
 
   if (data.clientTimestamp) {
@@ -241,7 +235,7 @@ export const updateChapter = async (
   if (data.order !== undefined) updatePayload.order = data.order;
 
   if (data.content !== undefined) {
-    const manuscript: IManuscript | null = await manuscriptRepo.getManuscript(
+    const manuscript: IManuscript | null = await repo.getManuscript(
       projectId,
       manuscriptId,
     );
@@ -268,14 +262,9 @@ export const updateChapter = async (
     }
   }
 
-  await manuscriptRepo.updateChapter(
-    projectId,
-    manuscriptId,
-    chapterId,
-    updatePayload,
-  );
+  await repo.updateChapter(projectId, manuscriptId, chapterId, updatePayload);
 
-  const updatedChapter = await manuscriptRepo.getChapter(
+  const updatedChapter = await repo.getChapter(
     projectId,
     manuscriptId,
     chapterId,
@@ -298,6 +287,7 @@ export const deleteChapter = async (
   projectId: string,
   manuscriptId: string,
   chapterId: string,
+  repo = container.manuscriptRepo,
 ): Promise<boolean> => {
-  return manuscriptRepo.deleteChapter(projectId, manuscriptId, chapterId);
+  return repo.deleteChapter(projectId, manuscriptId, chapterId);
 };
