@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 
 /** Type alias for async Express controller/middleware functions. */
-type AsyncController = (
-  req: Request,
+type AsyncController<R extends Request = Request> = (
+  req: R,
   res: Response,
   next: NextFunction,
 ) => Promise<void>;
@@ -18,7 +18,7 @@ type AsyncController = (
  * router.get("/", asyncHandler(myController));
  */
 export const asyncHandler =
-  (fn: AsyncController) =>
+  <R extends Request = Request>(fn: AsyncController<R>) =>
   (req: Request, res: Response, next: NextFunction): void => {
-    fn(req, res, next).catch(next);
+    fn(req as R, res, next).catch(next);
   };

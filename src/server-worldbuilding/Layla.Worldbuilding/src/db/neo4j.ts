@@ -24,7 +24,7 @@ export const getNeo4jDriver = (): Driver => {
         },
       );
     } catch (err) {
-      throw new Error(`[Neo4j] Failed to initialize driver: ${String(err)}`);
+      throw new Error(`[Neo4j] Failed to initialize driver`, { cause: err });
     }
   }
   return driver;

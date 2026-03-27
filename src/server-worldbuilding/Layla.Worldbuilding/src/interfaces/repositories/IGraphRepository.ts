@@ -31,13 +31,13 @@ export interface IGraphRepository {
   }): Promise<void>;
 
   /** Creates or updates an APPEARS_IN edge between an entity and a chapter node. */
-  mergeAppearance(data: {
+  syncAppearances(data: {
     projectId: string;
-    entityId: string;
     manuscriptId: string;
     manuscriptTitle: string;
     chapterId: string;
     chapterTitle: string;
+    entityIds: [string];
   }): Promise<void>;
 
   /** Removes all APPEARS_IN edges for a given chapter (used before re-syncing mentions). */

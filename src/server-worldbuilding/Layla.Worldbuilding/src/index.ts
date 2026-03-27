@@ -50,7 +50,7 @@ const bootstrap = async () => {
 
   const shutdown = async () => {
     console.log("Shutting down server...");
-    server.close();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
     await closeNeo4jDriver();
     process.exit(0);
   };

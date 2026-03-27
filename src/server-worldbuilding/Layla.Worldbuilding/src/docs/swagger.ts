@@ -190,16 +190,14 @@ const definition: swaggerJsdoc.OAS3Definition = {
       WikiEntry: {
         type: "object",
         properties: {
-          entryId: { type: "string", format: "uuid" },
+          entityId: { type: "string", format: "uuid" },
           projectId: { type: "string", format: "uuid" },
           name: { type: "string", maxLength: 200 },
-          type: {
+          entityType: {
             type: "string",
-            enum: ["CHARACTER", "LOCATION", "EVENT", "OBJECT", "CONCEPT"],
-            description: "Category of the wiki entry.",
+            enum: ["Character", "Location", "Event", "Object", "Concept"],
           },
           description: { type: "string" },
-          aliases: { type: "array", items: { type: "string" } },
           tags: { type: "array", items: { type: "string" } },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },

@@ -73,12 +73,14 @@ export const startProjectCreatedConsumer = async (): Promise<void> => {
     try {
       conn = await amqplib.connect(config.rabbitmq.url);
       break;
-    } catch {
+    } catch (err) {
       console.error(
         `RabbitMQ: connection attempt ${attempt}/${MAX_RETRIES} failed`,
       );
       if (attempt === MAX_RETRIES)
-        throw new Error("Could not connect to RabbitMQ after maximum retries");
+        throw new Error("Could not connect to RabbitMQ after maximum retries", {
+          cause: err,
+        });
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     }
   }

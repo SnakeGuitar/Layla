@@ -56,6 +56,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "vite-env.d.ts", "index.ts"],
+  "include": ["src", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist", "eslint.config.mts"]
 }

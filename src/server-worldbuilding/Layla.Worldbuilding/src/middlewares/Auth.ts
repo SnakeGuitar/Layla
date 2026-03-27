@@ -1,113 +1,84 @@
 import type { Response, NextFunction } from "express";
+import type { TokenExpiredError, JsonWebTokenError } from "@types/jsonwebtoken";
 import { verifyAccessJWTToken } from "@/utils/ManageJWT";
 import type InterfaceAuthRequest from "@/interfaces/auth/AuthRequest";
 
 /**
- * Requires a valid Bearer JWT in the `Authorization` header.
- *
- * On success, populates `req.user` with the decoded payload and calls `next()`.
- * Returns **401** for missing, malformed, or expired tokens.
+ * Extracts the Bearer token from the Authorization header.
+ * Returns the token string or null if the header is missing / malformed.
  */
+const extractBearerToken = (authHeader: string | undefined): string | null => {
+  if (!authHeader) return null;
+  const [scheme, token] = authHeader.split(" ");
+  return scheme === "Bearer" && token ? token : null;
+};
+
+/**
+ * Maps a JWT verification error to its HTTP response.
+ * Returns true if the error was handled, false if it was unknown.
+ */
+const handleJWTError = (error: unknown, res: Response): boolean => {
+  if (error instanceof TokenExpiredError) {
+    res.status(401).json({ error: "Token expired" });
+    return true;
+  }
+  if (error instanceof JsonWebTokenError) {
+    res.status(401).json({ error: "Invalid token" });
+    return true;
+  }
+  return false;
+};
+
 export const MiddlewareAuthenticate = (
   req: InterfaceAuthRequest,
   res: Response,
   next: NextFunction,
 ): void => {
-  const authHeader = req.headers.authorization;
+  const token = extractBearerToken(req.headers.authorization);
 
-  if (!authHeader) {
+  if (!token) {
     res.status(401).json({ error: "No token provided" });
     return;
   }
 
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
-    res.status(401).json({ error: "Invalid token format" });
-    return;
-  }
-
-  const token = parts[1]!;
-
   try {
-    const decoded = verifyAccessJWTToken(token);
-    req.user = decoded;
+    req.user = verifyAccessJWTToken(token);
     next();
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === "TokenExpiredError") {
-        res.status(401).json({ error: "Token expired" });
-        return;
-      }
-      if (error.name === "JsonWebTokenError") {
-        res.status(401).json({ error: "Invalid token" });
-        return;
-      }
+    if (!handleJWTError(error, res)) {
+      res.status(401).json({ error: "Unauthorized" });
     }
-    res.status(401).json({ error: "Unauthorized" });
   }
 };
 
-/**
- * Optionally reads a Bearer JWT from the `Authorization` header.
- *
- * If present and valid, populates `req.user`. Otherwise calls `next()` silently.
- * Never blocks the request — use this on public routes that may benefit from
- * knowing the caller's identity.
- */
 export const MiddlewareOptionalAuth = (
   req: InterfaceAuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction,
 ): void => {
-  const authHeader = req.headers.authorization;
+  const token = extractBearerToken(req.headers.authorization);
 
-  if (!authHeader) {
-    next();
-    return;
-  }
-
-  const parts = authHeader.split(" ");
-  if (parts.length !== 2 || parts[0] !== "Bearer") {
-    next();
-    return;
-  }
-
-  const token = parts[1]!;
-
-  try {
-    const decoded = verifyAccessJWTToken(token);
-    req.user = decoded;
-  } catch {
-    // Ignore errors on optional auth — caller is treated as unauthenticated
+  if (token) {
+    try {
+      req.user = verifyAccessJWTToken(token);
+    } catch {
+      // Treated as unauthenticated — not an error on optional routes
+    }
   }
 
   next();
 };
 
-/**
- * Enforces role-based access control.
- *
- * Must be used after {@link MiddlewareAuthenticate}. Returns **401** if
- * `req.user` is not set and **403** if the user's role is not in `allowedRoles`.
- *
- * @param allowedRoles - One or more role strings permitted to access the route.
- */
-export const MiddlewareRequireRole = (...allowedRoles: string[]) => {
-  return (
-    req: InterfaceAuthRequest,
-    res: Response,
-    next: NextFunction,
-  ): void => {
+export const MiddlewareRequireRole =
+  (...allowedRoles: string[]) =>
+  (req: InterfaceAuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-
     if (!req.user.role || !allowedRoles.includes(req.user.role)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
-
     next();
   };
-};

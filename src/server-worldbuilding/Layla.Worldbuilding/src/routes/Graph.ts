@@ -6,25 +6,18 @@ import * as GraphController from "@/controllers/Graph.controller";
 
 /** Routes for graph query and relationship management, scoped to a project. */
 const router: ReturnType<typeof Router> = Router();
+router.use(MiddlewareAuthenticate);
+router.use(asyncHandler(requireProjectAccess()));
 
-router.get(
-  "/:projectId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
-  asyncHandler(GraphController.getGraph),
-);
+router.get("/:projectId", asyncHandler(GraphController.getGraph));
 
 router.post(
   "/:projectId/relationships",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(GraphController.createRelationship),
 );
 
 router.delete(
   "/:projectId/relationships",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(GraphController.deleteRelationship),
 );
 

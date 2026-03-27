@@ -17,7 +17,7 @@ const WikiEntrySchema = new Schema<IWikiEntry>(
     name: { type: String, required: true, maxlength: 200 },
     entityType: {
       type: String,
-      enum: ["Character", "Location", "Event", "Object"],
+      enum: ["Character", "Location", "Event", "Object", "Concept"],
       required: true,
     },
     description: { type: String, default: "" },

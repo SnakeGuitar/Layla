@@ -6,8 +6,8 @@ export class MongooseWikiEntryRepository implements IWikiEntryRepository {
   async listEntries(
     projectId: string,
     entityType?: WikiEntityType,
-  ): Promise<IWikiEntry[]> {
-    const filter: Record<string, any> = { projectId };
+  ): Promise<Omit<IWikiEntry, "description">[]> {
+    const filter: Record<string, string | number> = { projectId };
     if (entityType) filter.entityType = entityType;
     return WikiEntryModel.find(filter)
       .select("-description -__v")
@@ -41,7 +41,9 @@ export class MongooseWikiEntryRepository implements IWikiEntryRepository {
     return result.deletedCount > 0;
   }
 
-  async findEntriesToSync(): Promise<any[]> {
-    return WikiEntryModel.find({ neo4jSynced: false }).limit(50);
+  async findEntriesToSync(): Promise<IWikiEntry[]> {
+    return WikiEntryModel.find({ neo4jSynced: false })
+      .limit(50)
+      .lean() as unknown as IWikiEntry[];
   }
 }

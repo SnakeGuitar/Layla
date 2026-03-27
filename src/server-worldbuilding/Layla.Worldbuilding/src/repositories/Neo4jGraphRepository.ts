@@ -23,6 +23,17 @@ const str = (v: unknown): string =>
   typeof v === "string" ? v : String(v ?? "");
 
 export class Neo4jGraphRepository implements IGraphRepository {
+  private pendingAppearances = new Map<
+    string,
+    {
+      meta: Omit<
+        Parameters<Neo4jGraphRepository["syncAppearances"]>[0],
+        "entityIds"
+      >;
+      entityIds: Set<string>;
+    }
+  >();
+
   async getGraph(
     projectId: string,
     entityType?: string,
@@ -226,24 +237,6 @@ export class Neo4jGraphRepository implements IGraphRepository {
     }
   }
 
-  async mergeAppearance(data: {
-    projectId: string;
-    entityId: string;
-    manuscriptId: string;
-    manuscriptTitle: string;
-    chapterId: string;
-    chapterTitle: string;
-  }): Promise<void> {
-    await this.syncAppearances({
-      projectId: data.projectId,
-      manuscriptId: data.manuscriptId,
-      manuscriptTitle: data.manuscriptTitle,
-      chapterId: data.chapterId,
-      chapterTitle: data.chapterTitle,
-      entityIds: [data.entityId],
-    });
-  }
-
   async clearChapterAppearances(data: {
     projectId: string;
     chapterId: string;
@@ -286,5 +279,43 @@ export class Neo4jGraphRepository implements IGraphRepository {
     } finally {
       await session.close();
     }
+  }
+
+  bufferAppearance(data: {
+    projectId: string;
+    entityId: string;
+    manuscriptId: string;
+    manuscriptTitle: string;
+    chapterId: string;
+    chapterTitle: string;
+  }): void {
+    // síncrono, sin I/O
+    const key = `${data.projectId}::${data.chapterId}`;
+    if (!this.pendingAppearances.has(key)) {
+      this.pendingAppearances.set(key, {
+        meta: {
+          projectId: data.projectId,
+          manuscriptId: data.manuscriptId,
+          manuscriptTitle: data.manuscriptTitle,
+          chapterId: data.chapterId,
+          chapterTitle: data.chapterTitle,
+        },
+        entityIds: new Set(),
+      });
+    }
+    this.pendingAppearances.get(key)!.entityIds.add(data.entityId);
+  }
+
+  async flushAppearances(): Promise<void> {
+    if (this.pendingAppearances.size === 0) return;
+
+    // Un syncAppearances por chapterId — cada uno ya usa UNWIND internamente
+    await Promise.all(
+      [...this.pendingAppearances.values()].map(({ meta, entityIds }) =>
+        this.syncAppearances({ ...meta, entityIds: [...entityIds] }),
+      ),
+    );
+
+    this.pendingAppearances.clear();
   }
 }

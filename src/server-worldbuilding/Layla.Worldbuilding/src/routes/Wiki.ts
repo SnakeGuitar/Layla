@@ -6,46 +6,30 @@ import * as WikiController from "@/controllers/Wiki.controller";
 
 /** Routes for wiki entry management, scoped to a project. */
 const router: ReturnType<typeof Router> = Router();
+router.use(MiddlewareAuthenticate);
+router.use(asyncHandler(requireProjectAccess()));
 
-router.get(
-  "/:projectId/entries",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
-  asyncHandler(WikiController.listEntries),
-);
+router.get("/:projectId/entries", asyncHandler(WikiController.listEntries));
 
 router.get(
   "/:projectId/entries/:entityId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(WikiController.getEntry),
 );
 
-router.post(
-  "/:projectId/entries",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
-  asyncHandler(WikiController.createEntry),
-);
+router.post("/:projectId/entries", asyncHandler(WikiController.createEntry));
 
 router.put(
   "/:projectId/entries/:entityId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(WikiController.updateEntry),
 );
 
 router.delete(
   "/:projectId/entries/:entityId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(WikiController.deleteEntry),
 );
 
 router.get(
   "/:projectId/entries/:entityId/appearances",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(WikiController.getEntityAppearances),
 );
 

@@ -6,6 +6,10 @@ import { Neo4jGraphRepository } from "@/repositories/Neo4jGraphRepository";
 const wikiRepo = new MongooseWikiEntryRepository();
 const graphRepo = new Neo4jGraphRepository();
 
+/** Escapes special regex characters in a string. */
+const escapeRegex = (str: string): string =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 /**
  * Strips RTF control words and formatting, returning only the visible text.
  * Used for entity name matching against chapter content.
@@ -13,7 +17,7 @@ const graphRepo = new Neo4jGraphRepository();
 export const stripRtf = (rtf: string): string => {
   if (!rtf) return "";
 
-  // Si no es RTF, aplica limpieza básica de whitespace igualmente.
+  // Si no es RTF, se limpia de whitespace
   const source: string = rtf.startsWith("{\\rtf")
     ? rtf
         .replace(/\\[a-z]+[-]?\d*\s?/gi, " ")
@@ -88,9 +92,9 @@ export const syncChapterMentions = async (data: {
   // se loguean sin abortar el resto del lote.
   const results = await Promise.allSettled(
     mentions.map((mention) =>
-      graphRepo.mergeAppearance({
+      graphRepo.syncAppearances({
         projectId: data.projectId,
-        entityId: mention.entityId,
+        entityIds: [mention.entityId],
         manuscriptId: data.manuscriptId,
         manuscriptTitle: data.manuscriptTitle,
         chapterId: data.chapterId,
@@ -120,7 +124,3 @@ export const getEntityAppearances = async (
 ) => {
   return graphRepo.getEntityAppearances({ projectId, entityId });
 };
-
-/** Escapes special regex characters in a string. */
-const escapeRegex = (str: string): string =>
-  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

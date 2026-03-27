@@ -15,74 +15,56 @@ import * as ManuscriptsController from "@/controllers/Manuscripts.controller";
  * Chapter routes:    `/:projectId/:manuscriptId/chapters/:chapterId`
  */
 const router: ReturnType<typeof Router> = Router();
+router.use(MiddlewareAuthenticate);
+router.use(asyncHandler(requireProjectAccess()));
 
 router.get(
   "/:projectId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.getManuscriptsByProject),
 );
 
 router.post(
   "/:projectId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.createManuscript),
 );
 
 router.get(
   "/:projectId/:manuscriptId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.getManuscript),
 );
 
 router.put(
   "/:projectId/:manuscriptId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.updateManuscript),
 );
 
 router.delete(
   "/:projectId/:manuscriptId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.deleteManuscript),
 );
 
 router.get(
   "/:projectId/:manuscriptId/chapters/:chapterId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.getChapter),
 );
 
 router.post(
   "/:projectId/:manuscriptId/chapters",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.createChapter),
 );
 
 router.put(
   "/:projectId/:manuscriptId/chapters/:chapterId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.updateChapter),
 );
 
 router.delete(
   "/:projectId/:manuscriptId/chapters/:chapterId",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.deleteChapter),
 );
 
 router.get(
   "/:projectId/:manuscriptId/chapters/:chapterId/mentions",
-  MiddlewareAuthenticate,
-  asyncHandler(requireProjectAccess()),
   asyncHandler(ManuscriptsController.getChapterMentions),
 );
 
