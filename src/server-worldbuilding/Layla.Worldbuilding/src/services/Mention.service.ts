@@ -69,9 +69,13 @@ export const syncChapterMentions = async (data: {
   const mentions = extractMentions(plainText, entries);
 
   try {
-    await graphRepo.clearChapterAppearances({
+    await graphRepo.syncAppearances({
       projectId: data.projectId,
+      manuscriptId: data.manuscriptId,
+      manuscriptTitle: data.manuscriptTitle,
       chapterId: data.chapterId,
+      chapterTitle: data.chapterTitle,
+      entityIds: mentions.map((m) => m.entityId),
     });
   } catch (err) {
     throw new Error(

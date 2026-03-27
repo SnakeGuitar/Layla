@@ -9,69 +9,76 @@ import type {
   IAppearanceRecord,
 } from "../interfaces/repositories/IGraphRepository";
 
+/**
+ * Extract props from node secure
+ */
+const nodeProps = (
+  node: { properties: unknown } | null,
+): Record<string, unknown> =>
+  node && typeof node.properties === "object" && node.properties !== null
+    ? (node.properties as Record<string, unknown>)
+    : {};
+
+const str = (v: unknown): string =>
+  typeof v === "string" ? v : String(v ?? "");
+
 export class Neo4jGraphRepository implements IGraphRepository {
   async getGraph(
     projectId: string,
     entityType?: string,
   ): Promise<IGraphResult> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
 
     try {
-      const query = entityType
-        ? `MATCH (e:Entity { projectId: $projectId, entityType: $entityType })
-           OPTIONAL MATCH (e)-[r]->(t:Entity { projectId: $projectId })
-           RETURN e, r, t`
-        : `MATCH (e:Entity { projectId: $projectId })
-           OPTIONAL MATCH (e)-[r]->(t:Entity { projectId: $projectId })
-           RETURN e, r, t`;
-
-      const result = await session.run(query, { projectId, entityType });
+      const result = await session.run(
+        `MATCH (e:Entity { projectId: $projectId })
+         WHERE $entityType IS NULL OR e.entityType = $entityType
+         OPTIONAL MATCH (e)-[r]->(t:Entity { projectId: $projectId })
+         RETURN e, r, t`,
+        { projectId, entityType: entityType ?? null },
+      );
 
       const nodesMap = new Map<string, GraphNode>();
       const edges: GraphEdge[] = [];
 
       for (const record of result.records) {
-        const eNode = record.get("e");
-        const rRel = record.get("r");
-        const tNode = record.get("t");
+        const eProps = nodeProps(record.get("e"));
+        const tProps = nodeProps(record.get("t"));
+        const rRel = record.get("r") as {
+          type: string;
+          properties: Record<string, unknown>;
+        } | null;
 
-        if (eNode) {
-          const props = eNode.properties as Record<string, string>;
-          if (props["entityId"] && !nodesMap.has(props["entityId"])) {
-            nodesMap.set(props["entityId"], {
-              entityId: props["entityId"],
-              name: props["name"] ?? "",
-              entityType: props["entityType"] ?? "",
-            });
-          }
+        if (eProps["entityId"] && !nodesMap.has(str(eProps["entityId"]))) {
+          nodesMap.set(str(eProps["entityId"]), {
+            entityId: str(eProps["entityId"]),
+            name: str(eProps["name"]),
+            entityType: str(eProps["entityType"]),
+          });
         }
 
-        if (tNode) {
-          const props = tNode.properties as Record<string, string>;
-          if (props["entityId"] && !nodesMap.has(props["entityId"])) {
-            nodesMap.set(props["entityId"], {
-              entityId: props["entityId"],
-              name: props["name"] ?? "",
-              entityType: props["entityType"] ?? "",
-            });
-          }
+        if (tProps["entityId"] && !nodesMap.has(str(tProps["entityId"]))) {
+          nodesMap.set(str(tProps["entityId"]), {
+            entityId: str(tProps["entityId"]),
+            name: str(tProps["name"]),
+            entityType: str(tProps["entityType"]),
+          });
         }
 
-        if (rRel && eNode && tNode) {
-          const eProps = eNode.properties as Record<string, string>;
-          const tProps = tNode.properties as Record<string, string>;
-          const rProps = rRel.properties as Record<string, string>;
+        if (rRel && eProps["entityId"] && tProps["entityId"]) {
+          const rProps =
+            typeof rRel.properties === "object" && rRel.properties !== null
+              ? rRel.properties
+              : {};
 
-          if (eProps["entityId"] && tProps["entityId"]) {
-            const edge: GraphEdge = {
-              sourceId: eProps["entityId"],
-              targetId: tProps["entityId"],
-              type: rRel.type as string,
-              ...(rProps["label"] !== undefined && { label: rProps["label"] }),
-            };
-            edges.push(edge);
-          }
+          edges.push({
+            sourceId: str(eProps["entityId"]),
+            targetId: str(tProps["entityId"]),
+            type: rRel.type,
+            ...(rProps["label"] !== undefined && {
+              label: str(rProps["label"]),
+            }),
+          });
         }
       }
 
@@ -87,8 +94,7 @@ export class Neo4jGraphRepository implements IGraphRepository {
     name: string;
     entityType: string;
   }): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
     try {
       await session.run(
         `MERGE (e:Entity { entityId: $entityId })
@@ -102,8 +108,7 @@ export class Neo4jGraphRepository implements IGraphRepository {
   }
 
   async deleteEntity(entityId: string): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
     try {
       await session.run(
         "MATCH (e:Entity { entityId: $entityId }) DETACH DELETE e",
@@ -121,14 +126,24 @@ export class Neo4jGraphRepository implements IGraphRepository {
     type: string;
     label?: string;
   }): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
 
     try {
+      const allowedTypes = new Set([
+        "RELATED_TO",
+        "ALLY_OF",
+        "ENEMY_OF",
+        "MEMBER_OF",
+        "LOCATED_IN",
+      ]);
+      const relType = allowedTypes.has(data.type) ? data.type : "RELATED_TO";
+
       await session.run(
         `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
          MATCH (b:Entity { entityId: $targetId, projectId: $projectId })
-         MERGE (a)-[r:RELATED_TO { label: $label }]->(b)`,
+         MERGE (a)-[r:${relType}]->(b)
+         ON CREATE SET r.label = $label
+         ON MATCH  SET r.label = $label`,
         {
           sourceId: data.sourceEntityId,
           targetId: data.targetEntityId,
@@ -146,12 +161,13 @@ export class Neo4jGraphRepository implements IGraphRepository {
     sourceEntityId: string;
     targetEntityId: string;
   }): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
 
     try {
       await session.run(
-        `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })-[r]->(b:Entity { entityId: $targetId, projectId: $projectId })
+        `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
+          -[r]->
+          (b:Entity { entityId: $targetId, projectId: $projectId })
          DELETE r`,
         {
           sourceId: data.sourceEntityId,
@@ -159,6 +175,52 @@ export class Neo4jGraphRepository implements IGraphRepository {
           projectId: data.projectId,
         },
       );
+    } finally {
+      await session.close();
+    }
+  }
+  async syncAppearances(data: {
+    projectId: string;
+    manuscriptId: string;
+    manuscriptTitle: string;
+    chapterId: string;
+    chapterTitle: string;
+    entityIds: string[];
+  }): Promise<void> {
+    const session = getNeo4jDriver().session();
+
+    try {
+      await session.executeWrite(async (tx) => {
+        // 1. Limpiar edges previos.
+        await tx.run(
+          `MATCH (e:Entity)-[r:APPEARS_IN]->(ch:Chapter { chapterId: $chapterId, projectId: $projectId })
+           DELETE r`,
+          { chapterId: data.chapterId, projectId: data.projectId },
+        );
+
+        if (data.entityIds.length === 0) return;
+
+        await tx.run(
+          `MERGE (ch:Chapter { chapterId: $chapterId, projectId: $projectId })
+           ON CREATE SET ch.manuscriptId     = $manuscriptId,
+                         ch.manuscriptTitle  = $manuscriptTitle,
+                         ch.chapterTitle     = $chapterTitle
+           ON MATCH  SET ch.manuscriptTitle  = $manuscriptTitle,
+                         ch.chapterTitle     = $chapterTitle
+           WITH ch
+           UNWIND $entityIds AS entityId
+           MATCH (e:Entity { entityId: entityId, projectId: $projectId })
+           MERGE (e)-[:APPEARS_IN]->(ch)`,
+          {
+            projectId: data.projectId,
+            manuscriptId: data.manuscriptId,
+            manuscriptTitle: data.manuscriptTitle,
+            chapterId: data.chapterId,
+            chapterTitle: data.chapterTitle,
+            entityIds: data.entityIds,
+          },
+        );
+      });
     } finally {
       await session.close();
     }
@@ -172,38 +234,21 @@ export class Neo4jGraphRepository implements IGraphRepository {
     chapterId: string;
     chapterTitle: string;
   }): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
-
-    try {
-      await session.run(
-        `MERGE (ch:Chapter { chapterId: $chapterId, projectId: $projectId })
-         ON CREATE SET ch.manuscriptId = $manuscriptId, ch.manuscriptTitle = $manuscriptTitle, ch.chapterTitle = $chapterTitle
-         ON MATCH  SET ch.manuscriptTitle = $manuscriptTitle, ch.chapterTitle = $chapterTitle
-         WITH ch
-         MATCH (e:Entity { entityId: $entityId, projectId: $projectId })
-         MERGE (e)-[:APPEARS_IN]->(ch)`,
-        {
-          projectId: data.projectId,
-          entityId: data.entityId,
-          manuscriptId: data.manuscriptId,
-          manuscriptTitle: data.manuscriptTitle,
-          chapterId: data.chapterId,
-          chapterTitle: data.chapterTitle,
-        },
-      );
-    } finally {
-      await session.close();
-    }
+    await this.syncAppearances({
+      projectId: data.projectId,
+      manuscriptId: data.manuscriptId,
+      manuscriptTitle: data.manuscriptTitle,
+      chapterId: data.chapterId,
+      chapterTitle: data.chapterTitle,
+      entityIds: [data.entityId],
+    });
   }
 
   async clearChapterAppearances(data: {
     projectId: string;
     chapterId: string;
   }): Promise<void> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
-
+    const session = getNeo4jDriver().session();
     try {
       await session.run(
         `MATCH (e:Entity)-[r:APPEARS_IN]->(ch:Chapter { chapterId: $chapterId, projectId: $projectId })
@@ -219,14 +264,15 @@ export class Neo4jGraphRepository implements IGraphRepository {
     projectId: string;
     entityId: string;
   }): Promise<IAppearanceRecord[]> {
-    const driver = getNeo4jDriver();
-    const session = driver.session();
+    const session = getNeo4jDriver().session();
 
     try {
       const result = await session.run(
         `MATCH (e:Entity { entityId: $entityId, projectId: $projectId })-[:APPEARS_IN]->(ch:Chapter { projectId: $projectId })
-         RETURN ch.manuscriptId AS manuscriptId, ch.manuscriptTitle AS manuscriptTitle,
-                ch.chapterId AS chapterId, ch.chapterTitle AS chapterTitle
+         RETURN ch.manuscriptId    AS manuscriptId,
+                ch.manuscriptTitle AS manuscriptTitle,
+                ch.chapterId       AS chapterId,
+                ch.chapterTitle    AS chapterTitle
          ORDER BY ch.manuscriptId, ch.chapterId`,
         { entityId: data.entityId, projectId: data.projectId },
       );
