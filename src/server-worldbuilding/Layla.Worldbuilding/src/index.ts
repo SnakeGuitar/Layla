@@ -2,7 +2,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler,
+} from "express";
 import swaggerUi from "swagger-ui-express";
 import { config } from "@/config/env";
 import { connectMongoDB } from "@/db/mongoose";
@@ -26,10 +31,17 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 
 /** Global error handler — Express 5 forwards thrown errors to this handler via asyncHandler. */
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message ?? "Internal server error" });
-});
+app.use(
+  (
+    err: ErrorRequestHandler,
+    _req: Request,
+    res: Response,
+    _next: NextFunction,
+  ) => {
+    console.error(err);
+    res.status(500).json({ error: err ?? "Internal server error" });
+  },
+);
 
 /**
  * Application bootstrap function.

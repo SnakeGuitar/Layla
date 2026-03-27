@@ -3,11 +3,13 @@ import type {
   ChapterUpdatePayload,
   IChapter,
   IManuscript,
-  IMention,
 } from "@/interfaces/manuscript/IManuscript";
 import { syncChapterMentions } from "@/services/Mention.service";
 import { container } from "./container";
 
+/**
+ * Utils
+ */
 type ChapterMeta = Pick<
   IChapter,
   "chapterId" | "title" | "order" | "updatedAt" | "createdAt"
@@ -26,6 +28,16 @@ const toChapterMeta = ({
   createdAt,
 });
 
+const toManuscriptIndex = (m: IManuscript) => ({
+  manuscriptId: m.manuscriptId,
+  projectId: m.projectId,
+  title: m.title,
+  order: m.order,
+  chapters: m.chapters.map(toChapterMeta),
+  createdAt: m.createdAt,
+  updatedAt: m.updatedAt,
+});
+
 /**
  * Returns all manuscripts belonging to `projectId` as index objects —
  * chapter metadata is included but `content` fields are omitted.
@@ -35,15 +47,7 @@ export const getManuscriptsByProject = async (
   repo = container.manuscriptRepo,
 ) => {
   const manuscripts = await repo.getManuscriptsByProject(projectId);
-  return manuscripts.map((m) => ({
-    manuscriptId: m.manuscriptId,
-    projectId: m.projectId,
-    title: m.title,
-    order: m.order,
-    chapters: m.chapters.map(toChapterMeta),
-    createdAt: m.createdAt,
-    updatedAt: m.updatedAt,
-  }));
+  return manuscripts.map(toManuscriptIndex);
 };
 
 /**
@@ -62,15 +66,7 @@ export const getManuscript = async (
   );
   if (!manuscript) return null;
 
-  return {
-    manuscriptId: manuscript.manuscriptId,
-    projectId: manuscript.projectId,
-    title: manuscript.title,
-    order: manuscript.order,
-    chapters: manuscript.chapters.map(toChapterMeta),
-    createdAt: manuscript.createdAt,
-    updatedAt: manuscript.updatedAt,
-  };
+  return toManuscriptIndex(manuscript);
 };
 
 /**
@@ -93,15 +89,7 @@ export const createManuscript = async (
     chapters: [],
   });
 
-  return {
-    manuscriptId: manuscript.manuscriptId,
-    projectId: manuscript.projectId,
-    title: manuscript.title,
-    order: manuscript.order,
-    chapters: [],
-    createdAt: manuscript.createdAt,
-    updatedAt: manuscript.updatedAt,
-  };
+  return toManuscriptIndex(manuscript);
 };
 
 /** Fields accepted by {@link updateManuscriptMeta}. */
