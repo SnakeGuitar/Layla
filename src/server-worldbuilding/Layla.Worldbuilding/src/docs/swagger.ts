@@ -195,7 +195,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
           name: { type: "string", maxLength: 200 },
           entityType: {
             type: "string",
-            enum: ["Character", "Location", "Event", "Object"],
+            enum: ["Character", "Location", "Event", "Object", "Concept"],
             description: "Category of the wiki entry.",
           },
           description: { type: "string" },

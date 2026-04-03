@@ -1,5 +1,5 @@
-import { Response, NextFunction } from "express";
-import InterfaceAuthRequest from "@/interfaces/auth/AuthRequest";
+import type { Response, NextFunction } from "express";
+import type InterfaceAuthRequest from "@/interfaces/auth/AuthRequest";
 import { getNeo4jDriver } from "@/db/neo4j";
 
 /**

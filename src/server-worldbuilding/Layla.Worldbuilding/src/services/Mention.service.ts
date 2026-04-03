@@ -96,13 +96,3 @@ export const syncChapterMentions = async (
   return mentions;
 };
 
-/**
- * Returns all chapters where a given entity appears, queried from Neo4j.
- */
-export const getEntityAppearances = async (
-  projectId: string,
-  entityId: string,
-  repo = container.graphRepo,
-) => {
-  return repo.getEntityAppearances({ projectId, entityId });
-};
