@@ -78,7 +78,7 @@ export const syncChapterMentions = async (
   const mentions: IMention[] = extractMentions(plainText, entries);
 
   try {
-    await container.graphRepo.syncAppearances({
+    await repo.graphRepo.syncAppearances({
       projectId: data.projectId,
       manuscriptId: data.manuscriptId,
       manuscriptTitle: data.manuscriptTitle,

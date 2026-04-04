@@ -55,10 +55,19 @@ export const UpdateWikiEntrySchema = z.object({
 
 // ─── Graph ────────────────────────────────────────────────────────────────────
 
+/** Allowed Neo4j relationship types — single source of truth for the API and repository. */
+export const relationshipTypeSchema = z.enum([
+  "RELATED_TO",
+  "ALLY_OF",
+  "ENEMY_OF",
+  "MEMBER_OF",
+  "LOCATED_IN",
+]);
+
 export const CreateRelationshipSchema = z.object({
   sourceEntityId: uuidParam,
   targetEntityId: uuidParam,
-  type: z.string().min(1),
+  type: relationshipTypeSchema,
   label: z.string().optional(),
 });
 

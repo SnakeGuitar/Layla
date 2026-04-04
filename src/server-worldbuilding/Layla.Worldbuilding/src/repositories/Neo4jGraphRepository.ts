@@ -1,13 +1,13 @@
-import { getNeo4jDriver } from "../db/neo4j";
+import { getNeo4jDriver } from "@/db/neo4j";
 import type {
   IGraphResult,
   GraphNode,
   GraphEdge,
-} from "../interfaces/graph/IGraphResult";
+} from "@/interfaces/graph/IGraphResult";
 import type {
   IGraphRepository,
   IAppearanceRecord,
-} from "../interfaces/repositories/IGraphRepository";
+} from "@/interfaces/repositories/IGraphRepository";
 
 /**
  * Extract props from node secure
@@ -140,19 +140,13 @@ export class Neo4jGraphRepository implements IGraphRepository {
     const session = getNeo4jDriver().session();
 
     try {
-      const allowedTypes = new Set([
-        "RELATED_TO",
-        "ALLY_OF",
-        "ENEMY_OF",
-        "MEMBER_OF",
-        "LOCATED_IN",
-      ]);
-      const relType = allowedTypes.has(data.type) ? data.type : "RELATED_TO";
-
+      // `data.type` is validated against `relationshipTypeSchema` at the API
+      // boundary (controller + Zod), so it is guaranteed to be a safe,
+      // known relationship type by the time it reaches here.
       await session.run(
         `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
          MATCH (b:Entity { entityId: $targetId, projectId: $projectId })
-         MERGE (a)-[r:${relType}]->(b)
+         MERGE (a)-[r:${data.type}]->(b)
          ON CREATE SET r.label = $label
          ON MATCH  SET r.label = $label`,
         {

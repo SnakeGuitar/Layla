@@ -615,7 +615,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
           },
         },
       },
-    "/api/wiki/{projectId}": {
+    "/api/wiki/{projectId}/entries": {
       get: {
         tags: ["Wiki"],
         summary: "List all wiki entries for a project",
@@ -673,7 +673,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
         },
       },
     },
-    "/api/wiki/{projectId}/{entryId}": {
+    "/api/wiki/{projectId}/entries/{entityId}": {
       get: {
         tags: ["Wiki"],
         summary: "Get a wiki entry",
@@ -685,7 +685,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
             schema: { type: "string", format: "uuid" },
           },
           {
-            name: "entryId",
+            name: "entityId",
             in: "path",
             required: true,
             schema: { type: "string", format: "uuid" },
@@ -714,7 +714,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
             schema: { type: "string", format: "uuid" },
           },
           {
-            name: "entryId",
+            name: "entityId",
             in: "path",
             required: true,
             schema: { type: "string", format: "uuid" },
@@ -744,7 +744,7 @@ const definition: swaggerJsdoc.OAS3Definition = {
             schema: { type: "string", format: "uuid" },
           },
           {
-            name: "entryId",
+            name: "entityId",
             in: "path",
             required: true,
             schema: { type: "string", format: "uuid" },

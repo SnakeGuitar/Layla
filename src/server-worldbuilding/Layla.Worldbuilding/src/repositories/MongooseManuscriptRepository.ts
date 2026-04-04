@@ -1,10 +1,10 @@
-import { ManuscriptModel } from "../models/Manuscript.model";
+import { ManuscriptModel } from "@/models/Manuscript.model";
 import type {
   IManuscript,
   IChapter,
   ChapterUpdatePayload,
-} from "../interfaces/manuscript/IManuscript";
-import type { IManuscriptRepository } from "../interfaces/repositories/IManuscriptRepository";
+} from "@/interfaces/manuscript/IManuscript";
+import type { IManuscriptRepository } from "@/interfaces/repositories/IManuscriptRepository";
 
 /** Mongoose implementation of {@link IManuscriptRepository}. */
 export class MongooseManuscriptRepository implements IManuscriptRepository {
