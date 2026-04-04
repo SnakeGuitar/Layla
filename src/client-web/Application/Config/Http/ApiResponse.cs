@@ -1,4 +1,4 @@
-namespace client_web.Application.Services.Http;
+namespace client_web.Application.Config.Http;
 
 public class APIResponse<T>
 {

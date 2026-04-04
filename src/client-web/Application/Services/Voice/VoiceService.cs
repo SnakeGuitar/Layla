@@ -1,6 +1,6 @@
-using client_web.Services.Voice.SignalR;
+using client_web.Application.Config.SignalR;
 
-namespace client_web.Services;
+namespace client_web.Application.Services.Voice;
 
 public record VoiceParticipant(string UserId, string DisplayName, bool IsSpeaking, string Role);
 public record VoiceRoomState(Guid ProjectId, List<VoiceParticipant> Participants);

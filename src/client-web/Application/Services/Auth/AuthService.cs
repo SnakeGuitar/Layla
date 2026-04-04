@@ -1,9 +1,9 @@
 using client_web.Application.Schemas.Auth;
-using client_web.Application.Services.Http;
+using client_web.Application.Config.Http;
 
 namespace client_web.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly ApiClient _client;
 

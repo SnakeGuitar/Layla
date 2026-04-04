@@ -1,4 +1,4 @@
-namespace client_web.Services.Voice.SignalR;
+namespace client_web.Application.Config.SignalR;
 
 public interface ISignalRClient : IAsyncDisposable
 {

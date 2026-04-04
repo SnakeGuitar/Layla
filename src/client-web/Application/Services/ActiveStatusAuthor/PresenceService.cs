@@ -1,18 +1,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 
-namespace client_web.Services;
+namespace client_web.Application.Services.ActiveStatusAuthor;
 
-public record PublicProjectDto(
-    Guid Id,
-    string Title,
-    string Synopsis,
-    string LiteraryGenre,
-    string? CoverImageUrl,
-    DateTime UpdatedAt,
-    bool IsPublic
-);
-
-public class PresenceService : IAsyncDisposable
+public class PresenceService : IPresenceService
 {
     private HubConnection? _hub;
     private readonly IHttpClientFactory _httpClientFactory;

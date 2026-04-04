@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Polly;
 using Polly.Retry;
 
-namespace client_web.Services.Voice.SignalR;
+namespace client_web.Application.Config.SignalR;
 
 public class SignalRClient : ISignalRClient
 {

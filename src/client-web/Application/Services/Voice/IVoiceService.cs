@@ -1,3 +1,5 @@
+namespace client_web.Application.Services.Voice;
+
 /// <summary>
 /// Facade que agrupa todos los servicios de voz.
 /// Facilita el consumo desde UI sin conocer la separación interna.

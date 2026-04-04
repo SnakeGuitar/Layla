@@ -10,7 +10,7 @@
 
 <PageTitle>Login</PageTitle>
 
-<main class="min-h-screen bg-linear-to-tr from-base-1 to-base-2 flex items-center justify-center px-4">
+<main class="flex items-center justify-center px-4 min-h-screen bg-linear-to-t from-base-purple-1 to-base-blue-2">
 
     <!-- Background decoration -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
@@ -18,97 +18,95 @@
         <div class="absolute -bottom-24 -left-24 size-50 rounded-full bg-stone-200 opacity-60 blur-3xl"></div>
     </div>
 
-    <div class="relative h-auto">
-        <!-- Card -->
-        <div class=" bg-stone-50 rounded-2xl px-8 py-10 animate-[fadeInUp_0.5s_ease_both]">
-            <!-- Header -->
-            <header class="mb-8 animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.1s]">
-                <img type="image/png" src="./favicon.png" class="mx-auto" />
-                <h1 class="text-3xl text-center text-stone-900 leading-tight">
-                    Login
-                </h1>
-                <p class="text-sm text-center text-stone-400 font-light">
-                    Login to continue
-                </p>
-            </header>
+    <!-- Card -->
+    <div class="relative h-auto w-sm px-8 py-10 bg-stone-50 rounded-2xl animate-[fadeInUp_0.5s_ease_both]">
+        <!-- Header -->
+        <header class="mb-8 animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.1s]">
+            <img type="image/png" src="./favicon.png" class="mx-auto" />
+            <h1 class="text-3xl text-center text-stone-900 leading-tight">
+                Login
+            </h1>
+            <p class="text-sm text-center text-stone-400 font-light">
+                Login to continue
+            </p>
+        </header>
 
-            <!-- Form -->
-            <div class="space-y-5">
+        <!-- Form -->
+        <div class="space-y-5">
 
-                <!-- User -->
-                <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.2s]">
-                    <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest mb-2">
-                        Email
-                    </label>
-                    <input
-                        type="User"
-                        @bind="_email"
-                        placeholder="email@company.com"
-                        class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0,0,0,3pxrgba(26,26,26,0.08)]" />
-                </div>
-
-                <!-- Password -->
-                <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.3s]">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest">
-                            Password
-                        </label>
-                        <a href="#" class="text-xs text-stone-400 hover:text-stone-700 transition-colors">
-                            Forgot your password?
-                        </a>
-                    </div>
-                    <input
-                        type="password"
-                        @bind="_password"
-                        placeholder="••••••••"
-                        class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0003pxrgba(26,26,26,0.08)]" />
-                </div>
-
-                <!-- Error -->
-                @if (!string.IsNullOrEmpty(_errorMessage))
-                {
-                    <div class="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
-                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                        </svg>
-                        @_errorMessage
-                    </div>
-                }
-
-                <!-- Button -->
-                <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.4s] pt-2">
-                    <button
-                        @onclick="HandleLogin"
-                        disabled="@_isLoading"
-                        class="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm font-medium tracking-wide disabled:opacity-50 disabled:cursor-not-allowed [transition:background, 0.2s,transform0.1s,box-shadow0.2s] hover:bg-[#111] hover:[box-shadow:08px24pxrgba(0,0,0,0.18)] hover:-translate-y-px active:translate-y-">
-                        @if (_isLoading)
-                        {
-                            <span class="flex items-center justify-center gap-2">
-                                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                                </svg>
-                                Logging in...
-                            </span>
-                        }
-                        else
-                        {
-                            <span>Login →</span>
-                        }
-                    </button>
-                </div>
-
+            <!-- User -->
+            <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.2s]">
+                <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest mb-2">
+                    Email
+                </label>
+                <input
+                    type="User"
+                    @bind="_email"
+                    placeholder="email@company.com"
+                    class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0,0,0,3pxrgba(26,26,26,0.08)]" />
             </div>
 
-            <!-- Footer -->
-            <footer class="mt-8 text-center text-sm text-stone-300">
-                Don't have an account?
-                <a href="/auth/register" class="text-stone-500 hover:text-stone-800 transition-colors font-medium">
-                    Register
-                </a>
-            </footer>
+            <!-- Password -->
+            <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.3s]">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-medium text-stone-500 uppercase tracking-widest">
+                        Password
+                    </label>
+                    <a href="#" class="text-xs text-stone-400 hover:text-stone-700 transition-colors">
+                        Forgot your password?
+                    </a>
+                </div>
+                <input
+                    type="password"
+                    @bind="_password"
+                    placeholder="••••••••"
+                    class="input-field w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm placeholder-stone-300 [transition:border-color, 0.2s,box-shadow0.2s] focus:outline-[none] focus:border-[#1a1a1a] focus:[box-shadow:0003pxrgba(26,26,26,0.08)]" />
+            </div>
+
+            <!-- Error -->
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                    @_errorMessage
+                </div>
+            }
+
+            <!-- Button -->
+            <div class="animate-[fadeInUp_0.5s_ease_both] [animation-delay:0.4s] pt-2">
+                <button
+                    @onclick="HandleLogin"
+                    disabled="@_isLoading"
+                    class="w-full py-3.5 rounded-xl bg-stone-900 text-white text-sm font-medium tracking-wide disabled:opacity-50 disabled:cursor-not-allowed [transition:background, 0.2s,transform0.1s,box-shadow0.2s] hover:bg-[#111] hover:[box-shadow:08px24pxrgba(0,0,0,0.18)] hover:-translate-y-px active:translate-y-">
+                    @if (_isLoading)
+                    {
+                        <span class="flex items-center justify-center gap-2">
+                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            Logging in...
+                        </span>
+                    }
+                    else
+                    {
+                        <span>Login →</span>
+                    }
+                </button>
+            </div>
 
         </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-sm text-stone-300">
+            Don't have an account?
+            <a href="/auth/register" class="text-stone-500 hover:text-stone-800 transition-colors font-medium">
+                Register
+            </a>
+        </footer>
+
     </div>
 </main>
 

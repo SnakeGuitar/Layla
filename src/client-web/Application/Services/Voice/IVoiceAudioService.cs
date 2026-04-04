@@ -1,3 +1,5 @@
+namespace client_web.Application.Services.Voice;
+
 /// <summary>
 /// Maneja el envío y recepción de audio en tiempo real.
 /// </summary>

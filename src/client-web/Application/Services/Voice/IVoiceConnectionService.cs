@@ -1,3 +1,5 @@
+namespace client_web.Application.Services.Voice;
+
 /// <summary>
 /// Maneja el ciclo de vida de la conexión con el Hub de SignalR.
 /// Responsable de conectar, reconectar y desconectar.

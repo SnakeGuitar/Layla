@@ -1,4 +1,4 @@
-using client_web.Services;
+namespace client_web.Application.Services.Voice;
 
 /// <summary>
 /// Maneja la lógica de salas de voz (rooms) y participantes.

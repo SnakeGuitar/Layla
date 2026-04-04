@@ -1,6 +1,6 @@
-using client_web.Application.Services.Http;
+using client_web.Application.Config.Http;
 
-namespace client_web.Services;
+namespace client_web.Application.Services.Projects;
 
 public class ProjectService
 {
