@@ -17,13 +17,13 @@ public static class Services
 
         // Other Services
         services.AddScoped<PresenceService>();
-        services.AddScoped<ProjectService>();
+        services.AddScoped<IProjectService, ProjectService>();
 
         // Voice Services
         services.AddSingleton<ISignalRClient, SignalRClient>();
         services.AddSingleton<IVoiceService, VoiceService>();
-        services.AddSingleton<IVoiceConnectionService>(sp => sp.GetRequiredService<IVoiceService>());
-        services.AddSingleton<IVoiceRoomService>(sp => sp.GetRequiredService<IVoiceService>());
-        services.AddSingleton<IVoiceAudioService>(sp => sp.GetRequiredService<IVoiceService>());
+        services.AddSingleton<Application.Services.Voice.IConnectionService>(sp => sp.GetRequiredService<IVoiceService>());
+        services.AddSingleton<IRoomService>(sp => sp.GetRequiredService<IVoiceService>());
+        services.AddSingleton<IAudioService>(sp => sp.GetRequiredService<IVoiceService>());
     }
 }

@@ -1,108 +1,117 @@
 # File Tree: client-web
 
+**Generated:** 4/4/2026, 7:46:32 PM
+
 ```
-├── API
-│   ├── Schemas
-│   │   ├── Auth
-│   │   │   ├── LoginRequest.cs
-│   │   │   ├── LoginResponse.cs
-│   │   │   └── RegisterRequest.cs
-│   │   ├── Manuscripts
-│   │   │   ├── CreateManuscript.cs
-│   │   │   └── UpdateManuscript.cs
-│   │   ├── Projects
-│   │   │   ├── CreateProject.cs
-│   │   │   └── UpdateProject.cs
-│   │   ├── Wikis
-│   │   │   ├── CreateWiki.cs
-│   │   │   ├── CreateWikiPage.cs
-│   │   │   ├── UpdateWiki.cs
-│   │   │   └── UpdateWikiPage.cs
-│   │   ├── ApiError.cs
-│   │   └── ApiResponse.cs
-│   └── Services
-│       ├── Auth
-│       │   └── AuthService.cs
-│       ├── Http
-│       │   ├── ApiClient.cs
-│       │   ├── ApiException.cs
-│       │   └── RequestHttp.cs
-│       ├── Voice
-│       │   ├── SignalR
-│       │   │   ├── ISignalRClient.cs
-│       │   │   └── SignalRClient.cs
-│       │   ├── IVoiceAudioService.cs
-│       │   ├── IVoiceConnectionService.cs
-│       │   ├── IVoiceRoomService.cs
-│       │   ├── IVoiceService.cs
-│       │   └── VoiceService.cs
-│       ├── PresenceService.cs
-│       └── ProjectService.cs
-├── Config
-│   ├── Builder.cs
-│   ├── HttpClientConfig.cs
-│   └── Services.cs
-├── Helpers
-│   ├── EncryptData.cs
-│   └── FormatDate.cs
-├── Models
-│   ├── AppUser.cs
-│   ├── Project.cs
-│   └── ProjectRole.cs
-├── Properties
-│   └── launchSettings.json
-├── UI
-│   ├── Components
-│   │   ├── ProjectCard.razor
-│   │   └── ProjectCard2.razor
-│   ├── Layout
-│   │   ├── LayoutEmpty.razor
-│   │   ├── MainLayout.razor
-│   │   ├── NavMenu.razor
-│   │   └── NavMenu.razor.css
-│   ├── Pages
-│   │   ├── Admin
-│   │   │   ├── Dashboard.razor
-│   │   │   ├── Dashboard.razor.css
-│   │   │   └── ManageUser.razor
-│   │   ├── Auth
-│   │   │   ├── Login.razor
-│   │   │   └── Register.razor
-│   │   ├── Errors
-│   │   │   └── Error.razor
-│   │   ├── Projects
-│   │   │   └── MyProjects.razor
-│   │   ├── Voice
-│   │   │   └── VoiceRoom.razor
-│   │   ├── Home.razor
-│   │   └── Nothing.razor
-│   ├── Styles
-│   │   └── Styles.css
-│   ├── App.razor
-│   ├── Routes.razor
-│   └── _Imports.razor
-├── agents
-│   └── CLAUDE.md
-├── wwwroot
-│   ├── js
-│   │   ├── chartInterop.js
-│   │   ├── chartInterop.ts
-│   │   └── voiceAudio.js
-│   ├── styles
-│   │   └── styles.css
-│   └── favicon.png
-├── .dockerignore
-├── .gitignore
-├── Dockerfile
-├── Program.cs
-├── README.md
-├── appsettings.Development.json
-├── appsettings.json
-├── client-web.csproj
-├── client-web.csproj.user
-├── client-web.sln
-├── package.json
-└── pnpm-lock.yaml
+├── 📁 Application
+│   ├── 📁 Config
+│   │   ├── 📁 Http
+│   │   │   ├── 📄 ApiClient.cs
+│   │   │   ├── 📄 ApiException.cs
+│   │   │   ├── 📄 ApiRequest.cs
+│   │   │   └── 📄 ApiResponse.cs
+│   │   └── 📁 SignalR
+│   │       ├── 📄 ISignalRClient.cs
+│   │       └── 📄 SignalRClient.cs
+│   ├── 📁 Schemas
+│   │   ├── 📁 Auth
+│   │   │   ├── 📄 LoginRequest.cs
+│   │   │   ├── 📄 LoginResponse.cs
+│   │   │   └── 📄 RegisterRequest.cs
+│   │   ├── 📁 Manuscripts
+│   │   │   ├── 📄 CreateManuscript.cs
+│   │   │   └── 📄 UpdateManuscript.cs
+│   │   ├── 📁 Projects
+│   │   │   ├── 📄 CreateProject.cs
+│   │   │   └── 📄 UpdateProject.cs
+│   │   └── 📁 Wikis
+│   │       ├── 📄 CreateWiki.cs
+│   │       ├── 📄 CreateWikiPage.cs
+│   │       ├── 📄 UpdateWiki.cs
+│   │       └── 📄 UpdateWikiPage.cs
+│   └── 📁 Services
+│       ├── 📁 ActiveStatusAuthor
+│       │   ├── 📄 IConnectionService.cs
+│       │   ├── 📄 IPresenceService.cs
+│       │   ├── 📄 IStatusService.cs
+│       │   └── 📄 PresenceService.cs
+│       ├── 📁 Auth
+│       │   ├── 📄 AuthService.cs
+│       │   └── 📄 IAuthService.cs
+│       ├── 📁 Projects
+│       │   └── 📄 ProjectService.cs
+│       └── 📁 Voice
+│           ├── 📄 IAudioService.cs
+│           ├── 📄 IConnectionService.cs
+│           ├── 📄 IRoomService.cs
+│           ├── 📄 IVoiceService.cs
+│           └── 📄 VoiceService.cs
+├── 📁 Config
+│   ├── 📄 Builder.cs
+│   ├── 📄 HttpClientConfig.cs
+│   └── 📄 Services.cs
+├── 📁 Helpers
+│   ├── 📄 EncryptData.cs
+│   └── 📄 FormatDate.cs
+├── 📁 Models
+│   ├── 📄 AppUser.cs
+│   ├── 📄 Project.cs
+│   └── 📄 ProjectRole.cs
+├── 📁 Properties
+│   └── ⚙️ launchSettings.json
+├── 📁 UI
+│   ├── 📁 Components
+│   │   ├── 📄 ProjectCard.razor
+│   │   └── 📄 ProjectCard2.razor
+│   ├── 📁 Layout
+│   │   ├── 📄 LayoutEmpty.razor
+│   │   ├── 📄 MainLayout.razor
+│   │   ├── 📄 NavMenu.razor
+│   │   └── 🎨 NavMenu.razor.css
+│   ├── 📁 Pages
+│   │   ├── 📁 Admin
+│   │   │   ├── 📄 Dashboard.razor
+│   │   │   ├── 🎨 Dashboard.razor.css
+│   │   │   └── 📄 ManageUser.razor
+│   │   ├── 📁 Auth
+│   │   │   ├── 📄 Login.razor
+│   │   │   └── 📄 Register.razor
+│   │   ├── 📁 Errors
+│   │   │   └── 📄 Error.razor
+│   │   ├── 📁 Projects
+│   │   │   └── 📄 MyProjects.razor
+│   │   ├── 📁 Voice
+│   │   │   └── 📄 VoiceRoom.razor
+│   │   ├── 📄 Home.razor
+│   │   └── 📄 Nothing.razor
+│   ├── 📁 Styles
+│   │   └── 🎨 Styles.css
+│   ├── 📄 App.razor
+│   ├── 📄 Routes.razor
+│   └── 📄 _Imports.razor
+├── 📁 agents
+│   └── 📝 CLAUDE.md
+├── 📁 wwwroot
+│   ├── 📁 js
+│   │   ├── 📄 chartInterop.js
+│   │   ├── 📄 chartInterop.ts
+│   │   └── 📄 voiceAudio.js
+│   ├── 📁 styles
+│   │   └── 🎨 styles.css
+│   └── 🖼️ favicon.png
+├── ⚙️ .dockerignore
+├── ⚙️ .gitignore
+├── 🐳 Dockerfile
+├── 📝 FileTree.md
+├── 📄 Program.cs
+├── 📝 README.md
+├── ⚙️ appsettings.Development.json
+├── ⚙️ appsettings.json
+├── 📄 client-web.csproj
+├── 📄 client-web.csproj.user
+├── 📄 client-web.sln
+├── ⚙️ package.json
+└── ⚙️ pnpm-lock.yaml
 ```
 
 ---

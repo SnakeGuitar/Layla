@@ -1,10 +1,13 @@
 @page "/"
 @page "/home"
+@using Microsoft.Extensions.Http
+@using client_web.Application.Config.Http
 @using client_web.Application.Config.SignalR
 @using client_web.Application.Services.Projects
 @using client_web.UI.Components
 @using client_web.Application.Services.ActiveStatusAuthor
 @inject IPresenceService PresenceService
+@inject IProjectService ProjectService
 @implements IAsyncDisposable
 <PageTitle>Home</PageTitle>
 
@@ -50,13 +53,21 @@ else
     private bool _isConnecting;
     private string _token = "";
     private string? _error;
+    private readonly IProjectService _projectService;
     private List<ProjectViewModel>? projects;
+    private ILogger<Home> _logger;
+
+    public Home(IProjectService projectService, ILogger<Home> logger)
+    {
+        _projectService = projectService;
+        _logger = logger;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         PresenceService.OnAuthorStatusChanged += HandleAuthorStatusChanged;
 
-        List<PublicProjectDto>? dtos = await PresenceService.GetPublicProjectsAsync();
+        List<PublicProjectDto>? dtos = await _projectService.GetPublicProjectsAsync();
         projects = dtos.Select(p => new ProjectViewModel
         {
             Id = p.Id,
@@ -69,13 +80,14 @@ else
 
         await PresenceService.ConnectAsync(_token);
 
-        foreach (ProjectViewModel p in projects)
-            await PresenceService.WatchProjectAsync(p.Id);
+        if(PresenceService.IsConnected)
+            foreach (ProjectViewModel p in projects)
+                await PresenceService.WatchProjectAsync(p.Id);
     }
 
     private void HandleAuthorStatusChanged(object? sender, AuthorStatusChangedEventArgs e)
     {
-        var project = projects?.FirstOrDefault(p => p.Id == e.ProjectId);
+        ProjectViewModel? project = projects?.FirstOrDefault(p => p.Id == e.ProjectId);
 
         if (project != null)
         {
@@ -87,7 +99,7 @@ else
     private void HandleCardClick(Guid projectId)
     {
         // TODO: NavigationManager.NavigateTo($"/projects/{projectId}");
-        Console.WriteLine($"Clicked project: {projectId}");
+        Console.WriteLine(value: $"Clicked project: {projectId}");
     }
 
     public async ValueTask DisposeAsync()
