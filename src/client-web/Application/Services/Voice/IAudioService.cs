@@ -1,5 +1,12 @@
 namespace client_web.Application.Services.Voice;
 
+enum AudioState
+{
+    StartSpeaking,
+    StopSpeaking,
+    SendingAudio
+}
+
 /// <summary>
 /// Maneja el envío y recepción de audio en tiempo real.
 /// </summary>

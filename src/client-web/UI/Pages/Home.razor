@@ -1,8 +1,10 @@
 @page "/"
 @page "/home"
+@using client_web.Application.Config.SignalR
+@using client_web.Application.Services.Projects
 @using client_web.UI.Components
-@using client_web.Services
-@inject PresenceService PresenceService
+@using client_web.Application.Services.ActiveStatusAuthor
+@inject IPresenceService PresenceService
 @implements IAsyncDisposable
 <PageTitle>Home</PageTitle>
 
@@ -43,6 +45,11 @@ else
 }
 
 @code {
+    private SignalRConnectionState _connectionState = SignalRConnectionState.Disconnected;
+    private bool _isConnected;
+    private bool _isConnecting;
+    private string _token = "";
+    private string? _error;
     private List<ProjectViewModel>? projects;
 
     protected override async Task OnInitializedAsync()
@@ -60,18 +67,19 @@ else
             UpdatedAt = p.UpdatedAt
         }).ToList();
 
-        await PresenceService.ConnectAsync();
+        await PresenceService.ConnectAsync(_token);
 
         foreach (ProjectViewModel p in projects)
             await PresenceService.WatchProjectAsync(p.Id);
     }
 
-    private void HandleAuthorStatusChanged(Guid projectId, bool isActive)
+    private void HandleAuthorStatusChanged(object? sender, AuthorStatusChangedEventArgs e)
     {
-        ProjectViewModel? project = projects?.FirstOrDefault(p => p.Id == projectId);
+        var project = projects?.FirstOrDefault(p => p.Id == e.ProjectId);
+
         if (project != null)
         {
-            project.IsAuthorActive = isActive;
+            project.IsAuthorActive = e.IsActive;
             InvokeAsync(StateHasChanged);
         }
     }

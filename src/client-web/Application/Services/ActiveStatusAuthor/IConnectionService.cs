@@ -1,4 +1,4 @@
-using System.Data;
+using client_web.Application.Config.SignalR;
 
 namespace client_web.Application.Services.ActiveStatusAuthor;
 
@@ -17,7 +17,7 @@ public interface IConnectionService : IAsyncDisposable
     /// Evento que notifica cambios en el estado de la conexión.
     /// Valores posibles: Connected, Reconnecting, Disconnected.
     /// </summary>
-    event EventHandler<ConnectionState>? OnConnectionChanged;
+    event EventHandler<SignalRConnectionState>? OnConnectionChanged;
 
     /// <summary>
     /// Establece conexión con el servidor usando un JWT.

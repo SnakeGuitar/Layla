@@ -1,4 +1,3 @@
-using System.Data;
 using client_web.Application.Config.SignalR;
 using client_web.Helpers;
 
@@ -11,15 +10,17 @@ public class VoiceService : IVoiceService
 {
     private readonly ISignalRClient _client;
     private readonly string _baseUrl;
-    private bool _handlersRegistered;
+    private readonly ILogger<VoiceService> _logger;
 
-    public VoiceService(ISignalRClient client, IConfiguration configuration)
+    public VoiceService(ISignalRClient client, IConfiguration configuration, ILogger<VoiceService> logger)
     {
         _client = client;
-        _baseUrl = configuration["ApiUrls:BackendURL"]!;
-        _client.OnConnectionChanged += (sender, state) =>
-            OnConnectionChanged?.Invoke(this, state);
+        _baseUrl = configuration["ApiUrls:SignalRHubURL:VoiceServiceHub"]!;
+        _client.OnConnectionChanged += (sender, state) => Notify(state);
+        _logger = logger;
     }
+
+    private bool _handlersRegistered;
 
     private void RegisterHandlers()
     {
@@ -46,24 +47,38 @@ public class VoiceService : IVoiceService
         _handlersRegistered = true;
     }
 
+    private SignalRConnectionState _state;
+
+    public SignalRConnectionState State => _state;
+
+    private void Notify(SignalRConnectionState state)
+    {
+        _state = state;
+        OnConnectionChanged?.Invoke(this, state);
+    }
+
     private async Task InvokeSafeAsync(Enum method, params object[] args)
     {
-        string methodName = FormatData.EnumToMethodName(method);
-        await _client.InvokeSafeAsync(methodName, args).ContinueWith(task =>
+        try
         {
-            if (task.IsFaulted)
-            {
-                Console.Error.WriteLine($"Error calling {method}: {task.Exception?.GetBaseException().Message}");
-            }
-        });
+            string methodName = FormatData.EnumToMethodName(method);
+            await _client.InvokeSafeAsync(methodName, args);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error calling {method}: {ex.Message}");
+        }
     }
 
     // IVoiceConnectionService ----------------------------------------------------------
     public bool IsConnected => _client.IsConnected;
-    public event EventHandler<ConnectionState>? OnConnectionChanged;
+    public event EventHandler<SignalRConnectionState>? OnConnectionChanged;
 
-    public Task ConnectAsync(string token) =>
-        _client.ConnectAsync($"{_baseUrl}/hubs/voice", token);
+    public async Task ConnectAsync(string token)
+    {
+        RegisterHandlers();
+        await _client.ConnectAsync(_baseUrl, token);
+    }
 
     public Task DisconnectAsync() =>
         _client.DisconnectAsync();

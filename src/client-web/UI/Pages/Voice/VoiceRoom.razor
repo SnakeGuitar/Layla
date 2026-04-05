@@ -1,5 +1,6 @@
 @page "/projects/{ProjectId:guid}/voice"
 @using System.Data
+@using client_web.Application.Config.SignalR
 @using client_web.Application.Services.Voice
 @inject IVoiceService VoiceService
 @inject IJSRuntime JS
@@ -82,7 +83,7 @@
 @code {
     [Parameter] public Guid ProjectId { get; set; }
 
-    private ConnectionState _connectionState = ConnectionState.Closed;
+    private SignalRConnectionState _connectionState = SignalRConnectionState.Disconnected;
     private bool _isConnected;
     private bool _isConnecting;
     private bool _isSpeaking;
@@ -94,8 +95,9 @@
 
     private string StatusColor => _connectionState switch
     {
-        ConnectionState.Open => "bg-green-400",
-        ConnectionState.Connecting => "bg-yellow-400",
+        SignalRConnectionState.Connected => "bg-green-400",
+        SignalRConnectionState.Connecting => "bg-yellow-400",
+        SignalRConnectionState.Reconnecting => "bg-orange-400",
         _ => "bg-gray-500"
     };
 
@@ -195,7 +197,7 @@
 
         _isConnected = false;
         _participants.Clear();
-        _connectionState = ConnectionState.Closed;
+        _connectionState = SignalRConnectionState.Disconnected;
         StateHasChanged();
     }
 
@@ -243,10 +245,10 @@
         }
     }
 
-    private async void OnConnectionChanged(object? sender, ConnectionState state)
+    private async void OnConnectionChanged(object? sender, SignalRConnectionState state)
     {
         _connectionState = state;
-        _isConnected = state == ConnectionState.Open;
+        _isConnected = state == SignalRConnectionState.Connected;
         await InvokeAsync(StateHasChanged);
     }
 

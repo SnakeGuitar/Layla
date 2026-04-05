@@ -1,5 +1,11 @@
 namespace client_web.Application.Services.Voice;
 
+enum RoomAccessState
+{
+    JoinRoom,
+    LeaveRoom
+}
+
 /// <summary>
 /// Maneja la lógica de salas de voz (rooms) y participantes.
 /// </summary>

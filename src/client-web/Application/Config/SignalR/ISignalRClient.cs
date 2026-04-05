@@ -1,11 +1,23 @@
-using System.Data;
-
 namespace client_web.Application.Config.SignalR;
+
+public enum SignalRConnectionState
+{
+    Disconnected,
+    Connecting,
+    Connected,
+    Reconnecting
+}
 
 /// <summary>
 /// Contrato para clientes que interactúan con un Hub de SignalR.
 /// Permite abrir/cerrar conexiones, invocar métodos remotos y registrar manejadores
 /// para recibir mensajes del servidor.
+/// SignalR funciona como un sistema de eventos remoto:
+/// El servidor ejecuta algo → el cliente recibe → tu handler se ejecuta automáticamente
+/// Piensa en SignalR como:
+///   -InvokeAsync → haces una llamada
+///   -SendAsync → el servidor transmite
+///   -On() → tú estás escuchando una estación
 /// </summary>
 public interface ISignalRClient : IAsyncDisposable
 {
@@ -19,7 +31,7 @@ public interface ISignalRClient : IAsyncDisposable
     /// Valores posibles: <see cref="ConnectionState.Connected"/>, 
     /// <see cref="ConnectionState.Reconnecting"/>, <see cref="ConnectionState.Disconnected"/>.
     /// </summary>
-    event EventHandler<ConnectionState>? OnConnectionChanged;
+    event EventHandler<SignalRConnectionState>? OnConnectionChanged;
 
     /// <summary>
     /// Abre una conexión con el servidor de SignalR.
