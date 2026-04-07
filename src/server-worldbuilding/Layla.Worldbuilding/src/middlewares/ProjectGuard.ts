@@ -36,10 +36,15 @@ export const requireProjectAccess = () => {
     const session = driver.session();
 
     try {
-      // TODO: Alignment with SQL ProjectRole system. 
-      // Current check only verifies ownership in Neo4j.
+      // Check membership via :MEMBER_OF edge OR ownership via ownerId
+      // property so the guard works even before the full role-sync pipeline
+      // is in place.
       const result = await session.run(
-        `MATCH (u:User { id: $userId })-[:MEMBER_OF]->(p:Project { projectId: $projectId }) RETURN p LIMIT 1`,
+        `MATCH (p:Project { projectId: $projectId })
+         OPTIONAL MATCH (u:User { id: $userId })-[:MEMBER_OF]->(p)
+         WITH p, u
+         WHERE p.ownerId = $userId OR u IS NOT NULL
+         RETURN p LIMIT 1`,
         { projectId, userId: req.user.id },
       );
 

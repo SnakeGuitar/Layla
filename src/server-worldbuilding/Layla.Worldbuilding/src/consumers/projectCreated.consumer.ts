@@ -16,8 +16,11 @@ interface ProjectCreatedPayload {
 const ROUTING_KEY = "project.created";
 
 /**
- * Creates a `:Project` node in Neo4j for the given payload using MERGE,
- * so duplicate events are idempotent.
+ * Creates a `:Project` node and a `:User`→`:MEMBER_OF`→`:Project` edge for
+ * the owner inside a single Neo4j transaction (idempotent via MERGE).
+ *
+ * Without the `:User` + `:MEMBER_OF` link the {@link requireProjectAccess}
+ * guard would always return 403 because no membership data existed.
  */
 const initializeProjectInNeo4j = async (
   payload: ProjectCreatedPayload,
@@ -25,16 +28,29 @@ const initializeProjectInNeo4j = async (
   const driver = getNeo4jDriver();
   const session = driver.session();
   try {
-    await session.run(
-      `MERGE (p:Project { projectId: $projectId })
-       ON CREATE SET p.title = $title, p.ownerId = $ownerId, p.createdAt = $createdAt`,
-      {
-        projectId: payload.projectId,
-        title: payload.title,
-        ownerId: payload.ownerId,
-        createdAt: payload.createdAt,
-      },
-    );
+    await session.executeWrite(async (tx) => {
+      await tx.run(
+        `MERGE (p:Project { projectId: $projectId })
+         ON CREATE SET p.title = $title, p.ownerId = $ownerId, p.createdAt = $createdAt`,
+        {
+          projectId: payload.projectId,
+          title: payload.title,
+          ownerId: payload.ownerId,
+          createdAt: payload.createdAt,
+        },
+      );
+
+      await tx.run(
+        `MERGE (u:User { id: $ownerId })
+         WITH u
+         MATCH (p:Project { projectId: $projectId })
+         MERGE (u)-[:MEMBER_OF]->(p)`,
+        {
+          ownerId: payload.ownerId,
+          projectId: payload.projectId,
+        },
+      );
+    });
   } finally {
     await session.close();
   }
@@ -53,6 +69,10 @@ const initializeManuscriptInMongo = async (
   }
 };
 
+/** Module-level references kept for {@link closeRabbitMQ}. */
+let _conn: ChannelModel | null = null;
+let _channel: Channel | null = null;
+
 /**
  * Connects to RabbitMQ and starts consuming the `project.created` routing key
  * from the configured exchange and queue.
@@ -67,11 +87,9 @@ export const startProjectCreatedConsumer = async (): Promise<void> => {
   const MAX_RETRIES = 5;
   const RETRY_DELAY_MS = 3000;
 
-  let conn: ChannelModel | null = null;
-
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      conn = await amqplib.connect(config.rabbitmq.url);
+      _conn = await amqplib.connect(config.rabbitmq.url);
       break;
     } catch (err) {
       console.error(
@@ -85,42 +103,62 @@ export const startProjectCreatedConsumer = async (): Promise<void> => {
     }
   }
 
-  if (!conn) return;
+  if (!_conn) return;
 
-  const channel: Channel = await conn.createChannel();
+  _channel = await _conn.createChannel();
 
-  await channel.assertExchange(config.rabbitmq.exchange, "topic", {
+  await _channel.assertExchange(config.rabbitmq.exchange, "topic", {
     durable: true,
   });
-  await channel.assertQueue(config.rabbitmq.queue, { durable: true });
-  await channel.bindQueue(
+  await _channel.assertQueue(config.rabbitmq.queue, { durable: true });
+  await _channel.bindQueue(
     config.rabbitmq.queue,
     config.rabbitmq.exchange,
     ROUTING_KEY,
   );
-  channel.prefetch(1);
+  _channel.prefetch(1);
 
   console.log(
     `RabbitMQ consumer active: ${config.rabbitmq.queue} (${ROUTING_KEY})`,
   );
 
-  channel.consume(config.rabbitmq.queue, async (msg) => {
+  _channel.consume(config.rabbitmq.queue, async (msg) => {
     if (!msg) return;
     try {
       const payload: ProjectCreatedPayload = JSON.parse(msg.content.toString());
       await initializeProjectInNeo4j(payload);
       await initializeManuscriptInMongo(payload.projectId);
-      channel.ack(msg);
+      _channel!.ack(msg);
       console.log(
         `Project ${payload.projectId} initialized in Neo4j and MongoDB`,
       );
     } catch (error) {
       console.error("Error processing ProjectCreatedEvent:", error);
-      channel.nack(msg, false, false);
+      _channel!.nack(msg, false, false);
     }
   });
 
-  conn.on("error", (err) => {
+  _conn.on("error", (err) => {
     console.error("RabbitMQ connection error:", err.message);
   });
+};
+
+/**
+ * Closes the RabbitMQ channel and connection gracefully.
+ * Called during application shutdown from {@link bootstrap}.
+ */
+export const closeRabbitMQ = async (): Promise<void> => {
+  try {
+    if (_channel) {
+      await _channel.close();
+      _channel = null;
+    }
+    if (_conn) {
+      await _conn.close();
+      _conn = null;
+    }
+    console.log("[RabbitMQ] Connection closed");
+  } catch (err) {
+    console.error("[RabbitMQ] Error during cleanup:", err);
+  }
 };

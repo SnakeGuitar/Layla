@@ -10,6 +10,21 @@ import type {
 } from "@/interfaces/repositories/IGraphRepository";
 
 /**
+ * Allowed Neo4j relationship types — defence-in-depth mirror of the Zod
+ * {@link relationshipTypeSchema} defined in `validation/index.ts`.
+ *
+ * Even if the Zod schema is updated or bypassed, the repository will reject
+ * any type not in this set before it reaches a Cypher template literal.
+ */
+const ALLOWED_RELATIONSHIP_TYPES: ReadonlySet<string> = new Set([
+  "RELATED_TO",
+  "ALLY_OF",
+  "ENEMY_OF",
+  "MEMBER_OF",
+  "LOCATED_IN",
+]);
+
+/**
  * Extract props from node secure
  */
 const nodeProps = (
@@ -140,9 +155,12 @@ export class Neo4jGraphRepository implements IGraphRepository {
     const session = getNeo4jDriver().session();
 
     try {
-      // `data.type` is validated against `relationshipTypeSchema` at the API
-      // boundary (controller + Zod), so it is guaranteed to be a safe,
-      // known relationship type by the time it reaches here.
+      if (!ALLOWED_RELATIONSHIP_TYPES.has(data.type)) {
+        throw new Error(
+          `[Neo4j] Rejected unknown relationship type: "${data.type}"`,
+        );
+      }
+
       await session.run(
         `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
          MATCH (b:Entity { entityId: $targetId, projectId: $projectId })

@@ -4,8 +4,12 @@ import swaggerUi from "swagger-ui-express";
 import { config } from "@/config/env";
 import { connectMongoDB } from "@/db/mongoose";
 import { verifyNeo4jConnection, closeNeo4jDriver } from "@/db/neo4j";
-import { startProjectCreatedConsumer } from "@/consumers/projectCreated.consumer";
+import {
+  startProjectCreatedConsumer,
+  closeRabbitMQ,
+} from "@/consumers/projectCreated.consumer";
 import { startNeo4jSyncWorker } from "@/workers/neo4jSyncWorker";
+import { apiLimiter } from "@/middlewares/RateLimiter";
 import { swaggerSpec } from "@/docs/swagger";
 
 import ManuscriptsRouter from "@/routes/Manuscripts";
@@ -14,6 +18,7 @@ import GraphRouter from "@/routes/Graph";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
+app.use(apiLimiter);
 
 app.use("/api/manuscripts", ManuscriptsRouter);
 app.use("/api/wiki", WikiRouter);
@@ -56,6 +61,7 @@ const bootstrap = async () => {
   const shutdown = async () => {
     console.log("Shutting down server...");
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    await closeRabbitMQ();
     await closeNeo4jDriver();
     process.exit(0);
   };

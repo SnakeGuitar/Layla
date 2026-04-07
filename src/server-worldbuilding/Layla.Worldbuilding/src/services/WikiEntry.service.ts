@@ -103,8 +103,14 @@ export const updateEntry = async (
 };
 
 /**
- * Deletes a wiki entry from MongoDB and attempts to remove its Neo4j node.
+ * Deletes a wiki entry from MongoDB and removes its Neo4j node with retry.
+ *
+ * Because MongoDB and Neo4j are not in a shared transaction, we retry the
+ * Neo4j deletion up to {@link NEO4J_DELETE_RETRIES} times with exponential
+ * back-off to minimize the risk of orphaned graph nodes.
  */
+const NEO4J_DELETE_RETRIES = 3;
+
 export const deleteEntry = async (
   entityId: string,
   repo = container,
@@ -112,14 +118,23 @@ export const deleteEntry = async (
   const deleted = await repo.wikiRepo.deleteEntry(entityId);
   if (!deleted) return false;
 
-  try {
-    await repo.graphRepo.deleteEntity(entityId);
-  } catch (err) {
-    console.error(
-      `[WikiEntry.service] Failed to delete Neo4j node for entity ${entityId}.`,
-      err,
-    );
+  for (let attempt = 1; attempt <= NEO4J_DELETE_RETRIES; attempt++) {
+    try {
+      await repo.graphRepo.deleteEntity(entityId);
+      return true;
+    } catch (err) {
+      console.error(
+        `[WikiEntry.service] Neo4j delete attempt ${attempt}/${NEO4J_DELETE_RETRIES} failed for entity ${entityId}.`,
+        err,
+      );
+      if (attempt < NEO4J_DELETE_RETRIES) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
   }
 
+  console.error(
+    `[WikiEntry.service] All Neo4j delete retries exhausted for entity ${entityId}. Orphaned node may remain.`,
+  );
   return true;
 };
