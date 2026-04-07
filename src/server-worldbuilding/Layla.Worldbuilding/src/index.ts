@@ -31,13 +31,24 @@ app.get("/api-docs.json", (_req, res) => res.json(swaggerSpec));
 app.use(
   (
     err: unknown,
-    _req: Request,
+    req: Request,
     res: Response,
-    _next: NextFunction,
+    next: NextFunction,
   ) => {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "Internal server error";
-    res.status(500).json({ error: message });
+    // Log full context server-side; never leak it to the client.
+    console.error(
+      `[GlobalError] ${req.method} ${req.originalUrl}`,
+      err instanceof Error ? err.stack : err,
+    );
+
+    if (res.headersSent) {
+      // Express requires delegating to the default handler when the
+      // response has already started streaming.
+      next(err);
+      return;
+    }
+
+    res.status(500).json({ error: "Internal server error" });
   },
 );
 

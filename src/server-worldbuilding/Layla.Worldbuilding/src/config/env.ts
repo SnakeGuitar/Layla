@@ -16,12 +16,39 @@ const required = [
 ] as const;
 
 /**
- * Verify if some secret is empty or missing
+ * Variables that must additionally meet a minimum-length threshold so a
+ * weak secret (e.g. `"a"`) is rejected at startup, not at first auth attempt.
+ *
+ * 32 bytes is the recommended minimum entropy for HS256 JWT signing keys.
  */
-const missing = required.filter((key) => !process.env[key]?.trim());
+const MIN_SECRET_LENGTH = 32;
+const minLengthRequired: ReadonlySet<string> = new Set([
+  "JWT_SECRET",
+  "JWT_SECRET_REFRESH",
+]);
+
+const missing: string[] = [];
+const tooShort: string[] = [];
+
+for (const key of required) {
+  const value = process.env[key]?.trim();
+  if (!value) {
+    missing.push(key);
+    continue;
+  }
+  if (minLengthRequired.has(key) && value.length < MIN_SECRET_LENGTH) {
+    tooShort.push(key);
+  }
+}
+
 if (missing.length > 0) {
   throw new Error(
     `Missing or empty required environment variables: ${missing.join(", ")}`,
+  );
+}
+if (tooShort.length > 0) {
+  throw new Error(
+    `The following secrets must be at least ${MIN_SECRET_LENGTH} characters: ${tooShort.join(", ")}`,
   );
 }
 

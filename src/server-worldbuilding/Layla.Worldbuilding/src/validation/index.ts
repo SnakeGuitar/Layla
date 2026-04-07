@@ -14,26 +14,30 @@ export const entityTypeSchema = z.enum([
 
 // ─── Manuscript ───────────────────────────────────────────────────────────────
 
+/** Upper bound for `order` fields — protects pagination/UI from absurd values. */
+const MAX_ORDER = 10_000;
+const orderField = z.number().int().min(0).max(MAX_ORDER);
+
 export const CreateManuscriptSchema = z.object({
   title: z.string().min(1).max(200),
-  order: z.number().int().min(0).optional(),
+  order: orderField.optional(),
 });
 
 export const UpdateManuscriptSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  order: z.number().int().min(0).optional(),
+  order: orderField.optional(),
 });
 
 export const CreateChapterSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().optional(),
-  order: z.number().int().min(0).optional(),
+  order: orderField.optional(),
 });
 
 export const UpdateChapterSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   content: z.string().optional(),
-  order: z.number().int().min(0).optional(),
+  order: orderField.optional(),
   clientTimestamp: z.string().datetime({ offset: true }).optional(),
 });
 

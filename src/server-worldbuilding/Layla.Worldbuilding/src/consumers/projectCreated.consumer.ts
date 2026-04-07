@@ -122,24 +122,34 @@ export const startProjectCreatedConsumer = async (): Promise<void> => {
     `RabbitMQ consumer active: ${config.rabbitmq.queue} (${ROUTING_KEY})`,
   );
 
-  _channel.consume(config.rabbitmq.queue, async (msg) => {
+  // Capture local references so the closure is null-safe even if
+  // `closeRabbitMQ` clears the module-level vars during shutdown.
+  const channel = _channel;
+  channel.consume(config.rabbitmq.queue, async (msg) => {
     if (!msg) return;
     try {
       const payload: ProjectCreatedPayload = JSON.parse(msg.content.toString());
       await initializeProjectInNeo4j(payload);
       await initializeManuscriptInMongo(payload.projectId);
-      _channel!.ack(msg);
+      channel.ack(msg);
       console.log(
-        `Project ${payload.projectId} initialized in Neo4j and MongoDB`,
+        `[RabbitMQ] Project ${payload.projectId} initialized in Neo4j and MongoDB`,
       );
     } catch (error) {
-      console.error("Error processing ProjectCreatedEvent:", error);
-      _channel!.nack(msg, false, false);
+      console.error(
+        "[RabbitMQ] Error processing ProjectCreatedEvent:",
+        error,
+      );
+      try {
+        channel.nack(msg, false, false);
+      } catch (nackErr) {
+        console.error("[RabbitMQ] Failed to nack message:", nackErr);
+      }
     }
   });
 
   _conn.on("error", (err) => {
-    console.error("RabbitMQ connection error:", err.message);
+    console.error("[RabbitMQ] Connection error:", err.message);
   });
 };
 

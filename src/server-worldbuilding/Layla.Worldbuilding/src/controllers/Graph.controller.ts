@@ -3,6 +3,7 @@ import * as GraphService from "@/services/Graph.service";
 import {
   CreateRelationshipSchema,
   DeleteRelationshipSchema,
+  entityTypeSchema,
   validate,
 } from "@/validation";
 
@@ -11,9 +12,23 @@ import {
  *
  * Returns the full entity graph for a project: nodes and directed edges.
  * Accepts an optional `?type=` query parameter to filter nodes by entity type.
+ * Returns 400 when `type` is present but is not a known entity type.
  */
 export const getGraph = async (req: Request, res: Response): Promise<void> => {
-  const entityType = req.query["type"] as string | undefined;
+  const rawType = req.query["type"];
+  let entityType: string | undefined;
+
+  if (rawType !== undefined) {
+    const parsed = entityTypeSchema.safeParse(rawType);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: `Invalid entity type. Allowed: ${entityTypeSchema.options.join(", ")}`,
+      });
+      return;
+    }
+    entityType = parsed.data;
+  }
+
   const graph = await GraphService.getGraph(
     req.params["projectId"] as string,
     entityType,

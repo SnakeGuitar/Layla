@@ -110,9 +110,9 @@ export const updateManuscriptMeta = async (
   data: UpdateManuscriptData,
   repo = container.manuscriptRepo,
 ) => {
-  const updateData = Object.fromEntries(
-    Object.entries(data).filter(([, v]) => v !== undefined),
-  ) as UpdateManuscriptData;
+  const updateData: UpdateManuscriptData = {};
+  if (data.title !== undefined) updateData.title = data.title;
+  if (data.order !== undefined) updateData.order = data.order;
 
   return repo.updateManuscript(projectId, manuscriptId, updateData);
 };
