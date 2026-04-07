@@ -52,10 +52,18 @@ export const createRelationship = async (
     return;
   }
 
-  await GraphService.createRelationship({
+  const created = await GraphService.createRelationship({
     projectId: req.params["projectId"] as string,
     ...parsed.data,
   });
+
+  if (!created) {
+    res.status(404).json({
+      error: "One or both entities do not exist in this project",
+    });
+    return;
+  }
+
   res.status(201).json({ message: "Relationship created" });
 };
 

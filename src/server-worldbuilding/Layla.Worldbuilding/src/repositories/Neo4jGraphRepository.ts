@@ -151,7 +151,7 @@ export class Neo4jGraphRepository implements IGraphRepository {
     targetEntityId: string;
     type: string;
     label?: string;
-  }): Promise<void> {
+  }): Promise<boolean> {
     const session = getNeo4jDriver().session();
 
     try {
@@ -161,12 +161,17 @@ export class Neo4jGraphRepository implements IGraphRepository {
         );
       }
 
-      await session.run(
-        `MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
-         MATCH (b:Entity { entityId: $targetId, projectId: $projectId })
+      // Use OPTIONAL MATCH so the query always returns a row, then check
+      // if both nodes were actually found before attempting MERGE.
+      const result = await session.run(
+        `OPTIONAL MATCH (a:Entity { entityId: $sourceId, projectId: $projectId })
+         OPTIONAL MATCH (b:Entity { entityId: $targetId, projectId: $projectId })
+         WITH a, b
+         WHERE a IS NOT NULL AND b IS NOT NULL
          MERGE (a)-[r:${data.type}]->(b)
          ON CREATE SET r.label = $label
-         ON MATCH  SET r.label = $label`,
+         ON MATCH  SET r.label = $label
+         RETURN count(r) AS created`,
         {
           sourceId: data.sourceEntityId,
           targetId: data.targetEntityId,
@@ -174,6 +179,9 @@ export class Neo4jGraphRepository implements IGraphRepository {
           label: data.label ?? data.type,
         },
       );
+
+      // If no rows are returned the WHERE clause eliminated them — nodes not found
+      return result.records.length > 0;
     } finally {
       await session.close();
     }

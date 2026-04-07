@@ -30,13 +30,13 @@ export const UpdateManuscriptSchema = z.object({
 
 export const CreateChapterSchema = z.object({
   title: z.string().min(1).max(200),
-  content: z.string().optional(),
+  content: z.string().max(5_000_000).optional(),
   order: orderField.optional(),
 });
 
 export const UpdateChapterSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  content: z.string().optional(),
+  content: z.string().max(5_000_000).optional(),
   order: orderField.optional(),
   clientTimestamp: z.string().datetime({ offset: true }).optional(),
 });
@@ -46,15 +46,15 @@ export const UpdateChapterSchema = z.object({
 export const CreateWikiEntrySchema = z.object({
   name: z.string().min(1).max(200),
   entityType: entityTypeSchema,
-  description: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  description: z.string().max(10_000).optional(),
+  tags: z.array(z.string().max(100)).max(50).optional(),
 });
 
 export const UpdateWikiEntrySchema = z.object({
   name: z.string().min(1).max(200).optional(),
   entityType: entityTypeSchema.optional(),
-  description: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  description: z.string().max(10_000).optional(),
+  tags: z.array(z.string().max(100)).max(50).optional(),
 });
 
 // ─── Graph ────────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ export const CreateRelationshipSchema = z.object({
   sourceEntityId: uuidParam,
   targetEntityId: uuidParam,
   type: relationshipTypeSchema,
-  label: z.string().optional(),
+  label: z.string().max(500).optional(),
 });
 
 export const DeleteRelationshipSchema = z.object({

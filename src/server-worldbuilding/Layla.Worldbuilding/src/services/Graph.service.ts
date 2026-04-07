@@ -14,7 +14,8 @@ export const getGraph = async (
 };
 
 /**
- * Creates a directed `:RELATED_TO` relationship between two entity nodes.
+ * Creates a directed relationship between two entity nodes.
+ * Returns `false` if either entity does not exist in the project.
  */
 export const createRelationship = async (
   data: {
@@ -25,7 +26,7 @@ export const createRelationship = async (
     label?: string;
   },
   repo = container.graphRepo,
-): Promise<void> => {
+): Promise<boolean> => {
   return repo.createRelationship(data);
 };
 

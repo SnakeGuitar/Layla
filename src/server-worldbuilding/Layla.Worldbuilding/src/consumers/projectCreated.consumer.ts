@@ -1,16 +1,20 @@
 import type { Channel, ChannelModel } from "amqplib";
 import amqplib from "amqplib";
+import { z } from "zod";
 import { getNeo4jDriver } from "@/db/neo4j";
 import { ManuscriptModel } from "@/models/Manuscript.model";
 import { config } from "@/config/env";
 
+/** Zod schema that validates the payload published by server-core. */
+const ProjectCreatedPayloadSchema = z.object({
+  projectId: z.string().uuid(),
+  ownerId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  createdAt: z.string(),
+});
+
 /** Shape of the payload published by server-core when a project is created. */
-interface ProjectCreatedPayload {
-  projectId: string;
-  ownerId: string;
-  title: string;
-  createdAt: string;
-}
+type ProjectCreatedPayload = z.infer<typeof ProjectCreatedPayloadSchema>;
 
 /** RabbitMQ routing key this consumer subscribes to. */
 const ROUTING_KEY = "project.created";
@@ -128,7 +132,17 @@ export const startProjectCreatedConsumer = async (): Promise<void> => {
   channel.consume(config.rabbitmq.queue, async (msg) => {
     if (!msg) return;
     try {
-      const payload: ProjectCreatedPayload = JSON.parse(msg.content.toString());
+      const raw = JSON.parse(msg.content.toString()) as unknown;
+      const parseResult = ProjectCreatedPayloadSchema.safeParse(raw);
+      if (!parseResult.success) {
+        console.error(
+          "[RabbitMQ] Malformed ProjectCreatedEvent — nacking without requeue:",
+          parseResult.error.issues,
+        );
+        try { channel.nack(msg, false, false); } catch { /* best-effort */ }
+        return;
+      }
+      const payload: ProjectCreatedPayload = parseResult.data;
       await initializeProjectInNeo4j(payload);
       await initializeManuscriptInMongo(payload.projectId);
       channel.ack(msg);

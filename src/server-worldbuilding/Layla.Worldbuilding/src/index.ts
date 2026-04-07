@@ -1,5 +1,7 @@
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import { config } from "@/config/env";
 import { connectMongoDB } from "@/db/mongoose";
@@ -17,6 +19,24 @@ import WikiRouter from "@/routes/Wiki";
 import GraphRouter from "@/routes/Graph";
 
 const app = express();
+
+// Security headers (XSS, clickjacking, MIME sniffing, etc.)
+app.use(helmet());
+
+// CORS — only allow traffic from server-core and the desktop/web clients
+const allowedOrigins = (process.env["ALLOWED_ORIGINS"] ?? "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Authorization", "Content-Type"],
+  }),
+);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(apiLimiter);
 
