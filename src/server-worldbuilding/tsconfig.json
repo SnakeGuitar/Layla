@@ -7,7 +7,7 @@
 
     // Environment Settings
     "module": "ESNext",
-    "target": "ESNext",
+    "target": "ES2022",
     "lib": ["ES2022"],
     "skipLibCheck": true,
 
@@ -15,18 +15,19 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
+    "preserveConstEnums": true,
+    "noImplicitAny": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
+    "allowJs": false,
+    "checkJs": false,
 
     // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
 
     // Recommended Options
     "isolatedModules": true,
@@ -41,19 +42,17 @@
     "esModuleInterop": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": false,
 
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "eslint.config.mts"]
