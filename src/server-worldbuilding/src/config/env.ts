@@ -63,35 +63,35 @@ if (tooShort.length > 0) {
  */
 export const config = {
 	/** Allowed origin for CORS policies. */
-	allowedOrigins: process.env.ALLOWED_ORIGINS,
+	allowedOrigins: process.env["ALLOWED_ORIGINS"]!,
 
 	/** HTTP server port. Defaults to `3000` if `PORT` is not set. */
-	port: Number(process.env.PORT),
+	port: process.env["PORT"]!,
 
 	jwt: {
-		secret: process.env.JWT_SECRET!,
-		secretRefresh: process.env.JWT_SECRET_REFRESH!,
+		secret: process.env["JWT_SECRET"]!,
+		secretRefresh: process.env["JWT_SECRET_REFRESH"]!,
 		/** Default: `"1440m"` (24 hours). */
-		accessExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY!,
+		accessExpiry: process.env["JWT_ACCESS_TOKEN_EXPIRY"]!,
 		/** Default: `"7d"`. */
-		refreshExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY!,
+		refreshExpiry: process.env["JWT_REFRESH_TOKEN_EXPIRY"]!,
 	},
 
 	mongo: {
-		uri: process.env.MONGODB_URI!,
+		uri: process.env["MONGODB_URI"]!,
 	},
 
 	neo4j: {
-		uri: process.env.NEO4J_URI!,
-		username: process.env.NEO4J_USERNAME!,
-		password: process.env.NEO4J_PASSWORD!,
+		uri: process.env["NEO4J_URI"]!,
+		username: process.env["NEO4J_USERNAME"]!,
+		password: process.env["NEO4J_PASSWORD"]!,
 	},
 
 	rabbitmq: {
-		url: process.env.RABBITMQ_URL!,
+		url: process.env["RABBITMQ_URL"]!,
 		/** Default: `"worldbuilding.events"`. */
-		exchange: process.env.RABBITMQ_EXCHANGE ?? "worldbuilding.events",
+		exchange: process.env["RABBITMQ_EXCHANGE"] ?? "worldbuilding.events",
 		/** Default: `"worldbuilding.node.queue"`. */
-		queue: process.env.RABBITMQ_QUEUE ?? "worldbuilding.node.queue",
+		queue: process.env["RABBITMQ_QUEUE"] ?? "worldbuilding.node.queue",
 	},
 } as const;

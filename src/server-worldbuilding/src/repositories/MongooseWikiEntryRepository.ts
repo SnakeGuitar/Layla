@@ -3,52 +3,57 @@ import type { IWikiEntry, WikiEntityType } from "@/interfaces/wiki/IWikiEntry";
 import type { IWikiEntryRepository } from "@/interfaces/repositories/IWikiEntryRepository";
 
 export class MongooseWikiEntryRepository implements IWikiEntryRepository {
-  async listEntries(
-    projectId: string,
-    entityType?: WikiEntityType,
-  ): Promise<Omit<IWikiEntry, "description">[]> {
-    const filter: Record<string, string | number> = { projectId };
-    if (entityType) filter.entityType = entityType;
-    return WikiEntryModel.find(filter)
-      .select("-description -__v")
-      .lean() as unknown as IWikiEntry[];
-  }
+	async listEntries(
+		projectId: string,
+		entityType?: WikiEntityType,
+	): Promise<Omit<IWikiEntry, "description">[]> {
+		const filter: Record<string, string | number> = { projectId };
+		if (entityType) filter["entityType"] = entityType;
+		return WikiEntryModel.find(filter)
+			.select("-description -__v")
+			.lean() as unknown as IWikiEntry[];
+	}
 
-  async getEntry(entityId: string, projectId?: string): Promise<IWikiEntry | null> {
-    const filter: Record<string, string> = { entityId };
-    if (projectId) filter.projectId = projectId;
-    return WikiEntryModel.findOne(filter).lean() as unknown as IWikiEntry | null;
-  }
+	async getEntry(
+		entityId: string,
+		projectId?: string,
+	): Promise<IWikiEntry | null> {
+		const filter: Record<string, string> = { entityId };
+		if (projectId) filter["projectId"] = projectId;
+		return WikiEntryModel.findOne(
+			filter,
+		).lean() as unknown as IWikiEntry | null;
+	}
 
-  async createEntry(data: Partial<IWikiEntry>): Promise<IWikiEntry> {
-    const entry = await WikiEntryModel.create(data);
-    return entry.toObject() as unknown as IWikiEntry;
-  }
+	async createEntry(data: Partial<IWikiEntry>): Promise<IWikiEntry> {
+		const entry = await WikiEntryModel.create(data);
+		return entry.toObject() as unknown as IWikiEntry;
+	}
 
-  async updateEntry(
-    entityId: string,
-    data: Partial<IWikiEntry>,
-    projectId?: string,
-  ): Promise<IWikiEntry | null> {
-    const filter: Record<string, string> = { entityId };
-    if (projectId) filter.projectId = projectId;
-    return WikiEntryModel.findOneAndUpdate(
-      filter,
-      { $set: data },
-      { new: true },
-    ).lean() as unknown as IWikiEntry | null;
-  }
+	async updateEntry(
+		entityId: string,
+		data: Partial<IWikiEntry>,
+		projectId?: string,
+	): Promise<IWikiEntry | null> {
+		const filter: Record<string, string> = { entityId };
+		if (projectId) filter["projectId"] = projectId;
+		return WikiEntryModel.findOneAndUpdate(
+			filter,
+			{ $set: data },
+			{ new: true },
+		).lean() as unknown as IWikiEntry | null;
+	}
 
-  async deleteEntry(entityId: string, projectId?: string): Promise<boolean> {
-    const filter: Record<string, string> = { entityId };
-    if (projectId) filter.projectId = projectId;
-    const result = await WikiEntryModel.deleteOne(filter);
-    return result.deletedCount > 0;
-  }
+	async deleteEntry(entityId: string, projectId?: string): Promise<boolean> {
+		const filter: Record<string, string> = { entityId };
+		if (projectId) filter["projectId"] = projectId;
+		const result = await WikiEntryModel.deleteOne(filter);
+		return result.deletedCount > 0;
+	}
 
-  async findEntriesToSync(): Promise<IWikiEntry[]> {
-    return WikiEntryModel.find({ neo4jSynced: false })
-      .limit(50)
-      .lean() as unknown as IWikiEntry[];
-  }
+	async findEntriesToSync(): Promise<IWikiEntry[]> {
+		return WikiEntryModel.find({ neo4jSynced: false })
+			.limit(50)
+			.lean() as unknown as IWikiEntry[];
+	}
 }
