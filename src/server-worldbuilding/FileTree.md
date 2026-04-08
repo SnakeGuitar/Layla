@@ -1,8 +1,4 @@
-# File Tree: Layla.Worldbuilding
-
-**Generated:** 3/27/2026, 1:00:14 PM
-**Root Path:** `c:\Users\fofor\Desktop\Desarrollo en red\Layla\src\server-worldbuilding\Layla.Worldbuilding`
-
+# File Tree: server-worldbuilding
 ```
 ├── 📁 src
 │   ├── 📁 config
@@ -22,7 +18,6 @@
 │   │   ├── 📁 auth
 │   │   │   ├── 📄 AuthRequest.ts
 │   │   │   ├── 📄 JwtPayloadCustom.ts
-│   │   │   ├── 📄 Login.ts
 │   │   │   └── 📄 TokenPair.ts
 │   │   ├── 📁 graph
 │   │   │   └── 📄 IGraphResult.ts
@@ -36,7 +31,8 @@
 │   │       └── 📄 IWikiEntry.ts
 │   ├── 📁 middlewares
 │   │   ├── 📄 Auth.ts
-│   │   └── 📄 ProjectGuard.ts
+│   │   ├── 📄 ProjectGuard.ts
+│   │   └── 📄 RateLimiter.ts
 │   ├── 📁 models
 │   │   ├── 📄 Manuscript.model.ts
 │   │   └── 📄 WikiEntry.model.ts
@@ -52,20 +48,24 @@
 │   │   ├── 📄 Graph.service.ts
 │   │   ├── 📄 Manuscript.service.ts
 │   │   ├── 📄 Mention.service.ts
-│   │   └── 📄 WikiEntry.service.ts
+│   │   ├── 📄 WikiEntry.service.ts
+│   │   └── 📄 container.ts
 │   ├── 📁 utils
 │   │   ├── 📄 ManageJWT.ts
 │   │   └── 📄 asyncHandler.ts
+│   ├── 📁 validation
+│   │   └── 📄 index.ts
 │   ├── 📁 workers
 │   │   └── 📄 neo4jSyncWorker.ts
 │   └── 📄 index.ts
 ├── ⚙️ .dockerignore
-├── ⚙️ .eslintignore
 ├── ⚙️ .gitignore
 ├── 🐳 Dockerfile
+├── 📝 FileTree.md
 ├── 📝 README.md
 ├── 📄 eslint.config.mts
 ├── 📄 example.http
+├── ⚙️ package-lock.json
 ├── ⚙️ package.json
 ├── ⚙️ pnpm-lock.yaml
 └── ⚙️ tsconfig.json

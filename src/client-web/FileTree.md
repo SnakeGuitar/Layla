@@ -1,7 +1,5 @@
 # File Tree: client-web
 
-**Generated:** 4/4/2026, 7:46:32 PM
-
 ```
 ├── 📁 Application
 │   ├── 📁 Config
