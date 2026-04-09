@@ -19,9 +19,6 @@ Builder.Configure(builder);
 Services.Configure(builder);
 Secure.Configure(builder);
 
-
-
-
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

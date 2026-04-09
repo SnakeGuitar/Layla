@@ -57,7 +57,7 @@ services:
   # --- 4. Worldbuilding API (Node.js) ---
   layla-worldbuilding:
     build:
-      context: ./src/server-worldbuilding/
+      context: ./src/server-worldbuilding
       dockerfile: Dockerfile
     container_name: layla-worldbuilding
     ports:
@@ -91,9 +91,11 @@ services:
       dockerfile: Layla.Api/Dockerfile
     container_name: layla-core
     ports:
-      - "${CORE_PORT_1}:${CORE_PORT_1}"
-      - "${CORE_PORT_2}:${CORE_PORT_2}"
+      - "${CORE_PORT_HTTPS}:${CORE_PORT_HTTPS}"
+      - "${CORE_PORT_HTTP}:${CORE_PORT_HTTP}"
     environment:
+      - ASPNETCORE_URLS=https://+:${CORE_PORT_HTTPS};http://+:${CORE_PORT_HTTP}
+      - PORT=${CORE_PORT_HTTPS}
       - JwtSettings__Secret=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
@@ -127,6 +129,30 @@ services:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
       retries: 5
+    restart: unless-stopped
+
+  # --- 7. Web app - (.NET) ---
+  layla-web:
+    build:
+      context: ./src/client-web
+      dockerfile: Dockerfile
+    container_name: layla-web
+    ports:
+      - "${WEB_PORT_HTTPS}:${WEB_PORT_HTTPS}"
+      - "${WEB_PORT_HTTP}:${WEB_PORT_HTTP}"
+    environment:
+      - WEB_PORT_HTTPS=${WEB_PORT_HTTPS}
+      - WEB_PORT_HTTP=${WEB_PORT_HTTP}
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:${WEB_PORT_HTTP}/health"]
+      timeout: 10s
+      interval: 10s
+      retries: 5
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

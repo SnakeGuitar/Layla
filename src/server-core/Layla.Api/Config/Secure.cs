@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.Unicode;
-using MongoDB.Bson.IO;
-using System.Buffers.Text;
 
 namespace Layla.Api.Config;
 
@@ -15,7 +12,7 @@ public static class Secure
 {
     public static void Configure(WebApplicationBuilder builder)
     {
-        string jwtSecret = RequireConfig(builder, "JwtSettings:Secret");
+        string jwtSecret = Secrets.RequireConfig(builder, "JwtSettings:Secret");
 
         builder.Services.AddCors(options =>
         {
@@ -59,7 +56,8 @@ public static class Secure
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/hubs/voice") || path.StartsWithSegments("/hubs/presence")))
+                            (path.StartsWithSegments("/hubs/voice") ||
+                            path.StartsWithSegments("/hubs/presence")))
                         {
                             context.Token = accessToken;
                         }
@@ -86,14 +84,5 @@ public static class Secure
             });
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
-    }
-
-    public static string RequireConfig(WebApplicationBuilder builder, string key)
-    {
-        var value = builder.Configuration[key];
-        if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidOperationException(
-                $"Missing required configuration '{key}'. Set it via environment variable or user-secrets.");
-        return value;
     }
 }

@@ -18,6 +18,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.MapHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();

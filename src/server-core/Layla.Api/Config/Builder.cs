@@ -53,5 +53,7 @@ public static class Builder
 
         builder.Services.AddInfrastructureServices(builder.Configuration);
         builder.Services.AddSignalR();
+        builder.WebHost.UseUrls(
+            $"https://localhost:{Secrets.RequireConfig(builder, "CORE_PORT_HTTPS")};http://localhost:{Secrets.RequireConfig(builder, "CORE_PORT_HTTP")};");
     }
 }
