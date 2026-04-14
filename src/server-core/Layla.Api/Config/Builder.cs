@@ -1,5 +1,8 @@
 using Layla.Infrastructure.Extensions;
 using Microsoft.OpenApi.Models;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Layla.Api.Config;
@@ -12,6 +15,8 @@ public static class Builder
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -36,24 +41,22 @@ public static class Builder
             });
 
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
-            },
-            Array.Empty<string>()
-        },
+            {{
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+                },
+                Array.Empty<string>()},
             });
 
-            var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            var xmlPath = System.IO.Path.Combine(AppContext.BaseDirectory, xmlFile);
+            string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             c.IncludeXmlComments(xmlPath);
         });
 
         builder.Services.AddInfrastructureServices(builder.Configuration);
         builder.Services.AddSignalR();
         builder.WebHost.UseUrls(
-            $"https://localhost:{Secrets.RequireConfig(builder, "CORE_PORT_HTTPS")};http://localhost:{Secrets.RequireConfig(builder, "CORE_PORT_HTTP")};");
+            $"https://localhost:{builder.Configuration["Ports:HTTPS"]};http://localhost:{builder.Configuration["Ports:HTTP"]};");
     }
 }

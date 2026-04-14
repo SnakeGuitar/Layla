@@ -9,7 +9,7 @@ namespace Layla.Desktop.Services
         /// <summary>
         /// Base URL for the .NET Server Core API (Identity, Projects, Users).
         /// </summary>
-        public static string ServerCoreUrl { get; } = "https://localhost:7165";
+        public static string ServerCoreUrl { get; } = "https://localhost:5288";
 
         /// <summary>
         /// Base URL for the Node.js Worldbuilding API (Manuscripts, Wiki, Graph).

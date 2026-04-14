@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Net.Http.Headers;
 
 namespace client_web.Application.Config.Http;
 
@@ -7,11 +8,6 @@ public class ApiClient
 {
     private readonly HttpClient _http;
     private readonly ILogger<ApiClient> _logger;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
 
     public ApiClient(HttpClient http, ILogger<ApiClient> logger)
     {
@@ -49,7 +45,7 @@ public class ApiClient
 
         try
         {
-            apiResponse = JsonSerializer.Deserialize<APIResponse<T>>(raw, JsonOptions);
+            apiResponse = JsonSerializer.Deserialize<APIResponse<T>>(raw);
         }
         catch (Exception ex)
         {
@@ -85,13 +81,13 @@ public class ApiClient
         if (!string.IsNullOrEmpty(request.Token))
         {
             httpRequest.Headers.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", request.Token);
+                new AuthenticationHeaderValue("Bearer", request.Token);
         }
 
         if (request.Body != null)
         {
-            var json = JsonSerializer.Serialize(request.Body, JsonOptions);
-            httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var json = JsonSerializer.Serialize(request.Body);
+            httpRequest.Content = new System.Net.Http.StringContent(json, Encoding.UTF8, "application/json");
         }
 
         return httpRequest;

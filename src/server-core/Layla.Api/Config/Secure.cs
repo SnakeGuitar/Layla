@@ -2,33 +2,25 @@ using Layla.Api.Filters;
 using Layla.Api.Middleware;
 using Layla.Core.Constants;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Layla.Api.Config;
 
 public static class Secure
 {
+    const int MinJwtSecretLength = 32;
+
     public static void Configure(WebApplicationBuilder builder)
     {
-        string jwtSecret = Secrets.RequireConfig(builder, "JwtSettings:Secret");
-
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("LaylaCors", policy =>
-            {
-                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
-                policy.WithOrigins(allowedOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            });
-        });
-
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         builder.Services.AddScoped<TokenVersionValidator>();
         builder.Services.AddScoped<RequireUserIdFilter>();
+        string jwtSecret = builder.Configuration["JwtSettings:Secret"]!;
+        if (jwtSecret == null || jwtSecret.Length < MinJwtSecretLength)
+            throw new InvalidOperationException($"'JwtSettings:Secret' must be at least {MinJwtSecretLength} characters for HS256 security.");
 
         builder.Services.AddAuthentication(options =>
         {
@@ -37,7 +29,7 @@ public static class Secure
         })
             .AddJwtBearer(options =>
             {
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -49,10 +41,11 @@ public static class Secure
                     RoleClaimType = ClaimNames.Role,
                     IssuerSigningKey = new SymmetricSecurityKey(new UTF8Encoding().GetBytes(jwtSecret))
                 };
-                options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
+                        // TODO-Desarrollo: Verificar acceso a SignalR services
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
@@ -73,6 +66,18 @@ public static class Secure
 
         builder.Services.AddAuthorization();
 
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("LaylaCors", policy =>
+            {
+                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+                policy.WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+        });
         builder.Services.AddRateLimiter(options =>
         {
             options.AddSlidingWindowLimiter("login", opt =>

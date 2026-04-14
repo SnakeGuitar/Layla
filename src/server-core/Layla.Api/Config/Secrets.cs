@@ -2,21 +2,30 @@ namespace Layla.Api.Config;
 
 public static class Secrets
 {
-    const int MinJwtSecretLength = 32;
+    static WebApplicationBuilder? _builder;
+
     public static void Configure(WebApplicationBuilder builder)
     {
-        string jwtSecret = RequireConfig(builder, "JwtSettings:Secret");
-        if (jwtSecret.Length < MinJwtSecretLength)
-            throw new InvalidOperationException($"'JwtSettings:Secret' must be at least {MinJwtSecretLength} characters for HS256 security.");
-
-        _ = RequireConfig(builder, "ConnectionStrings:DefaultConnection");
-        _ = RequireConfig(builder, "RabbitMQ:UserName");
-        _ = RequireConfig(builder, "RabbitMQ:Password");
+        _builder = builder;
+        _ = RequireConfig("Ports:HTTPS");
+        _ = RequireConfig("Ports:HTTP");
+        _ = RequireConfig("DatabaseConfigs:SQL:ConnectionString");
+        _ = RequireConfig("DatabaseConfigs:SQL:CommandTimeoutSeconds");
+        _ = RequireConfig("DatabaseConfigs:SQL:MaxRetryCount");
+        _ = RequireConfig("DatabaseConfigs:SQL:MaxRetryDelay");
+        _ = RequireConfig("JwtSettings:Secret");
+        _ = RequireConfig("JwtSettings:Issuer");
+        _ = RequireConfig("JwtSettings:Audience");
+        _ = RequireConfig("JwtSettings:ExpirationInMinutes");
+        _ = RequireConfig("RabbitMQ:HostName");
+        _ = RequireConfig("RabbitMQ:Port");
+        _ = RequireConfig("RabbitMQ:UserName");
+        _ = RequireConfig("RabbitMQ:Password");
     }
 
-    public static string RequireConfig(WebApplicationBuilder builder, string key)
+    public static string RequireConfig(string key)
     {
-        var value = builder.Configuration[key];
+        string? value = _builder?.Configuration[key];
         if (string.IsNullOrWhiteSpace(value))
             throw new InvalidOperationException(
                 $"Missing required configuration '{key}'. Set it via environment variable or user-secrets.");

@@ -4,8 +4,8 @@
     "Layla.Api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
-      "applicationUrl": "https://0.0.0.0:7165;http://0.0.0.0:5287",
+      "launchBrowser": false,
+      "applicationUrl": "https://0.0.0.0:5288;http://0.0.0.0:5287",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

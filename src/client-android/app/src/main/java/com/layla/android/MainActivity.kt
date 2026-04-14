@@ -54,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         val feedViewModel: ProjectFeedViewModel = viewModel(
                             factory = ProjectFeedViewModelFactory(
                                 projectApiService = RetrofitClient.projectApiService,
-                                presenceClient = PresenceSignalRClient("http://10.0.2.2:7165"),
+                                presenceClient = PresenceSignalRClient("http://10.0.2.2:5288"),
                                 token = token
                             )
                         )

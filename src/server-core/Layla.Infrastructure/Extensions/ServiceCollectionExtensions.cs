@@ -18,11 +18,30 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var commandTimeout = configuration.GetValue<int>("Database:CommandTimeoutSeconds", defaultValue: 30);
+        Int32 commandTimeout = configuration.GetValue<int>(
+            "DatabaseConfigs:SQL:CommandTimeoutSeconds"
+        );
+        Int32 maxRetryCount = configuration.GetValue<int>(
+            "DatabaseConfigs:SQL:MaxRetryCount"
+        );
+        TimeSpan maxRetryDelay = configuration.GetValue<TimeSpan>(
+            "DatabaseConfigs:SQL:MaxRetryDelay"
+        );
         services.AddDbContext<ApplicationDbContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
-                sqlOptions => sqlOptions.CommandTimeout(commandTimeout));
+            options.UseSqlServer(
+                configuration.GetValue<string>("DatabaseConfigs:SQL:ConnectionString"),
+                sqlOptions =>
+                {
+                    sqlOptions.CommandTimeout(commandTimeout);
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: maxRetryCount,
+                        maxRetryDelay: maxRetryDelay,
+                        errorNumbersToAdd: null
+                    );
+                }
+            );
+
             options.ConfigureWarnings(w =>
                 w.Log(RelationalEventId.PendingModelChangesWarning));
         });

@@ -16,7 +16,7 @@ Collaborative creative-writing and worldbuilding platform. Multiple authors can 
 ┌────────────────────┐   ┌─────────────────────────────┐
 │   server-core      │   │   server-worldbuilding      │
 │   ASP.NET Core 10  │   │   Node.js + Express 5       │
-│   Port 7165 (HTTPS)│   │   Port 3000 (HTTP)          │
+│   Port 5288 (HTTPS)│   │   Port 3000 (HTTP)          │
 │   Port 5287 (HTTP) │   │                             │
 │                    │   │  /api/manuscripts           │
 │  /api/tokens       │   │  /api/wiki                  │
@@ -45,7 +45,7 @@ Collaborative creative-writing and worldbuilding platform. Multiple authors can 
 
 | Service | Tech | Port | Databases | Purpose |
 |---|---|---|---|---|
-| `server-core` | ASP.NET Core 10 | 7165/5287 | SQL Server | Auth, users, projects, roles, SignalR |
+| `server-core` | ASP.NET Core 10 | 5288/5287 | SQL Server | Auth, users, projects, roles, SignalR |
 | `server-worldbuilding` | Node.js + Express 5 | 3000 | MongoDB, Neo4j | Manuscripts, wiki, narrative graph |
 
 ### Clients
@@ -62,7 +62,7 @@ Collaborative creative-writing and worldbuilding platform. Multiple authors can 
 
 | Service | URL |
 |---|---|
-| server-core (Swagger UI) | `https://localhost:7165/swagger` |
+| server-core (Swagger UI) | `https://localhost:5288/swagger` |
 | server-worldbuilding (Swagger UI) | `http://localhost:3000/api-docs` |
 | server-worldbuilding (OpenAPI JSON) | `http://localhost:3000/api-docs.json` |
 
@@ -70,7 +70,7 @@ Collaborative creative-writing and worldbuilding platform. Multiple authors can 
 
 ## API Reference
 
-### server-core  (`https://localhost:7165`)
+### server-core  (`https://localhost:5288`)
 
 #### Authentication
 
@@ -184,7 +184,7 @@ docker compose up -d
 ```
 
 Services start at:
-- server-core: `https://localhost:7165`
+- server-core: `https://localhost:5288`
 - server-worldbuilding: `http://localhost:3000`
 - RabbitMQ management: `http://localhost:15672`
 - Neo4j browser: `http://localhost:7474`

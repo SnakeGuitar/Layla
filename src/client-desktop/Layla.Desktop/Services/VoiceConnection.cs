@@ -7,7 +7,7 @@ namespace Layla.Desktop.Services;
 
 public class VoiceConnection : IAsyncDisposable
 {
-    private const string BaseUrl = "https://localhost:7165";
+    private const string BaseUrl = "https://localhost:5288";
     private const int SampleRate = 16000;
     private const int Channels = 1;
     private const int BitsPerSample = 16;

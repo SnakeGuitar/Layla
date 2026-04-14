@@ -13,7 +13,7 @@ services:
     volumes:
       - sql_data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U ${SQL_USERNAME} -P ${SQL_PASSWORD} -Q 'SELECT 1' -C
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U ${SQL_USERNAME} -P ${SQL_PASSWORD} -Q \"SELECT 1\" -C || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -101,15 +101,17 @@ services:
       - "${CORE_PORT_HTTPS}:${CORE_PORT_HTTPS}"
       - "${CORE_PORT_HTTP}:${CORE_PORT_HTTP}"
     environment:
-      - ASPNETCORE_URLS=https://+:${CORE_PORT_HTTPS};http://+:${CORE_PORT_HTTP}
-      - CORE_PORT_HTTPS=${CORE_PORT_HTTPS}
-      - CORE_PORT_HTTP=${CORE_PORT_HTTP}
+      - Ports__HTTPS=${CORE_PORT_HTTPS}
+      - Ports__HTTP=${CORE_PORT_HTTP}
       - JwtSettings__Secret=${JWT_SECRET}
       - JwtSettings__Issuer=${JWT_ISSUER}
       - JwtSettings__Audience=${JWT_AUDIENCE}
       - JwtSettings__ExpirationInMinutes=${JWT_ACCESS_TOKEN_EXPIRY}
-      - ASPNETCORE_ENVIRONMENT=${CORE_ENVIRONMENT}
-      - ConnectionStrings__DefaultConnection=Server=${SQL_SERVER}:${SQL_PORT};Database=${SQL_DATABASE};User Id=${SQL_USERNAME};Password=${SQL_PASSWORD};TrustServerCertificate=True;
+      - DatabaseConfigs__SQL__ConnectionString=Server=${SQL_SERVER},${SQL_PORT};Database=${SQL_DATABASE};User Id=${SQL_USERNAME};Password=${SQL_PASSWORD};TrustServerCertificate=True;
+      - DatabaseConfigs__SQL__CommandTimeoutSeconds=30
+      - DatabaseConfigs__SQL__MaxRetryCount=5
+      - DatabaseConfigs__SQL__MaxRetryDelay=00:00:10
+      - DatabaseConfigs__SQL__ErrorNumbersToAdd=null
       - RabbitMQ__HostName=${RABBIT_HostName}
       - RabbitMQ__Port=${RABBIT_PORT}
       - RabbitMQ__UserName=${RABBIT_USER}
@@ -117,6 +119,10 @@ services:
       - DOTNET_USE_POLLING_FILE_WATCHER=1
       - DOTNET_RUNNING_IN_CONTAINER=true
       - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
+      - ASPNETCORE_ENVIRONMENT=${CORE_ENVIRONMENT}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourStrongPasswordAF
+      - ASPNETCORE_URLS=https://+:${CORE_PORT_HTTPS};http://+:${CORE_PORT_HTTP}
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -153,11 +159,15 @@ services:
       - "${WEB_PORT_HTTPS}:${WEB_PORT_HTTPS}"
       - "${WEB_PORT_HTTP}:${WEB_PORT_HTTP}"
     environment:
-      - WEB_PORT_HTTPS=${WEB_PORT_HTTPS}
-      - WEB_PORT_HTTP=${WEB_PORT_HTTP}
+      - Ports__HTTPS=${WEB_PORT_HTTPs}
+      - Ports__HTTP=${WEB_PORT_HTTP}
       - DOTNET_USE_POLLING_FILE_WATCHER=1
       - DOTNET_RUNNING_IN_CONTAINER=true
       - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true
+      - ASPNETCORE_ENVIRONMENT=${CORE_ENVIRONMENT}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/src/certs/aspnetapp.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=YourStrongPasswordAF
+      - ASPNETCORE_URLS=https://+:${WEB_PORT_HTTPS};http://+:${WEB_PORT_HTTP}
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:${WEB_PORT_HTTP}/health"]
       interval: 10s

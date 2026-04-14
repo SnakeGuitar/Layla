@@ -11,16 +11,23 @@ RUN dotnet restore "Layla.Api/Layla.Api.csproj"
 # Copy everything else and build
 COPY . .
 WORKDIR "/src/Layla.Api"
+RUN mkdir -p /src/certs \
+    && dotnet dev-certs https -ep /src/certs/aspnetapp.pfx -p YourStrongPasswordAF
 RUN dotnet build "Layla.Api.csproj" -c Release -o /app/build
 
 # Publish Stage
 FROM build AS publish
+RUN mkdir -p /src/certs \
+    && dotnet dev-certs https -ep /src/certs/aspnetapp.pfx -p YourStrongPasswordAF
 RUN dotnet publish "Layla.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
-EXPOSE 7165
+EXPOSE 5288
 EXPOSE 5287
 COPY --from=publish /app/publish .
+COPY --from=publish /src/certs /app/certs
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/aspnetapp.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=YourStrongPasswordAF
 ENTRYPOINT ["dotnet", "Layla.Api.dll"]
