@@ -1,6 +1,5 @@
 using Layla.Infrastructure.Extensions;
 using Microsoft.OpenApi.Models;
-using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -58,5 +57,6 @@ public static class Builder
         builder.Services.AddSignalR();
         builder.WebHost.UseUrls(
             $"https://localhost:{builder.Configuration["Ports:HTTPS"]};http://localhost:{builder.Configuration["Ports:HTTP"]};");
+        builder.Services.AddHealthChecks();
     }
 }

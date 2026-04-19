@@ -34,6 +34,7 @@ else
     app.UseHttpsRedirection();
 }
 
+app.MapHealthChecks("/health");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
