@@ -4,6 +4,11 @@ Collaborative creative-writing and worldbuilding platform. Multiple authors can 
 
 ---
 
+## General architecture
+![General architecture](./assets/General architecture.jpg)
+
+---
+
 ## Architecture
 
 ```
